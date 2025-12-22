@@ -1,0 +1,16 @@
+pre-push:
+  parallel: true
+  commands:
+    check-types:
+      run: pnpm -r type-check
+
+    check-formatting:
+      run: pnpm format-check
+
+    lint:
+      run: pnpm -r lint-check
+
+commit-msg:
+  commands:
+    lint-commit:
+      run: pnpm commitlint --edit {1}

@@ -12,7 +12,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "type-check": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint . --ext .ts --cache --cache-location node_modules/.eslintcache --ignore-pattern .gitignore --fix",
     "lint-check": "eslint . --ext .ts --cache --cache-location node_modules/.eslintcache --ignore-pattern .gitignore"
   },
