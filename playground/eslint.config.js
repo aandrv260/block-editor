@@ -5,12 +5,12 @@ import tseslint from "typescript-eslint";
 import baseConfig from "../eslint.config.js";
 
 export default tseslint.config([
-  ...baseConfig,
-  reactHooks.configs.flat.recommended,
-  reactRefresh.configs.vite,
-
-  // Your custom overrides
   {
+    extends: [
+      baseConfig,
+      reactHooks.configs.flat["recommended-latest"],
+      reactRefresh.configs.vite,
+    ],
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
       parser: tseslint.parser,
@@ -26,7 +26,7 @@ export default tseslint.config([
       },
     },
     rules: {
-      "react-hooks/exhaustive-deps": "warn", // Override if needed
+      "react-hooks/exhaustive-deps": "warn",
     },
   },
 ]);
