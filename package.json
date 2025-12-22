@@ -1,0 +1,30 @@
+{
+  "name": "block-editor",
+  "version": "0.1.0",
+  "description": "",
+  "private": true,
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "format": "prettier --write .",
+    "format-check": "prettier --ignore-path .gitignore --check .",
+    "lint-core": "eslint packages/core --cache --cache-location node_modules/.eslintcache",
+    "lint-react": "eslint packages/ui-react --cache --cache-location node_modules/.eslintcache"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.26.1",
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "eslint": "^9.39.2",
+    "prettier": "^3.7.4",
+    "typescript-eslint": "^8.50.0"
+  }
+}

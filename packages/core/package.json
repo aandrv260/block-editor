@@ -1,0 +1,23 @@
+{
+  "name": "@block-editor/core",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint . --ext .ts --cache --cache-location node_modules/.eslintcache --ignore-pattern .gitignore --fix",
+    "lint-check": "eslint . --ext .ts --cache --cache-location node_modules/.eslintcache --ignore-pattern .gitignore"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.17.1"
+}
