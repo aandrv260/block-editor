@@ -3,7 +3,13 @@ import tseslint from "typescript-eslint";
 import { globalIgnores } from "eslint/config";
 
 export default tseslint.config([
-  globalIgnores(["dist", "coverage", "node_modules", "**/build/**"]),
+  globalIgnores([
+    "**/dist",
+    "**/coverage",
+    "node_modules",
+    "**/node_modules",
+    "**/build",
+  ]),
 
   // Base TypeScript rules (ALL packages)
   {
@@ -32,8 +38,11 @@ export default tseslint.config([
 
   // Test overrides (shared)
   {
-    files: ["**/*.{test.ts,test.tsx,spec.ts,spec.tsx}", "**/__tests__/**/*"],
-    extends: [tseslint.configs.recommended],
+    files: [
+      "**/*.{test.ts,test.tsx,spec.ts,spec.tsx}",
+      "**/*-test.utils.ts",
+      "**/__tests__/**/*",
+    ],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
     },
