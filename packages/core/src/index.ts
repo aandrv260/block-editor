@@ -7,3 +7,4 @@ export * from "./errors";
 export * from "./history";
 export * from "./events";
 export * from "./editor";
+export * from "./common";
