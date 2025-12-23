@@ -32,8 +32,11 @@ export default tseslint.config([
 
   // Test overrides (shared)
   {
-    files: ["**/*.{test.ts,test.tsx,spec.ts,spec.tsx}", "**/__tests__/**/*"],
-    extends: [tseslint.configs.recommended],
+    files: [
+      "**/*.{test.ts,test.tsx,spec.ts,spec.tsx}",
+      "**/*-test.utils.ts",
+      "**/__tests__/**/*",
+    ],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
     },

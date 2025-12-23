@@ -1,0 +1,12 @@
+export { BlockToUpdateHasNoParentError } from "./BlockToUpdateHasNoParentError";
+export { BlockToUpdateNotFoundError } from "./BlockToUpdateNotFoundError";
+export { CannotPreserveChildrenOnTargetBlockError } from "./CannotPreserveChildrenNewBlockCannotHaveChildrenError";
+export { CannotPreserveFromChildlessSourceBlockError } from "./CannotPreserveChildrenOldBlockCannotHaveChildrenError";
+export { ReplaceStrategyNotApplicableError } from "./CannotReplaceChildrenBothBlocksCannotHaveChildrenError";
+export { ReplaceStrategyTargetCannotHaveChildrenError } from "./CannotReplaceChildrenNewBlockCannotHaveChildrenError";
+export { ReplaceStrategyMissingNewChildrenError } from "./CannotReplaceChildrenNoChildrenProvidedError";
+export { ReplaceStrategySourceHasNoChildrenError } from "./CannotReplaceChildrenOldBlockCannotHaveChildrenError";
+export { CannotUpdateRootError } from "./CannotUpdateRootError";
+export { ChildBlockIdAlreadyExistsError } from "./UpdateBlockChildIDAlreadyExistsError";
+export { ChildBlockIdConflictsWithSubtreeRootError } from "./UpdateBlockChildIDEqualsSubtreeRootError";
+export { UpdateBlockIDAlreadyInUseError } from "./UpdateBlockIDAlreadyInUseError";
