@@ -1,0 +1,1 @@
+export const DOCUMENT_HISTORY_RECORDS_LIMIT = 150;

@@ -13,9 +13,9 @@ pre-push:
     unit-test:
       run: pnpm -r test-unit
 
-    # TODO: Enable when there are available integration tests in at least 1 project because currently, it fails the whole pipeline of commands.
-    # integration-test:
-    #   run: pnpm -r test-integ
+    # TODO: Later I must replace this with the `pnpm -r test-integ` command once I add integration tests to the UI adapter.
+    integration-test:
+      run: pnpm -F @block-editor/core test-integ
 
 commit-msg:
   commands:
