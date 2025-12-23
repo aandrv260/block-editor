@@ -8,7 +8,8 @@
   "scripts": {
     "format": "prettier --write .",
     "format-check": "prettier --check .",
-    "audit-check": "pnpm audit --audit-level=moderate"
+    "audit-check": "pnpm audit --audit-level=moderate",
+    "prepare": "lefthook install"
   },
   "exports": {
     ".": {
