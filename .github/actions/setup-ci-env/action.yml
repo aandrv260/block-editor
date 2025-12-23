@@ -29,3 +29,7 @@ runs:
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
       shell: bash
+
+    - name: Build the packages
+      run: pnpm -r build
+      shell: bash
