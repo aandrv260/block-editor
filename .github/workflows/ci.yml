@@ -43,14 +43,14 @@ jobs:
       - uses: ./.github/actions/setup-ci-env
       - run: pnpm -r test-unit
 
-  # TODO: Enable when there are available integration tests in at least 1 project because currently, it fails the pipeline because of no integration tests in the project so far.
-  # integration-test:
-  #   runs-on: ubuntu-latest
-  #   needs: setup
-  #   steps:
-  #     - uses: actions/checkout@v5
-  #     - uses: ./.github/actions/setup-ci-env
-  #     - run: pnpm -r test-integ
+  integration-test:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-ci-env
+      # TODO: Later I must replace this with the `pnpm -r test-integ` command once I add integration tests to the UI adapter.
+      - run: pnpm -F @block-editor/core test-integ
 
   audit-deps:
     if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'ready_for_review')

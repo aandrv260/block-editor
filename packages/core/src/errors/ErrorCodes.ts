@@ -1,10 +1,11 @@
 import type { ErrorNamespace } from "./EngineError";
-import { DocumentErrorCode } from "../document/errors/DocumentErrorCode";
+import { DocumentErrorCode } from "@/document/errors/DocumentErrorCode";
 import { EventErrorCodes } from "@/events/errors/EventErrorCodes";
+import { HistoryErrorCodes } from "@/history/errors/HistoryErrorCodes";
 
 export const ErrorCodes = {
   document: DocumentErrorCode,
-  history: {},
+  history: HistoryErrorCodes,
   command: {},
   event: EventErrorCodes,
 } as const satisfies Record<ErrorNamespace, Record<string, string>>;
