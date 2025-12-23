@@ -10,6 +10,13 @@ pre-push:
     lint:
       run: pnpm -r lint-check
 
+    unit-test:
+      run: pnpm -r test-unit
+
+    # TODO: Enable when there are available integration tests in at least 1 project because currently, it fails the whole pipeline of commands.
+    # integration-test:
+    #   run: pnpm -r test-integ
+
 commit-msg:
   commands:
     lint-commit:

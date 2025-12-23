@@ -14,10 +14,18 @@
     "build": "tsc -p tsconfig.json",
     "type-check": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint . --ext .ts --cache --cache-location node_modules/.eslintcache --ignore-pattern .gitignore --fix",
-    "lint-check": "eslint . --ext .ts --cache --cache-location node_modules/.eslintcache --ignore-pattern .gitignore"
+    "lint-check": "eslint . --ext .ts --cache --cache-location node_modules/.eslintcache --ignore-pattern .gitignore",
+    "test": "vitest run",
+    "test-watch": "vitest",
+    "test-unit": "vitest run --project unit",
+    "test-integ": "vitest run --project integration"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.17.1"
+  "packageManager": "pnpm@10.17.1",
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.16",
+    "vitest": "^4.0.16"
+  }
 }
