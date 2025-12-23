@@ -3,3 +3,6 @@
 export * from "./blocks";
 export * from "./document";
 export * from "./actions";
+export * from "./errors";
+export * from "./history";
+export * from "./events";
