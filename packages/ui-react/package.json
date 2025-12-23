@@ -14,7 +14,11 @@
     "build": "tsc -p tsconfig.json",
     "type-check": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint . --ext .ts,.tsx --cache --cache-location node_modules/.eslintcache --ignore-pattern .gitignore --fix",
-    "lint-check": "eslint . --ext .ts,.tsx --cache --cache-location node_modules/.eslintcache --ignore-pattern .gitignore"
+    "lint-check": "eslint . --ext .ts,.tsx --cache --cache-location node_modules/.eslintcache --ignore-pattern .gitignore",
+    "test": "vitest run",
+    "test-watch": "vitest",
+    "test-unit": "vitest run --project unit",
+    "test-integ": "vitest run --project integration"
   },
   "peerDependencies": {
     "react": ">=18",
@@ -24,9 +28,16 @@
     "@block-editor/core": "workspace:*"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitest/coverage-v8": "^4.0.16",
     "eslint-plugin-react-hooks": "^7.0.1",
-    "globals": "^16.5.0"
+    "globals": "^16.5.0",
+    "jsdom": "^27.3.0",
+    "vitest": "^4.0.16"
   },
   "keywords": [],
   "author": "",
