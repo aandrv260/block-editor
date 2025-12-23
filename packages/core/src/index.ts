@@ -1,5 +1,2 @@
-export class EditorDocument {
-  public toJSON() {
-    return "test";
-  }
-}
+// Expose to the outside world
+export * from "./blocks";
