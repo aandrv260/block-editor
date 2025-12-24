@@ -8,7 +8,7 @@ export const focusCaretToEnd = (el: HTMLElement) => {
 
   const range = document.createRange();
   range.selectNodeContents(el);
-  range.collapse(false); // 👈 false = end, true = start
+  range.collapse(false); // false = end, true = start
 
   selection.removeAllRanges();
   selection.addRange(range);

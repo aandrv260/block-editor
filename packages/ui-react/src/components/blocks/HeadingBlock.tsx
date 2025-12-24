@@ -12,7 +12,7 @@ interface Props {
 }
 
 // TODO: Extract the logic that will be shared across blocks about caret, press-enter-for-new-block, and more into a hook when it is finished, tested and works properly.
-export default function Heading({ block }: Props) {
+export default function HeadingBlock({ block }: Props) {
   const headingRef = useRef<HTMLHeadingElement | null>(null);
   const { debounce } = useDebounce();
   const { editor } = useEditor();
