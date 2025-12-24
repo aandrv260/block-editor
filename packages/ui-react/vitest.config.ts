@@ -29,7 +29,6 @@ const commonResolveConfig = {
 export default defineConfig({
   test: {
     environment: "node",
-    globals: false,
     include: ["src/**/*.test.{ts,tsx}"],
     coverage: {
       provider: "v8",
