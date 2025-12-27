@@ -18,7 +18,8 @@
     "test": "vitest run",
     "test-watch": "vitest",
     "test-unit": "vitest run --project unit",
-    "test-integ": "vitest run --project integration"
+    "test-integ": "vitest run --project integration",
+    "test-coverage": "vitest run --coverage"
   },
   "keywords": [],
   "author": "",
