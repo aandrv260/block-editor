@@ -283,7 +283,7 @@ describe("updateBlock()", () => {
     });
   });
 
-  it("throws if the user tries to replace the children of a block when updating but one of the nested children has an ID that is already belongs to a block in the document", () => {
+  it("throws if the user tries to replace the children of a block when updating but one of the nested children has an ID that already belongs to a block in the document", () => {
     // Arrange
     const document = new EditorDocument();
 
@@ -295,7 +295,12 @@ describe("updateBlock()", () => {
         TOGGLE_LIST1_BLOCK.id,
         {
           ...TOGGLE_LIST3_BLOCK,
-          children: [{ ...TOGGLE_LIST4_BLOCK, children: [TOGGLE_LIST2_BLOCK] }],
+          children: [
+            {
+              ...TOGGLE_LIST4_BLOCK,
+              children: [{ ...TOGGLE_LIST5_BLOCK, children: [TOGGLE_LIST2_BLOCK] }],
+            },
+          ],
         },
         { childrenStrategy: "replace" },
       );
