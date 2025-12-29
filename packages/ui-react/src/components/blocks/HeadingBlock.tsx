@@ -65,9 +65,7 @@ export default function HeadingBlock({ block }: Props) {
     if (!headingRef.current) return;
 
     const newValue =
-      event.currentTarget.innerText === "\n" || event.currentTarget.innerText === ""
-        ? ""
-        : event.currentTarget.innerText;
+      event.currentTarget.innerText === "\n" ? "" : event.currentTarget.innerText;
 
     updateIsEmptyText(newValue);
 
