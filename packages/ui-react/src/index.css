@@ -1,0 +1,16 @@
+@tailwind utilities;
+
+@layer utilities {
+  .editor-empty::before {
+    --empty-text-color: var(--color-gray-700);
+
+    content: attr(data-empty-text);
+    white-space: break-spaces;
+    word-break: break-word;
+    caret-color: var(--empty-text-color);
+    color: var(--empty-text-color);
+    font-size: 1em;
+    cursor: text;
+    opacity: 0.5;
+  }
+}

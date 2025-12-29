@@ -1,6 +1,6 @@
 import type { DeepReadonly, Block, HeadingBlock } from "@block-editor/core";
 import { useUpdateBlock } from "../../hooks/actions/useUpdateBlock";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useEditor } from "../../hooks/useEditor";
 import { useInsertBlock } from "../../hooks/actions/useInsertBlock";
 import { focusCaretToEnd, isFocusedAndCaretAtEnd } from "@/utils/focus-caret.utils";
@@ -13,6 +13,7 @@ interface Props {
 
 // TODO: Extract the logic that will be shared across blocks about caret, press-enter-for-new-block, and more into a hook when it is finished, tested and works properly.
 export default function HeadingBlock({ block }: Props) {
+  const [showEmptyText, setShowEmptyText] = useState(block.data.text === "");
   const headingRef = useRef<HTMLHeadingElement | null>(null);
   const { debounce } = useDebounce();
   const { editor } = useEditor();
@@ -56,8 +57,23 @@ export default function HeadingBlock({ block }: Props) {
     focusCaretToEnd(headingRef.current);
   }, []);
 
+  const updateIsEmptyText = (newValue: string) => {
+    setShowEmptyText(newValue === "");
+  };
+
   const onInput = (event: React.FormEvent<HTMLElement>) => {
-    const newValue = event.currentTarget.innerText;
+    if (!headingRef.current) return;
+
+    const newValue =
+      event.currentTarget.innerText === "\n" || event.currentTarget.innerText === ""
+        ? ""
+        : event.currentTarget.innerText;
+
+    updateIsEmptyText(newValue);
+
+    if (newValue === "") {
+      headingRef.current.innerText = "";
+    }
 
     debounce(() => {
       const currentBlock = block as Block;
@@ -74,6 +90,8 @@ export default function HeadingBlock({ block }: Props) {
         },
         childrenStrategy: "drop",
       });
+
+      updateIsEmptyText(newValue);
     });
   };
 
@@ -109,7 +127,8 @@ export default function HeadingBlock({ block }: Props) {
 
   return (
     <h1
-      className="outline-none"
+      className={`${showEmptyText ? "editor-empty" : ""} outline-none`}
+      data-empty-text="Write something..."
       ref={headingRef}
       contentEditable
       suppressContentEditableWarning

@@ -8,17 +8,19 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    }
+    },
+    "./styles.css": "./dist/editor.css"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json && pnpm build:css",
     "type-check": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint . --ext .ts,.tsx --cache --cache-location node_modules/.eslintcache --ignore-pattern .gitignore --fix",
     "lint-check": "eslint . --ext .ts,.tsx --cache --cache-location node_modules/.eslintcache --ignore-pattern .gitignore",
     "test": "vitest run",
     "test-watch": "vitest",
     "test-unit": "vitest run --project unit",
-    "test-integ": "vitest run --project integration"
+    "test-integ": "vitest run --project integration",
+    "build:css": "npx tailwindcss -i src/index.css -o dist/editor.css --minify"
   },
   "peerDependencies": {
     "react": ">=18",
@@ -28,6 +30,7 @@
     "@block-editor/core": "workspace:*"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "^4.1.18",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
     "@testing-library/user-event": "^14.6.1",
@@ -37,6 +40,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^16.5.0",
     "jsdom": "^27.3.0",
+    "tailwindcss": "^4.1.18",
     "tsc-alias": "^1.8.16",
     "vitest": "^4.0.16"
   },

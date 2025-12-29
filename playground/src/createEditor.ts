@@ -11,7 +11,7 @@ export const createEditor = () => {
       newBlock: {
         id: crypto.randomUUID(),
         type: "heading",
-        data: { text: "\n", level: 1 },
+        data: { text: "", level: 1 },
       },
     }),
   );

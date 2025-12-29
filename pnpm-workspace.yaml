@@ -3,6 +3,7 @@ packages:
   - playground
 
 onlyBuiltDependencies:
-  - "@swc/core"
+  - '@parcel/watcher'
+  - '@swc/core'
   - esbuild
   - lefthook
