@@ -6,30 +6,25 @@ import {
   ChildBlockIdConflictsWithSubtreeRootError,
 } from "../../../../errors/update-block";
 import type { UpdateStrategy } from "../update-strategies.models";
+import { traverse } from "@/document/utils/block-traversal.utils";
 
 const validateChildrenBlock = (
   blockMap: ReadonlyBlockMap,
-  newBlockRoot: Block,
+  newBlockRootId: string,
   child: Block,
 ): void | never => {
+  if (child.id === newBlockRootId) {
+    throw new ChildBlockIdConflictsWithSubtreeRootError(child.id, newBlockRootId);
+  }
+
   if (blockMap.has(child.id)) {
     throw new ChildBlockIdAlreadyExistsError(child.id);
   }
-
-  if (child.id === newBlockRoot.id) {
-    throw new ChildBlockIdConflictsWithSubtreeRootError(child.id, newBlockRoot.id);
-  }
 };
 
-// TODO: Remove recursion and use a generic function called traverseDocument.
 const validateSubtree = (blockMap: ReadonlyBlockMap, newBlock: Block) => {
-  newBlock.children?.forEach(child => {
-    // TODO: This only works on up to 2 levels of nested children. This will explode easily.  Fix it ASAP.
-    validateChildrenBlock(blockMap, newBlock, child);
-
-    child.children?.forEach(child =>
-      validateChildrenBlock(blockMap, newBlock, child),
-    );
+  traverse(newBlock, child => {
+    validateChildrenBlock(blockMap, newBlock.id, child);
   });
 };
 

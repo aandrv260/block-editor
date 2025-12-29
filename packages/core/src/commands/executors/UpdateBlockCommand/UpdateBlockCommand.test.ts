@@ -50,7 +50,6 @@ const createUpdateCommand = (
   };
 };
 
-// TODO: Rewrite the test suite
 // TODO: Always pass explicitly for each test the initial structure of the document through the `documentBlocks` parameter.
 describe("UpdateBlockCommand", () => {
   it("updates the block data correctly when preserving the children", () => {

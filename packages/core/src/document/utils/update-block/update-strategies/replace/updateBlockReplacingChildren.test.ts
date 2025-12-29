@@ -32,32 +32,45 @@ describe("updateBlockReplacingChildren()", () => {
       children: [],
     };
 
-    const newBlockDuplicateChild: Block = {
-      ...SAMPLE_BLOCK1,
-      id: existingBlock.id,
+    const newBlockChild1: Block = {
+      ...TOGGLE_LIST4_BLOCK,
       parentId: TOGGLE_LIST3_BLOCK.id,
+      children: [
+        {
+          ...TOGGLE_LIST5_BLOCK,
+          parentId: TOGGLE_LIST4_BLOCK.id,
+          children: [
+            {
+              ...SAMPLE_BLOCK1,
+              id: existingBlock.id,
+              parentId: TOGGLE_LIST5_BLOCK.id,
+              children: [],
+            },
+          ],
+        },
+      ],
     };
 
     const newBlock: Block = {
       ...TOGGLE_LIST3_BLOCK,
       parentId: "root",
-      children: [newBlockDuplicateChild],
+      children: [newBlockChild1],
     };
 
     const ctx: UpdateStrategyContext = {
       blockMap: new Map([
         [existingBlock.id, existingBlock],
         [blockToReplace.id, blockToReplace],
-      ] as [string, Block][]),
+      ]),
       blockToReplace,
       newBlock,
     };
 
     // Act
-    const act = () => updateBlockReplacingChildren(ctx);
+    const tryUpdate = () => updateBlockReplacingChildren(ctx);
 
     // Assert
-    assertEngineError(act, {
+    assertEngineError(tryUpdate, {
       ExpectedErrorClass: ChildBlockIdAlreadyExistsError,
       expectedCode: "DOCUMENT:UPDATE_BLOCK_CHILD_ID_ALREADY_EXISTS",
       expectedMessage: `You are trying to insert a child with ID \`${TOGGLE_LIST1_BLOCK.id}\`when updating the block. Another block with this ID already exists in the document!`,
@@ -78,14 +91,20 @@ describe("updateBlockReplacingChildren()", () => {
       parentId: "root",
       children: [
         {
-          ...SAMPLE_BLOCK2,
+          ...TOGGLE_LIST2_BLOCK,
           parentId: TOGGLE_LIST5_BLOCK.id,
           children: [
             {
-              ...SAMPLE_BLOCK1,
-              id: TOGGLE_LIST5_BLOCK.id,
-              parentId: SAMPLE_BLOCK2.id,
-              children: [],
+              ...TOGGLE_LIST3_BLOCK,
+              parentId: TOGGLE_LIST2_BLOCK.id,
+              children: [
+                {
+                  ...TOGGLE_LIST6_BLOCK,
+                  id: TOGGLE_LIST5_BLOCK.id,
+                  parentId: TOGGLE_LIST3_BLOCK.id,
+                  children: [],
+                },
+              ],
             },
           ],
         },

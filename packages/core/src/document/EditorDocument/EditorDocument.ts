@@ -77,6 +77,7 @@ import {
   CannotUpdateRootError,
   UpdateBlockIDAlreadyInUseError,
 } from "../errors/update-block";
+import { traverse as traverseDocument } from "../utils/block-traversal.utils";
 
 /**
  * The EditorDocument class is the core class that represents the document tree in the editor.
@@ -423,19 +424,7 @@ export class EditorDocument implements DocumentTree {
   }
 
   public traverse(callback: (block: Block) => void, root: DocumentNode = this.root) {
-    const queue = [...(root.children ?? [])];
-    let currentIndex = 0;
-
-    while (currentIndex < queue.length) {
-      const currentBlock = queue[currentIndex];
-
-      callback(currentBlock);
-      currentIndex++;
-
-      if (blockCanHaveChildren(currentBlock)) {
-        queue.push(...currentBlock.children);
-      }
-    }
+    traverseDocument(root, callback);
   }
 
   /**
