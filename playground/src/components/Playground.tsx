@@ -1,16 +1,13 @@
-import { Editor } from "@block-editor/core";
-import { EditorDocument, EditorProvider } from "@block-editor/react";
+import { EditorDocument } from "@block-editor/react";
 import EditorInfo from "./EditorInfo";
-
-const editor = new Editor();
+import EditorState from "./editor-state/EditorState";
 
 export default function Playground() {
   return (
-    <div className="max-w-2xl mx-auto py-6">
-      <EditorProvider editor={editor}>
-        <EditorInfo />
-        <EditorDocument />
-      </EditorProvider>
+    <div>
+      <EditorInfo />
+      <EditorDocument />
+      <EditorState className="mt-5" />
     </div>
   );
 }
