@@ -1,21 +1,21 @@
 import { isElementFocused } from "@/common/dom-state/focus.utils";
 
-export const focusCaretToEnd = (el: HTMLElement) => {
-  el.focus();
+export const focusCaretTo = (where: "start" | "end", element: HTMLElement) => {
+  element.focus();
 
   const selection = window.getSelection();
 
   if (!selection) return;
 
   const range = document.createRange();
-  range.selectNodeContents(el);
-  range.collapse(false); // false = end, true = start
+  range.selectNodeContents(element);
+  range.collapse(where === "start");
 
   selection.removeAllRanges();
   selection.addRange(range);
 };
 
-export const isCaretAtEnd = (el: HTMLElement): boolean => {
+const isCaretAt = (where: "start" | "end", el: HTMLElement): boolean => {
   const selection = window.getSelection();
 
   if (!selection || selection.rangeCount === 0) return false;
@@ -26,12 +26,13 @@ export const isCaretAtEnd = (el: HTMLElement): boolean => {
   if (!range.collapsed) return false;
 
   // Caret must be inside the element
-  if (!el.contains(range.endContainer)) return false;
+  const container = where === "start" ? range.startContainer : range.endContainer;
+  if (!el.contains(container)) return false;
 
   const totalTextLength = el.textContent?.length ?? 0;
   const isElementEmpty = totalTextLength === 0;
 
-  // If element is empty, caret is at end
+  // If element is empty, caret is at both start and end
   if (isElementEmpty) {
     return true;
   }
@@ -42,26 +43,44 @@ export const isCaretAtEnd = (el: HTMLElement): boolean => {
     const caretRange = document.createRange();
 
     caretRange.selectNodeContents(el);
-    caretRange.setEnd(range.endContainer, range.endOffset);
+    const offset = where === "start" ? range.startOffset : range.endOffset;
+    caretRange.setEnd(container, offset);
 
     // Get the text length from start to caret
     const textBeforeCaret = caretRange.toString().length;
 
-    // Caret is at end if the text before caret equals the total text length
-    return textBeforeCaret === totalTextLength;
+    // Caret is at start if textBeforeCaret === 0, at end if textBeforeCaret === totalTextLength
+    return where === "start"
+      ? textBeforeCaret === 0
+      : textBeforeCaret === totalTextLength;
   } catch {
-    // If range manipulation fails, fall back to comparing with end range
-    const endRange = document.createRange();
-    endRange.selectNodeContents(el);
-    endRange.collapse(false);
+    // If range manipulation fails, fall back to comparing with boundary range
+    const boundaryRange = document.createRange();
+    boundaryRange.selectNodeContents(el);
+    boundaryRange.collapse(where === "start");
 
     try {
-      const comparison = range.compareBoundaryPoints(Range.END_TO_END, endRange);
+      const comparisonType =
+        where === "start" ? Range.START_TO_START : Range.END_TO_END;
+
+      const comparison = range.compareBoundaryPoints(comparisonType, boundaryRange);
       return comparison === 0;
     } catch {
       return false;
     }
   }
+};
+
+export const isCaretAtStart = (el: HTMLElement): boolean => {
+  return isCaretAt("start", el);
+};
+
+export const isCaretAtEnd = (el: HTMLElement): boolean => {
+  return isCaretAt("end", el);
+};
+
+export const isFocusedAndCaretAtStart = (el: HTMLElement): boolean => {
+  return isElementFocused(el) && isCaretAtStart(el);
 };
 
 export const isFocusedAndCaretAtEnd = (el: HTMLElement): boolean => {
@@ -137,14 +156,14 @@ const restoreCaretToApproximatePosition = (
     const selection = window.getSelection();
 
     if (!selection) {
-      focusCaretToEnd(element);
+      focusCaretTo("end", element);
       return;
     }
 
     const textNode = findFirstTextNode(element);
 
     if (!textNode) {
-      focusCaretToEnd(element);
+      focusCaretTo("end", element);
       return;
     }
 
@@ -159,7 +178,7 @@ const restoreCaretToApproximatePosition = (
     selection.addRange(newRange);
   } catch {
     // If restoration fails, move to end
-    focusCaretToEnd(element);
+    focusCaretTo("end", element);
   }
 };
 
@@ -188,7 +207,7 @@ export const updateContentWithCaretPreservation = (
 
   // Restore caret position
   if (caretInfo.wasAtEnd) {
-    focusCaretToEnd(element);
+    focusCaretTo("end", element);
     return;
   }
 

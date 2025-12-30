@@ -1,4 +1,4 @@
-import { focusCaretToEnd } from "@/utils/focus-caret.utils";
+import { focusCaretTo } from "@/utils/focus-caret.utils";
 import type {
   Block,
   DeepReadonly,
@@ -63,7 +63,7 @@ export const useBackspaceBlockDeletion = (
     event.preventDefault();
 
     deleteBlock({ blockId: block.id });
-    focusCaretToEnd(previousBlockHTMLElement);
+    focusCaretTo("end", previousBlockHTMLElement);
   };
 
   return { handleBackspaceForBlockDeletion };
