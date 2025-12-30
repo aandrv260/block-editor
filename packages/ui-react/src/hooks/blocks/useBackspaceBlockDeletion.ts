@@ -13,9 +13,9 @@ export const useBackspaceBlockDeletion = (
   block: DeepReadonly<HeadingBlock>,
   headingRef: React.RefObject<HTMLHeadingElement | null>,
 ) => {
-  const deleteBlock = useDeleteBlock();
   const { editor } = useEditor();
   const { blockElementsMap } = useBlockElementMap();
+  const deleteBlock = useDeleteBlock();
 
   const getPreviousBlock = (): DeepReadonly<Block | DocumentRoot> | null => {
     const parentBlock = editor.getBlock(block.parentId);
@@ -29,7 +29,7 @@ export const useBackspaceBlockDeletion = (
 
     if (previousBlockIndex === -1 || previousBlockIndex === 0) return null;
 
-    return parentChildren[previousBlockIndex - 1];
+    return parentChildren.at(previousBlockIndex - 1) ?? null;
   };
 
   const getPreviousBlockHTMLElement = (): HTMLElement | null => {
@@ -58,6 +58,8 @@ export const useBackspaceBlockDeletion = (
 
     if (!previousBlockHTMLElement) return;
 
+    // Prevent the browser's default Backspace behavior. Without this, after we move focus
+    // to the previous block, the browser would delete the last character in that block by default.
     event.preventDefault();
 
     deleteBlock({ blockId: block.id });

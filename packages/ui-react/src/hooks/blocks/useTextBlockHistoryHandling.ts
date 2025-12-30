@@ -38,5 +38,5 @@ export const useTextBlockHistoryHandling = (
       unsubscribeFromUndo();
       unsubscribeFromRedo();
     };
-  }, [editor, block.id, headingRef, updateIsEmptyText]);
+  }, [editor, block, headingRef, updateIsEmptyText]);
 };

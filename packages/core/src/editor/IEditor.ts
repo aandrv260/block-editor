@@ -1,6 +1,6 @@
 import type { DeepReadonly } from "@/common/types/object.types";
 import type { EditorAction } from "@/actions/actions.models";
-import type { Block } from "@/blocks/models/block.models";
+import type { DocumentNode } from "@/blocks/models/block.models";
 import type { DocumentRoot } from "@/document/DocumentRoot/DocumentRoot";
 import type {
   EditorEventHandler,
@@ -66,7 +66,7 @@ export interface IEditor {
    * O(1) time complexity because of HashMap indexing of each block.
    * @param blockId - The ID of the block to get.
    */
-  getBlock<T extends Block | DocumentRoot>(blockId: string): DeepReadonly<T> | null;
+  getBlock<T extends DocumentNode>(blockId: string): DeepReadonly<T> | null;
 
   getDocumentJSON(): string;
 
