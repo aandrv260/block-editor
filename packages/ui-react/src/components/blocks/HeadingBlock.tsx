@@ -3,7 +3,12 @@ import { useUpdateBlock } from "../../hooks/actions/useUpdateBlock";
 import { useEffect, useRef, useState } from "react";
 import { useEditor } from "../../hooks/useEditor";
 import { useInsertBlock } from "../../hooks/actions/useInsertBlock";
-import { focusCaretToEnd, isFocusedAndCaretAtEnd } from "@/utils/focus-caret.utils";
+import {
+  focusCaretToEnd,
+  isFocusedAndCaretAtEnd,
+  shouldSkipContentUpdate,
+  updateContentWithCaretPreservation,
+} from "@/utils/focus-caret.utils";
 import { useDebounce } from "@/hooks/time/useDebounce";
 import { isEnterKey } from "@/common/dom-events/keyboard.utils";
 
@@ -11,7 +16,7 @@ interface Props {
   block: DeepReadonly<HeadingBlock>;
 }
 
-// TODO: Extract the logic that will be shared across blocks about caret, press-enter-for-new-block, and more into a hook when it is finished, tested and works properly.
+// TODO: Extract the logic that will be shared across blocks about caret, press-enter-for-new-block, and more into hooks when it is finished, tested and works properly.
 export default function HeadingBlock({ block }: Props) {
   const [showEmptyText, setShowEmptyText] = useState(block.data.text === "");
   const headingRef = useRef<HTMLHeadingElement | null>(null);
@@ -20,10 +25,18 @@ export default function HeadingBlock({ block }: Props) {
   const updateBlock = useUpdateBlock();
   const insertBlock = useInsertBlock();
 
+  const updateIsEmptyText = (newValue: string) => {
+    setShowEmptyText(newValue === "");
+  };
+
   useEffect(() => {
     if (!headingRef.current) return;
 
-    headingRef.current.innerText = block.data.text;
+    if (shouldSkipContentUpdate(headingRef.current, block.data.text)) {
+      return;
+    }
+
+    updateContentWithCaretPreservation(headingRef.current, block.data.text);
   }, [block.data.text]);
 
   useEffect(() => {
@@ -31,6 +44,7 @@ export default function HeadingBlock({ block }: Props) {
       if (!headingRef.current || !block) return;
 
       headingRef.current.innerText = block.data.text;
+      updateIsEmptyText(block.data.text);
     };
 
     const unsubscribeFromUndo = editor
@@ -51,15 +65,10 @@ export default function HeadingBlock({ block }: Props) {
     };
   }, [editor, block.id]);
 
+  // TODO: Handle this in a better way. There are certain cases when this doesn't apply and even leads to bugs. Will be fixed very soon.
   useEffect(() => {
-    if (!headingRef.current) return;
-
-    focusCaretToEnd(headingRef.current);
+    headingRef.current && focusCaretToEnd(headingRef.current);
   }, []);
-
-  const updateIsEmptyText = (newValue: string) => {
-    setShowEmptyText(newValue === "");
-  };
 
   const onInput = (event: React.FormEvent<HTMLElement>) => {
     if (!headingRef.current) return;
@@ -81,16 +90,13 @@ export default function HeadingBlock({ block }: Props) {
         newBlock: {
           ...currentBlock,
           type: "heading",
-          data: {
-            ...block.data,
-            text: newValue,
-          },
+          data: { ...block.data, text: newValue },
         },
         childrenStrategy: "drop",
       });
 
       updateIsEmptyText(newValue);
-    });
+    }, 200);
   };
 
   // TODO: Let the user customize the keymap for this action.
@@ -112,13 +118,13 @@ export default function HeadingBlock({ block }: Props) {
       event.stopPropagation();
 
       insertBlock({
-        strategy: "append",
+        strategy: "after",
         newBlock: {
           type: "heading",
           data: { text: "", level: block.data.level },
           id: crypto.randomUUID(),
         },
-        targetId: block.parentId,
+        targetId: block.id,
       });
     }
   };
@@ -126,8 +132,8 @@ export default function HeadingBlock({ block }: Props) {
   return (
     <h1
       className={`${showEmptyText ? "editor-empty" : ""} outline-none`}
-      data-empty-text="Write something..."
       ref={headingRef}
+      data-empty-text="Write something..."
       contentEditable
       suppressContentEditableWarning
       onInput={onInput}
