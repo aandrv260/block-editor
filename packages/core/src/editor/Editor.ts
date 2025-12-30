@@ -98,8 +98,14 @@ export class Editor implements IEditor {
     return this.document.getRoot();
   }
 
-  public getBlock<T extends Block>(blockId: string): DeepReadonly<T> | null {
-    return this.document.getBlock(blockId) as DeepReadonly<T> | null;
+  public getDocumentSize(): number {
+    return this.document.size;
+  }
+
+  public getBlock<T extends Block | DocumentRoot>(
+    blockId: string,
+  ): DeepReadonly<T> | null {
+    return this.document.getBlockOrRoot(blockId) as DeepReadonly<T> | null;
   }
 
   public jumpToPointInHistory(index: number): string | null {

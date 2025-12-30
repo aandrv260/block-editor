@@ -1,5 +1,5 @@
 import type { Editor, DeepReadonly, DocumentRoot } from "@block-editor/core";
-import { useEditorContext } from "../context/useEditorContext";
+import { useEditorContext } from "../context/hooks/useEditorContext";
 
 interface UseEditorResult {
   editor: Editor;

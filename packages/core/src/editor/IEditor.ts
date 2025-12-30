@@ -50,6 +50,14 @@ export interface IEditor {
    */
   getRoot(): DeepReadonly<DocumentRoot>;
 
+  getDocumentSize(): number;
+
+  /**
+   * Get the size of the document. Includes the root and all of its descendants no matter how deep in the tree they are.
+   * @returns The size of the document.
+   */
+  getDocumentSize(): number;
+
   /**
    * Get a block from the document. Very usefull for UI components to get the block data they need.
    *
@@ -58,7 +66,7 @@ export interface IEditor {
    * O(1) time complexity because of HashMap indexing of each block.
    * @param blockId - The ID of the block to get.
    */
-  getBlock(blockId: string): DeepReadonly<Block> | null;
+  getBlock<T extends Block | DocumentRoot>(blockId: string): DeepReadonly<T> | null;
 
   getDocumentJSON(): string;
 

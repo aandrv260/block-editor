@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useEditorContext } from "../../../context/useEditorContext";
+import { useEditorContext } from "../../../context/hooks/useEditorContext";
 import { useEditor } from "../../useEditor";
 
 export const useHistory = () => {

@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import type { EditorAction } from "@block-editor/core";
-import { useEditorContext } from "../../context/useEditorContext";
+import { useEditorContext } from "../../context/hooks/useEditorContext";
 
 export const useDispatcher = () => {
   const { editor } = useEditorContext();

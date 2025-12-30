@@ -1,6 +1,6 @@
 import type { DeepReadonly, Block } from "@block-editor/core";
 
-import { useEditorContext } from "../context/useEditorContext";
+import { useEditorContext } from "../context/hooks/useEditorContext";
 
 interface RenderBlockProps {
   block: DeepReadonly<Block>;

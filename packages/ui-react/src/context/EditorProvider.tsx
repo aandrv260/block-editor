@@ -1,15 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
-import {
-  EditorContext,
-  type EditorContextValue,
-  type EditorDocumentValue,
-  type EditorHistoryValue,
-  type EditorKeymap,
-} from "./EditorContext";
-import type { BlockRendererMap } from "@/models/block-ui.models";
-import { DEFAULT_BLOCK_RENDER_MAP } from "../utils/defaultBlockRenderMap";
+import { useEffect, useMemo } from "react";
+import { EditorContext, type EditorContextValue } from "./EditorContext";
 import type { EditorProviderProps } from "./EditorProvider.types";
-import { DEFAULT_EDITOR_KEYMAP } from "./EditorProvider.utils";
+import { useHistoryState } from "./hooks/useHistoryState";
+import { useDocumentState } from "./hooks/useDocumentState";
+import { useBlockState } from "./hooks/useBlockState";
+import { useEditorKeymapState } from "./hooks/useEditorKeymapState";
 
 // TODO: Restructure the folders and files but after I implement the difficult carret focus logic.
 
@@ -21,24 +16,16 @@ export default function EditorProvider({
   keymap: keymapOverrides = {},
   children,
 }: EditorProviderProps) {
-  const [history, setHistory] = useState<EditorHistoryValue>(() => ({
-    historyRecords: editor.getHistory(),
-    currentPositionInHistory: editor.getCurrentPositionInHistory(),
-  }));
+  const { history, setHistory } = useHistoryState(editor);
+  const { editorDocument, setEditorDocument } = useDocumentState(editor);
+  const { keymap } = useEditorKeymapState(keymapOverrides);
 
-  const [editorDocument, setEditorDocument] = useState<EditorDocumentValue>(() => ({
-    json: editor.getDocumentJSON(),
-    root: editor.getRoot(),
-  }));
-
-  const blockRendererMap = useMemo<BlockRendererMap>(() => {
-    return { ...DEFAULT_BLOCK_RENDER_MAP, ...blockOverrides };
-  }, [blockOverrides]);
-
-  const keymap = useMemo<EditorKeymap>(
-    () => ({ ...DEFAULT_EDITOR_KEYMAP, ...keymapOverrides }),
-    [keymapOverrides],
-  );
+  const {
+    blockElementsMap,
+    blockRendererMap,
+    addBlockHTMLElement,
+    removeBlockHTMLElement,
+  } = useBlockState(blockOverrides);
 
   useEffect(() => {
     // TODO: Swap with history:change event when it's implemented to reduce re-renders.
@@ -58,11 +45,29 @@ export default function EditorProvider({
       unsubscribe();
       editor.cleanup();
     };
-  }, [editor]);
+  }, [editor, setHistory, setEditorDocument]);
 
   const value = useMemo<EditorContextValue>(
-    () => ({ editor, editorDocument, blockRendererMap, history, keymap }),
-    [editor, editorDocument, blockRendererMap, history, keymap],
+    () => ({
+      editor,
+      editorDocument,
+      blockRendererMap,
+      history,
+      keymap,
+      blockElementsMap,
+      addBlockHTMLElement,
+      removeBlockHTMLElement,
+    }),
+    [
+      editor,
+      editorDocument,
+      blockRendererMap,
+      history,
+      keymap,
+      blockElementsMap,
+      addBlockHTMLElement,
+      removeBlockHTMLElement,
+    ],
   );
 
   return <EditorContext.Provider value={value}>{children}</EditorContext.Provider>;
