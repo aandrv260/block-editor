@@ -1,4 +1,4 @@
-import { useEditorContext } from "../../context/useEditorContext";
+import { useEditorContext } from "../../context/hooks/useEditorContext";
 
 export const useEditorKeymap = () => {
   const { keymap } = useEditorContext();

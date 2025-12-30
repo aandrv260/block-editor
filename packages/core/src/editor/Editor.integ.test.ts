@@ -45,7 +45,9 @@ describe("Editor full integration", () => {
       expectedHistorySize: 1,
     });
 
-    // Add a block
+    expect(editor.getDocumentSize()).toBe(1);
+
+    // Act - Add a block
     editor.dispatchAction(
       insertBlock({
         targetId: editor.getRoot().id,
@@ -79,6 +81,8 @@ describe("Editor full integration", () => {
       history: editor.getHistory(),
       triggerAction: "block:insert",
     });
+
+    expect(editor.getDocumentSize()).toBe(3);
 
     assertHistory({
       expectedDocumentHistory: [INITIAL_DOCUMENT_JSON, editor.getDocumentJSON()],
@@ -133,6 +137,8 @@ describe("Editor full integration", () => {
     );
 
     // Assert
+    expect(editor.getDocumentSize()).toBe(4);
+
     expect(onPersist).toHaveBeenCalledExactlyOnceWith({
       type: "editor:persist",
       documentJSON: editor.getDocumentJSON(),
@@ -201,6 +207,8 @@ describe("Editor full integration", () => {
     );
 
     // Assert
+    expect(editor.getDocumentSize()).toBe(5);
+
     expect(onPersist).toHaveBeenCalledExactlyOnceWith({
       type: "editor:persist",
       documentJSON: editor.getDocumentJSON(),
@@ -287,6 +295,8 @@ describe("Editor full integration", () => {
     );
 
     // Assert
+    expect(editor.getDocumentSize()).toBe(2);
+
     expect(onPersist).toHaveBeenCalledExactlyOnceWith({
       type: "editor:persist",
       documentJSON: editor.getDocumentJSON(),
@@ -349,6 +359,8 @@ describe("Editor full integration", () => {
     );
 
     // Assert
+    expect(editor.getDocumentSize()).toBe(2);
+
     expect(onPersist).toHaveBeenCalledExactlyOnceWith({
       type: "editor:persist",
       documentJSON: editor.getDocumentJSON(),
@@ -408,6 +420,8 @@ describe("Editor full integration", () => {
     );
 
     // Assert
+    expect(editor.getDocumentSize()).toBe(3);
+
     expect(onPersist).toHaveBeenCalledExactlyOnceWith({
       type: "editor:persist",
       documentJSON: editor.getDocumentJSON(),
@@ -475,6 +489,8 @@ describe("Editor full integration", () => {
     );
 
     // Assert
+    expect(editor.getDocumentSize()).toBe(2);
+
     expect(onPersist).toHaveBeenCalledExactlyOnceWith({
       type: "editor:persist",
       documentJSON: editor.getDocumentJSON(),
@@ -534,6 +550,8 @@ describe("Editor full integration", () => {
     );
 
     // Assert
+    expect(editor.getDocumentSize()).toBe(3);
+
     expect(onPersist).toHaveBeenCalledExactlyOnceWith({
       type: "editor:persist",
       documentJSON: editor.getDocumentJSON(),
@@ -599,6 +617,8 @@ describe("Editor full integration", () => {
     );
 
     // Assert
+    expect(editor.getDocumentSize()).toBe(3);
+
     expect(onPersist).toHaveBeenCalledExactlyOnceWith({
       type: "editor:persist",
       documentJSON: editor.getDocumentJSON(),
@@ -660,6 +680,8 @@ describe("Editor full integration", () => {
     );
 
     // Assert
+    expect(editor.getDocumentSize()).toBe(3);
+
     expect(onPersist).toHaveBeenCalledExactlyOnceWith({
       type: "editor:persist",
       documentJSON: editor.getDocumentJSON(),
@@ -717,6 +739,8 @@ describe("Editor full integration", () => {
     });
 
     // Assert
+    expect(editor.getDocumentSize()).toBe(3);
+
     expect(onPersist).toHaveBeenCalledExactlyOnceWith({
       type: "editor:persist",
       documentJSON: editor.getDocumentJSON(),
