@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useBlockElementMap } from "./useBlockElementMap";
 
 /**
- * Handles the focus of a new block after it is created. You just need to update the pendingNewBlockId state and the hook will take care of focusing the new block and cleaning up the state.
+ * Handles the focus of a new block after it is created. You just need to call the requestBlockFocus function and the hook will take care of focusing the new block's HTML element and will clean up the state.
  */
 export const useNewBlockFocus = () => {
   const [pendingNewBlockId, setPendingNewBlockId] = useState<string | null>(null);
