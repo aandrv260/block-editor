@@ -1,15 +1,13 @@
 import { useEffect, useRef } from "react";
 import type { DeepReadonly, HeadingBlock } from "@block-editor/core";
-import { isBackspaceKey, isEnterKey } from "@/common/dom-events/keyboard.utils";
-import { useBackspaceBlockDeletion } from "@/hooks/blocks/useBackspaceBlockDeletion";
 import { useBlockTextInput } from "@/hooks/blocks/useBlockTextInput";
 import { useBlockIsEmptyState } from "@/hooks/blocks/useBlockIsEmptyState";
 import { useTextBlockHistoryHandling } from "@/hooks/blocks/useTextBlockHistoryHandling";
 import { useBlockMapPersistence } from "@/hooks/blocks/useBlockMapPersistence";
-import { useBlockEnterKeyDown } from "@/hooks/blocks/useBlockEnterKeyDown";
 import { useEditor } from "@/hooks/useEditor";
-import { focusCaretTo } from "@/utils/focus-caret.utils";
-import { DEFAULT_BLOCK_EMPTY_TEXT_PLACEHOLDER } from "@/utils/block.utils";
+import { focusCaretTo } from "@/utils/caret/focus-caret.utils";
+import { DEFAULT_BLOCK_EMPTY_TEXT_PLACEHOLDER } from "@/utils/blocks/block-placeholder.utils";
+import { useBlockKeyDown } from "@/hooks/blocks/useBlockKeyDown";
 
 interface Props {
   block: DeepReadonly<HeadingBlock>;
@@ -27,13 +25,8 @@ export default function HeadingBlock({ block }: Props) {
     removeEmptyTextOnBlur,
   } = useBlockIsEmptyState(block, headingRef);
 
-  const { onInput } = useBlockTextInput(block, headingRef, updateIsEmptyText);
-  const { handleEnterKeyDown } = useBlockEnterKeyDown(block, headingRef);
-
-  const { handleBackspaceForBlockDeletion } = useBackspaceBlockDeletion(
-    block,
-    headingRef,
-  );
+  const onInput = useBlockTextInput(block, headingRef, updateIsEmptyText);
+  const onKeyDown = useBlockKeyDown(block, headingRef);
 
   useTextBlockHistoryHandling(block, headingRef, updateIsEmptyText);
   useBlockMapPersistence(block, headingRef);
@@ -47,17 +40,6 @@ export default function HeadingBlock({ block }: Props) {
       focusCaretTo("end", headingRef.current);
     }
   }, [editor, block.id]);
-
-  const onKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
-    if (isEnterKey(event.key)) {
-      handleEnterKeyDown(event);
-      return;
-    }
-
-    if (isBackspaceKey(event.key)) {
-      handleBackspaceForBlockDeletion(event);
-    }
-  };
 
   return (
     <h1
