@@ -36,7 +36,7 @@ export interface EditorContextValue {
   history: EditorHistoryValue;
   blockRendererMap: BlockRendererMap;
   keymap: EditorKeymap;
-  blockElementsMap: Map<string, HTMLElement>;
+  blockElementsMap: ReadonlyMap<string, HTMLElement>;
   addBlockHTMLElement: (blockId: string, element: HTMLElement) => void;
   removeBlockHTMLElement: (blockId: string) => void;
 }

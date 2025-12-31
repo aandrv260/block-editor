@@ -7,7 +7,7 @@ export const useBlockIsEmptyState = (
   block: DeepReadonly<HeadingBlock>,
   headingRef: React.RefObject<HTMLHeadingElement | null>,
 ) => {
-  const [showEmptyText, setShowEmptyText] = useState(block.data.text === "");
+  const [showEmptyText, setShowEmptyText] = useState(false);
   const { editor } = useEditor();
 
   const updateIsEmptyText = useCallback((newValue: string) => {
