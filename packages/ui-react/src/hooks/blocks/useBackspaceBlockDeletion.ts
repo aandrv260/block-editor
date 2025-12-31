@@ -1,4 +1,4 @@
-import { focusCaretTo } from "@/utils/focus-caret.utils";
+import { focusCaretTo } from "@/utils/caret/focus-caret.utils";
 import type {
   Block,
   DeepReadonly,

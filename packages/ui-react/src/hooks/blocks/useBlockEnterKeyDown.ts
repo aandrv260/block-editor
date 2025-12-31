@@ -4,7 +4,7 @@ import { useEnterKeyInBeginningSplitBlock } from "./useEnterKeyInBeginningSplitB
 import {
   isFocusedAndCaretAtEnd,
   isFocusedAndCaretAtStart,
-} from "@/utils/focus-caret.utils";
+} from "@/utils/caret/caret-position-checks.utils";
 
 export const useBlockEnterKeyDown = (
   block: DeepReadonly<HeadingBlock>,

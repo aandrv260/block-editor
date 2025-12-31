@@ -1,10 +1,8 @@
 import type { Block, DeepReadonly, HeadingBlock } from "@block-editor/core";
 import { useUpdateBlock } from "../actions/useUpdateBlock";
 import { useEffect } from "react";
-import {
-  shouldSkipContentUpdate,
-  updateContentWithCaretPreservation,
-} from "@/utils/focus-caret.utils";
+import { updateContentWithCaretPreservation } from "@/utils/caret/update-caret.utils";
+import { shouldSkipContentUpdate } from "@/utils/caret/caret-position-checks.utils";
 
 /**
  * Handles inputs and caret normalization during text input.
@@ -16,7 +14,6 @@ export const useBlockTextInput = (
 ) => {
   const updateBlock = useUpdateBlock();
 
-  // TODO: Handle this in a better way. There are certain cases when this doesn't apply and even leads to bugs. Will be fixed very soon.
   useEffect(() => {
     if (!headingRef.current) return;
 
@@ -54,5 +51,5 @@ export const useBlockTextInput = (
     updateIsEmptyText(newValue);
   };
 
-  return { updateIsEmptyText, onInput };
+  return onInput;
 };

@@ -1,4 +1,4 @@
-import { focusCaretTo } from "@/utils/focus-caret.utils";
+import { focusCaretTo } from "@/utils/caret/focus-caret.utils";
 import { useEffect, useState } from "react";
 import { useBlockElementMap } from "./useBlockElementMap";
 

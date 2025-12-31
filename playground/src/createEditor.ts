@@ -11,7 +11,19 @@ export const createEditor = () => {
       newBlock: {
         id: crypto.randomUUID(),
         type: "heading",
-        data: { text: "", level: 1 },
+        data: { text: "Angel", level: 1 },
+      },
+    }),
+  );
+
+  editor.dispatchAction(
+    insertBlock({
+      targetId: editor.ROOT_ID,
+      strategy: "append",
+      newBlock: {
+        id: crypto.randomUUID(),
+        type: "heading",
+        data: { text: "Ivan", level: 1 },
       },
     }),
   );

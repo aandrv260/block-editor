@@ -2,7 +2,7 @@ import type {
   BlockRendererMap,
   BlockRendererOverrides,
 } from "@/models/block-ui.models";
-import { DEFAULT_BLOCK_RENDER_MAP } from "@/utils/defaultBlockRenderMap";
+import { DEFAULT_BLOCK_RENDER_MAP } from "@/utils/blocks/defaultBlockRenderMap";
 import { useCallback, useMemo, useState } from "react";
 
 export const useBlockState = (blockOverrides: BlockRendererOverrides) => {
