@@ -102,6 +102,10 @@ export class Editor implements IEditor {
     return this.document.size;
   }
 
+  public isOnlyBlockInDocument(blockId: string): boolean {
+    return this.document.isOnlyBlockInDocument(blockId);
+  }
+
   public getBlock<T extends DocumentNode>(blockId: string): DeepReadonly<T> | null {
     return this.document.getBlockOrRoot(blockId) as DeepReadonly<T> | null;
   }

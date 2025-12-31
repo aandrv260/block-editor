@@ -213,4 +213,10 @@ export interface DocumentTree {
   traverse(callback: (block: Block) => void, root: DocumentNode): void;
 
   toJSON(): string;
+
+  /**
+   * Check if the given block is the only block in the document excluding the root.
+   * @param blockId - The ID of the block to check.
+   */
+  isOnlyBlockInDocument(blockId: string): boolean;
 }

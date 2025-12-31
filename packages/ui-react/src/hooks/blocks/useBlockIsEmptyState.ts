@@ -21,8 +21,7 @@ export const useBlockIsEmptyState = (
   };
 
   const removeEmptyTextOnBlur = () => {
-    const isOnlyBlockInDocument =
-      editor.getDocumentSize() === 2 && editor.getBlock(block.id) === block;
+    const isOnlyBlockInDocument = editor.isOnlyBlockInDocument(block.id);
 
     if (isOnlyBlockInDocument) return;
 

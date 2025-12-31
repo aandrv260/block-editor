@@ -57,6 +57,8 @@ describe("Editor full integration", () => {
     );
 
     // Assert correct
+    expect(editor.isOnlyBlockInDocument(TOGGLE_LIST1_BLOCK.id)).toBe(false);
+
     expect(onPersist).toHaveBeenCalledExactlyOnceWith({
       type: "editor:persist",
       documentJSON: editor.getDocumentJSON(),
@@ -296,6 +298,7 @@ describe("Editor full integration", () => {
 
     // Assert
     expect(editor.getDocumentSize()).toBe(2);
+    expect(editor.isOnlyBlockInDocument(SAMPLE_BLOCK4.id)).toBe(true);
 
     expect(onPersist).toHaveBeenCalledExactlyOnceWith({
       type: "editor:persist",

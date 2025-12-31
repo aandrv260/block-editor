@@ -411,6 +411,14 @@ export class EditorDocument implements DocumentTree {
     return JSON.stringify(this.root, null, 2);
   }
 
+  public isOnlyBlockInDocument(blockId: string): boolean {
+    return (
+      this.blocksMap.size === 1 &&
+      !!this.getBlock(blockId) &&
+      this.root.children.at(0)?.id === blockId
+    );
+  }
+
   public getRoot(): DocumentRoot {
     return this.root;
   }
