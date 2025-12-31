@@ -1,29 +1,15 @@
-import { useEffect, useState } from "react";
-import { useBlockElementMap } from "./useBlockElementMap";
 import { useInsertBlock } from "../actions/useInsertBlock";
 import { useUpdateBlock } from "../actions/useUpdateBlock";
 import type { Block, DeepReadonly, HeadingBlock } from "@block-editor/core";
-import { focusCaretTo } from "@/utils/focus-caret.utils";
+import { useNewBlockFocus } from "./useNewBlockFocus";
 
 export const useEnterKeyInBeginningSplitBlock = (
   block: DeepReadonly<HeadingBlock>,
   headingRef: React.RefObject<HTMLHeadingElement | null>,
 ) => {
-  const [pendingNewBlockId, setPendingNewBlockId] = useState<string | null>(null);
   const insertBlock = useInsertBlock();
   const updateBlock = useUpdateBlock();
-  const { blockElementsMap } = useBlockElementMap();
-
-  useEffect(() => {
-    if (!pendingNewBlockId) return;
-
-    const newBlockElement = blockElementsMap.get(pendingNewBlockId);
-
-    if (!newBlockElement) return;
-
-    focusCaretTo("start", newBlockElement);
-    setPendingNewBlockId(null);
-  }, [blockElementsMap, pendingNewBlockId]);
+  const { requestBlockFocus } = useNewBlockFocus();
 
   const splitBlockOnEnterKeyInBeginning = () => {
     if (!headingRef.current) return;
@@ -50,7 +36,7 @@ export const useEnterKeyInBeginningSplitBlock = (
       childrenStrategy: "drop",
     });
 
-    setPendingNewBlockId(newBlockId);
+    requestBlockFocus(newBlockId);
   };
 
   return { splitBlockOnEnterKeyInBeginning };

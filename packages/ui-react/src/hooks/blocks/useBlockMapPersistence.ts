@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { useBlockElementMap } from "./useBlockElementMap";
 import type { DeepReadonly, HeadingBlock } from "@block-editor/core";
 
@@ -8,7 +8,7 @@ export const useBlockMapPersistence = (
 ) => {
   const { addBlockHTMLElement, removeBlockHTMLElement } = useBlockElementMap();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     headingRef.current && addBlockHTMLElement(block.id, headingRef.current);
 
     return () => {

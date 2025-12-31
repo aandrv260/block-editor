@@ -1,7 +1,7 @@
 @tailwind utilities;
 
 @layer utilities {
-  .block-empty::before {
+  .editor-block::before {
     --empty-text-color: var(--color-gray-700);
 
     content: attr(data-empty-text);
@@ -11,6 +11,16 @@
     color: var(--empty-text-color);
     font-size: 1em;
     cursor: text;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .editor-block.show-empty-text::before {
     opacity: 0.5;
+    visibility: visible;
+  }
+
+  .editor-block:not(:empty)::before {
+    display: none;
   }
 }
