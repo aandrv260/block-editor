@@ -5,6 +5,7 @@ import {
   isFocusedAndCaretAtEnd,
   isFocusedAndCaretAtStart,
 } from "@/utils/caret/caret-position-checks.utils";
+import { useEnterKeyInMiddleSplitBlock } from "./useEnterKeyInMiddleSplitBlock";
 
 export const useBlockEnterKeyDown = (
   block: DeepReadonly<HeadingBlock>,
@@ -16,29 +17,32 @@ export const useBlockEnterKeyDown = (
     headingRef,
   );
 
+  const { splitBlockOnEnterKeyInMiddle } = useEnterKeyInMiddleSplitBlock(
+    block,
+    headingRef,
+  );
+
   const handleEnterKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
     if (!headingRef.current) return;
 
-    const isShiftKeyPressed = event.shiftKey;
     const isBlockFocusedAndCaretAtEnd = isFocusedAndCaretAtEnd(headingRef.current);
 
+    event.preventDefault();
+    event.stopPropagation();
+
     if (isFocusedAndCaretAtStart(headingRef.current)) {
-      event.preventDefault();
-      event.stopPropagation();
       splitBlockOnEnterKeyInBeginning();
       return;
     }
 
     if (!isBlockFocusedAndCaretAtEnd) {
-      event.preventDefault();
-      event.stopPropagation();
+      splitBlockOnEnterKeyInMiddle();
       return;
     }
 
-    if (!isShiftKeyPressed && isBlockFocusedAndCaretAtEnd) {
-      event.preventDefault();
-      event.stopPropagation();
+    if (!event.shiftKey && isBlockFocusedAndCaretAtEnd) {
       createNewBlockOnEnterKeyInEnd();
+      return;
     }
   };
 
