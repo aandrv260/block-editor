@@ -6,9 +6,12 @@ import {
 } from "@/common/dom-events/keyboard.utils";
 import { useBlockEnterKeyDown } from "./useBlockEnterKeyDown";
 import { useKeyboardArrowNavigation } from "./useKeyboardArrowNavigation";
-import { useBackspaceBlockDeletion } from "./useBackspaceBlockDeletion";
+import { useBackspaceDeletion } from "./useBackspaceDeletion";
 import type { DeepReadonly, HeadingBlock } from "@block-editor/core";
 
+/**
+ * Orchestrates the keydown events for a block.
+ */
 export const useBlockKeyDown = (
   block: DeepReadonly<HeadingBlock>,
   headingRef: React.RefObject<HTMLHeadingElement | null>,
@@ -18,7 +21,7 @@ export const useBlockKeyDown = (
   const { handleArrowUpNavigation, handleArrowDownNavigation } =
     useKeyboardArrowNavigation(block, headingRef);
 
-  const { handleBackspaceForBlockDeletion } = useBackspaceBlockDeletion(
+  const { handleBackspaceForBlockDeletion } = useBackspaceDeletion(
     block,
     headingRef,
   );
