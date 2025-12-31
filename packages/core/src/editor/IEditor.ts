@@ -59,6 +59,12 @@ export interface IEditor {
   getDocumentSize(): number;
 
   /**
+   * Check if the given block is the only block in the document excluding the root.
+   * @param blockId - The ID of the block to check.
+   */
+  isOnlyBlockInDocument(blockId: string): boolean;
+
+  /**
    * Get a block from the document. Very usefull for UI components to get the block data they need.
    *
    * Please keep in mind that this will return null if you pass the root block ID. If you want to get the root block, use the `getRoot` method.

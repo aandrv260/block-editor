@@ -1,7 +1,7 @@
 @tailwind utilities;
 
 @layer utilities {
-  .editor-empty::before {
+  .block-empty::before {
     --empty-text-color: var(--color-gray-700);
 
     content: attr(data-empty-text);

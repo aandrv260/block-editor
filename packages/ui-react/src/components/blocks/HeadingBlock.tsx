@@ -16,7 +16,13 @@ interface Props {
 // It won't be bad if later when I see what's common between all blocks (no matter the type) I create a base component for all blocks like BlockBase that will call common hooks like useBlockMapPersistence and useEnterKeyBlockCreation so I don't have to repeat the same code in each block component. For now, it will stay like this until I see the shared logic between all of them.
 export default function HeadingBlock({ block }: Props) {
   const headingRef = useRef<HTMLHeadingElement | null>(null);
-  const { showEmptyText, updateIsEmptyText } = useBlockIsEmptyState(block);
+  const {
+    showEmptyText,
+    updateIsEmptyText,
+    showEmptyTextOnFocus,
+    removeEmptyTextOnBlur,
+  } = useBlockIsEmptyState(block, headingRef);
+
   const { onInput } = useBlockTextInput(block, headingRef, updateIsEmptyText);
   const { handleEnterKeyDown } = useBlockEnterKeyDown(block, headingRef);
 
@@ -46,7 +52,7 @@ export default function HeadingBlock({ block }: Props) {
 
   return (
     <h1
-      className={`${showEmptyText ? "editor-empty" : ""} outline-none`}
+      className={`${showEmptyText ? "block-empty" : ""} outline-none`}
       ref={headingRef}
       id={block.id}
       data-empty-text="Write something..."
@@ -54,6 +60,8 @@ export default function HeadingBlock({ block }: Props) {
       contentEditable
       suppressContentEditableWarning
       onInput={onInput}
+      onFocus={showEmptyTextOnFocus}
+      onBlur={removeEmptyTextOnBlur}
       onKeyDown={onKeyDown}
     />
   );

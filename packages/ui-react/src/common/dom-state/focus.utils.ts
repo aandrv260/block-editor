@@ -1,3 +1,3 @@
-export const isElementFocused = (element: HTMLElement): boolean => {
+export const isElementFocused = (element: HTMLElement | null): boolean => {
   return document.activeElement === element;
 };
