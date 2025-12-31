@@ -11,8 +11,10 @@ export const useKeyboardArrowNavigation = (
   const { getPreviousBlockHTMLElement, getNextBlockHTMLElement } =
     useBlockSiblings(block);
 
+  const shouldSkipNavigationHandling = () => editor.isOnlyBlockInDocument(block.id);
+
   const handleArrowUpNavigation = (event: React.KeyboardEvent<HTMLElement>) => {
-    if (editor.isOnlyBlockInDocument(block.id)) {
+    if (shouldSkipNavigationHandling()) {
       return;
     }
 
@@ -30,7 +32,7 @@ export const useKeyboardArrowNavigation = (
   };
 
   const handleArrowDownNavigation = (event: React.KeyboardEvent<HTMLElement>) => {
-    if (editor.isOnlyBlockInDocument(block.id)) {
+    if (shouldSkipNavigationHandling()) {
       return;
     }
 
@@ -41,7 +43,6 @@ export const useKeyboardArrowNavigation = (
 
     if (!nextBlockHTMLElement) return;
 
-    // Prevent default browser behavior
     event.preventDefault();
     event.stopPropagation();
 
