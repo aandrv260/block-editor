@@ -78,6 +78,7 @@ import {
   UpdateBlockIDAlreadyInUseError,
 } from "../errors/update-block";
 import { traverse as traverseDocument } from "../utils/block-traversal.utils";
+import type { DeepReadonly } from "@/common/types/object.types";
 
 /**
  * The EditorDocument class is the core class that represents the document tree in the editor.
@@ -417,6 +418,51 @@ export class EditorDocument implements DocumentTree {
       !!this.getBlock(blockId) &&
       this.root.children.at(0)?.id === blockId
     );
+  }
+
+  public getPreviousSiblingBlock(blockId: string): DeepReadonly<Block> | null {
+    return this.getSiblingBlock(blockId, "previous");
+  }
+
+  public getNextSiblingBlock(blockId: string): DeepReadonly<Block> | null {
+    return this.getSiblingBlock(blockId, "next");
+  }
+
+  private getSiblingBlock(
+    blockId: string,
+    direction: "previous" | "next",
+  ): DeepReadonly<Block> | null {
+    const block = this.getBlock(blockId);
+
+    if (!block) {
+      return null;
+    }
+
+    const parentChildren = this.getBlockOrRoot(block.parentId)?.children;
+
+    if (!parentChildren) {
+      return null;
+    }
+
+    const indexOfBlockInParentChildren = parentChildren.findIndex(
+      child => child.id === blockId,
+    );
+
+    const isBlockIndexInvalid =
+      direction === "previous"
+        ? indexOfBlockInParentChildren === 0
+        : indexOfBlockInParentChildren === parentChildren.length - 1;
+
+    if (indexOfBlockInParentChildren === -1 || isBlockIndexInvalid) {
+      return null;
+    }
+
+    const queryIndex =
+      direction === "next"
+        ? indexOfBlockInParentChildren + 1
+        : indexOfBlockInParentChildren - 1;
+
+    return parentChildren.at(queryIndex) ?? null;
   }
 
   public getRoot(): DocumentRoot {

@@ -11,7 +11,7 @@ import type {
 } from "@/events/editor-event-bus/editorEvent.models";
 import { EventBus } from "@/events/event-bus/EventBus";
 import type { IEditor } from "./IEditor";
-import type { DocumentNode } from "@/blocks/models/block.models";
+import type { Block, DocumentNode } from "@/blocks/models/block.models";
 import type { ConstructableDocumentElement } from "@/document/models/document.models";
 import type { DeepReadonly } from "@/common/types/object.types";
 import {
@@ -96,6 +96,14 @@ export class Editor implements IEditor {
 
   public getRoot(): DeepReadonly<DocumentRoot> {
     return this.document.getRoot();
+  }
+
+  public getPreviousSiblingBlock(blockId: string): DeepReadonly<Block> | null {
+    return this.document.getPreviousSiblingBlock(blockId);
+  }
+
+  public getNextSiblingBlock(blockId: string): DeepReadonly<Block> | null {
+    return this.document.getNextSiblingBlock(blockId);
   }
 
   public getDocumentSize(): number {

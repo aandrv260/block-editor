@@ -1,6 +1,6 @@
 import type { DeepReadonly } from "@/common/types/object.types";
 import type { EditorAction } from "@/actions/actions.models";
-import type { DocumentNode } from "@/blocks/models/block.models";
+import type { Block, DocumentNode } from "@/blocks/models/block.models";
 import type { DocumentRoot } from "@/document/DocumentRoot/DocumentRoot";
 import type {
   EditorEventHandler,
@@ -50,7 +50,15 @@ export interface IEditor {
    */
   getRoot(): DeepReadonly<DocumentRoot>;
 
-  getDocumentSize(): number;
+  /**
+   * Get the previous sibling of a block.
+   */
+  getPreviousSiblingBlock(blockId: string): DeepReadonly<Block> | null;
+
+  /**
+   * Get the next sibling of a block.
+   */
+  getNextSiblingBlock(blockId: string): DeepReadonly<Block> | null;
 
   /**
    * Get the size of the document. Includes the root and all of its descendants no matter how deep in the tree they are.
