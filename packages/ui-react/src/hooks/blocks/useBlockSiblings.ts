@@ -28,11 +28,11 @@ export const useBlockSiblings = (block: DeepReadonly<HeadingBlock>) => {
   );
 
   const getNextBlockHTMLElement = useCallback<BlockElementGetter>(() => {
-    const previousBlock = getNextBlock();
+    const nextBlock = getNextBlock();
 
-    if (!previousBlock) return null;
+    if (!nextBlock) return null;
 
-    return blockElementsMap.get(previousBlock.id) ?? null;
+    return blockElementsMap.get(nextBlock.id) ?? null;
   }, [blockElementsMap, getNextBlock]);
 
   return {
