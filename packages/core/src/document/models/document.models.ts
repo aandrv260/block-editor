@@ -1,3 +1,4 @@
+import type { DeepReadonly } from "@/common/types/object.types";
 import type { Block, DocumentNode } from "../../blocks/models/block.models";
 import type { DocumentRoot } from "../DocumentRoot/DocumentRoot";
 import type { EditorDocument } from "../EditorDocument";
@@ -184,6 +185,13 @@ export interface DocumentTree {
   moveBlock(options: MoveBlockOptions): void;
 
   getRoot(): DocumentRoot;
+
+  /**
+   * Get the previous sibling of a block.
+   */
+  getPreviousSiblingBlock(blockId: string): DeepReadonly<Block> | null;
+
+  getNextSiblingBlock(blockId: string): DeepReadonly<Block> | null;
 
   /**
    * Get a block from the document.

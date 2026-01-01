@@ -58,6 +58,8 @@ describe("Editor full integration", () => {
 
     // Assert correct
     expect(editor.isOnlyBlockInDocument(TOGGLE_LIST1_BLOCK.id)).toBe(false);
+    expect(editor.getNextSiblingBlock(TOGGLE_LIST1_BLOCK.id)).toBeNull();
+    expect(editor.getPreviousSiblingBlock(TOGGLE_LIST1_BLOCK.id)).toBeNull();
 
     expect(onPersist).toHaveBeenCalledExactlyOnceWith({
       type: "editor:persist",
@@ -140,6 +142,12 @@ describe("Editor full integration", () => {
 
     // Assert
     expect(editor.getDocumentSize()).toBe(4);
+    expect(editor.getNextSiblingBlock(SAMPLE_BLOCK2.id)).toBe(
+      editor.getBlock(SAMPLE_BLOCK3.id),
+    );
+    expect(editor.getPreviousSiblingBlock(SAMPLE_BLOCK3.id)).toBe(
+      editor.getBlock(SAMPLE_BLOCK2.id),
+    );
 
     expect(onPersist).toHaveBeenCalledExactlyOnceWith({
       type: "editor:persist",
@@ -210,6 +218,13 @@ describe("Editor full integration", () => {
 
     // Assert
     expect(editor.getDocumentSize()).toBe(5);
+    expect(editor.getNextSiblingBlock(SAMPLE_BLOCK2.id)).toBe(
+      editor.getBlock(SAMPLE_BLOCK3.id),
+    );
+
+    expect(editor.getPreviousSiblingBlock(SAMPLE_BLOCK3.id)).toBe(
+      editor.getBlock(SAMPLE_BLOCK2.id),
+    );
 
     expect(onPersist).toHaveBeenCalledExactlyOnceWith({
       type: "editor:persist",
@@ -299,6 +314,8 @@ describe("Editor full integration", () => {
     // Assert
     expect(editor.getDocumentSize()).toBe(2);
     expect(editor.isOnlyBlockInDocument(SAMPLE_BLOCK4.id)).toBe(true);
+    expect(editor.getNextSiblingBlock(TOGGLE_LIST1_BLOCK.id)).toBeNull();
+    expect(editor.getPreviousSiblingBlock(TOGGLE_LIST1_BLOCK.id)).toBeNull();
 
     expect(onPersist).toHaveBeenCalledExactlyOnceWith({
       type: "editor:persist",
