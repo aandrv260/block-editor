@@ -27,7 +27,9 @@
     "react-dom": ">=18"
   },
   "dependencies": {
-    "@block-editor/core": "workspace:*"
+    "@block-editor/core": "workspace:*",
+    "@floating-ui/react": "^0.27.16",
+    "motion": "^12.26.1"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.18",
