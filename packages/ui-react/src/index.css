@@ -1,4 +1,4 @@
-@tailwind utilities;
+@import "tailwindcss";
 
 @layer utilities {
   .editor-block::before {
