@@ -44,7 +44,7 @@
     "jsdom": "^27.4.0",
     "tailwindcss": "^4.1.18",
     "tsc-alias": "^1.8.16",
-    "vitest": "^4.0.16"
+    "vitest": "^4.0.18"
   },
   "keywords": [],
   "author": "",
