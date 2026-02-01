@@ -29,7 +29,7 @@
   "dependencies": {
     "@block-editor/core": "workspace:*",
     "@floating-ui/react": "^0.27.16",
-    "motion": "^12.26.1"
+    "motion": "^12.29.2"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.18",
