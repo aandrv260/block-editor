@@ -1,11 +1,5 @@
 import { createCommandCenter } from "./CommandCenter-test.utils";
-import {
-  insertBlock,
-  historyUndo,
-  historyRedo,
-  historyJump,
-  historySet,
-} from "../../actions/actions";
+import { insertBlock } from "../../actions/actions";
 import {
   SAMPLE_BLOCK3,
   TOGGLE_LIST1_BLOCK,
@@ -23,7 +17,7 @@ import { createTestDocument } from "../executors/utils/commandExecutors-test.uti
 import { DEFAULT_COMMAND_CENTER_DOCUMENT_BLOCKS } from "./CommandCenter-test.utils";
 
 describe("CommandCenter history", () => {
-  it("executes the undo command based on the undo action input", () => {
+  it("undoes the last change and emits the change events", () => {
     // Arrange
     const {
       document,
@@ -107,7 +101,7 @@ describe("CommandCenter history", () => {
 
     // Act
     vi.clearAllMocks();
-    commandCenter.processAction(historyUndo());
+    commandCenter.undo();
 
     // Assert
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
@@ -142,7 +136,7 @@ describe("CommandCenter history", () => {
     assertTreeIntegrity(document);
   });
 
-  it("executes the redo command based on the redo action input", () => {
+  it("redoes the last undone change and emits the change events", () => {
     // Arrange
     const {
       document,
@@ -195,7 +189,7 @@ describe("CommandCenter history", () => {
 
     // Act
     vi.clearAllMocks();
-    commandCenter.processAction(historyUndo());
+    commandCenter.undo();
 
     // Assert
     expect(onPersist).toHaveBeenCalledExactlyOnceWith({
@@ -223,7 +217,7 @@ describe("CommandCenter history", () => {
 
     // Act
     vi.clearAllMocks();
-    commandCenter.processAction(historyRedo());
+    commandCenter.redo();
 
     // Assert
     expect(onPersist).toHaveBeenCalledExactlyOnceWith({
@@ -290,7 +284,7 @@ describe("CommandCenter history", () => {
     assertTreeIntegrity(document);
   });
 
-  it("executes the jump to point in history command based on the jump to point in history action input", () => {
+  it("jumps to a point in history and emits the change events", () => {
     // Arrange
     const {
       document,
@@ -407,7 +401,7 @@ describe("CommandCenter history", () => {
 
     // Act - jump to the first in history
     vi.clearAllMocks();
-    commandCenter.processAction(historyJump(0));
+    commandCenter.jumpTo(0);
 
     // Assert
     expect(onPersist).toHaveBeenCalledExactlyOnceWith({
@@ -444,7 +438,7 @@ describe("CommandCenter history", () => {
     assertTreeIntegrity(document);
   });
 
-  it("executes the history set command based on the history set action input", () => {
+  it("sets the history and emits the change events", () => {
     // Arrange
     const { commandCenter, document, eventBus, history } = createCommandCenter();
 
@@ -473,15 +467,11 @@ describe("CommandCenter history", () => {
     expect(history.getCurrentPosition()).toBe(0);
 
     // Act
-    commandCenter.processAction(
-      historySet({
-        history: [
-          newDocument2.toJSON(),
-          newDocument1.toJSON(),
-          outerDocument.toJSON(),
-        ],
-      }),
-    );
+    commandCenter.setHistory([
+      newDocument2.toJSON(),
+      newDocument1.toJSON(),
+      outerDocument.toJSON(),
+    ]);
 
     // Assert
     expect(onHistorySet).toHaveBeenCalledExactlyOnceWith({
@@ -543,7 +533,7 @@ describe("CommandCenter history", () => {
 
     // Act - go back to 1st position
     vi.clearAllMocks();
-    commandCenter.processAction(historyJump(1));
+    commandCenter.jumpTo(1);
 
     // Assert
     expect(history.getHistory()).toEqual([
@@ -566,11 +556,7 @@ describe("CommandCenter history", () => {
       ["root", SAMPLE_BLOCK10],
     ]);
 
-    commandCenter.processAction(
-      historySet({
-        history: [newDocument4.toJSON(), newDocument1.toJSON()],
-      }),
-    );
+    commandCenter.setHistory([newDocument4.toJSON(), newDocument1.toJSON()]);
 
     // Assert
     expect(onHistorySet).toHaveBeenCalledExactlyOnceWith({
@@ -605,14 +591,152 @@ describe("CommandCenter history", () => {
     expect(history.getCurrentPosition()).toBe(1);
 
     // Act - change history with invalid one to test throwing
-    expect(() =>
-      commandCenter.processAction(
-        historySet({
-          history: [newDocument4.toJSON()],
-        }),
-      ),
-    ).toThrowError(
+    expect(() => commandCenter.setHistory([newDocument4.toJSON()])).toThrowError(
       "The last record in the history is not the same as the current document!",
     );
+  });
+
+  it("emits no history events when there is nothing to undo, redo or jump to", () => {
+    // Arrange
+    const { commandCenter, document, history, eventBus, INITIAL_HISTORY_DOC_JSON } =
+      createCommandCenter();
+
+    const onUndo = vi.fn();
+    const onRedo = vi.fn();
+    const onJump = vi.fn();
+    const onEditorChange = vi.fn();
+
+    eventBus.on("history:undo", onUndo);
+    eventBus.on("history:redo", onRedo);
+    eventBus.on("history:jump", onJump);
+    eventBus.on("editor:change", onEditorChange);
+
+    // Act
+    commandCenter.undo();
+    commandCenter.redo();
+    commandCenter.jumpTo(0);
+
+    // Assert
+    expect(onUndo).not.toHaveBeenCalled();
+    expect(onRedo).not.toHaveBeenCalled();
+    expect(onJump).not.toHaveBeenCalled();
+    expect(onEditorChange).toHaveBeenCalledTimes(3);
+
+    expect(document.toJSON()).toBe(INITIAL_HISTORY_DOC_JSON);
+    expect(history.getHistory()).toStrictEqual([INITIAL_HISTORY_DOC_JSON]);
+    expect(history.getCurrentPosition()).toBe(0);
+  });
+
+  it("does nothing on undo and redo when the history is empty", () => {
+    // Arrange
+    const { commandCenter, document, history, eventBus, INITIAL_HISTORY_DOC_JSON } =
+      createCommandCenter();
+
+    const onUndo = vi.fn();
+    const onRedo = vi.fn();
+
+    eventBus.on("history:undo", onUndo);
+    eventBus.on("history:redo", onRedo);
+
+    history.clear();
+
+    // Act
+    commandCenter.undo();
+    commandCenter.redo();
+
+    // Assert
+    expect(onUndo).not.toHaveBeenCalled();
+    expect(onRedo).not.toHaveBeenCalled();
+
+    expect(document.toJSON()).toBe(INITIAL_HISTORY_DOC_JSON);
+    expect(history.getHistory()).toStrictEqual([]);
+    expect(history.getCurrent()).toBeNull();
+    expect(history.getCurrentPosition()).toBe(-1);
+  });
+
+  test.each([[-1], [2], [35]])(
+    "throws and changes nothing when jumping to the out of range index %s",
+    index => {
+      // Arrange
+      const { commandCenter, document, history, eventBus } = createCommandCenter();
+
+      commandCenter.processAction(
+        insertBlock({
+          targetId: TOGGLE_LIST2_BLOCK.id,
+          newBlock: SAMPLE_BLOCK3,
+          strategy: "after",
+        }),
+      );
+
+      const documentJSONAfterInsert = document.toJSON();
+      const onJump = vi.fn();
+      const onEditorChange = vi.fn();
+
+      eventBus.on("history:jump", onJump);
+      eventBus.on("editor:change", onEditorChange);
+
+      // Act and assert
+      expect(() => commandCenter.jumpTo(index)).toThrowError("Index out of range");
+
+      expect(onJump).not.toHaveBeenCalled();
+      expect(onEditorChange).not.toHaveBeenCalled();
+      expect(document.toJSON()).toBe(documentJSONAfterInsert);
+      expect(history.getCurrentPosition()).toBe(1);
+    },
+  );
+
+  it("undoes several changes in a row and redoes them back", () => {
+    // Arrange
+    const { commandCenter, document, history, INITIAL_HISTORY_DOC_JSON } =
+      createCommandCenter();
+
+    commandCenter.processAction(
+      insertBlock({
+        targetId: TOGGLE_LIST2_BLOCK.id,
+        newBlock: SAMPLE_BLOCK3,
+        strategy: "after",
+      }),
+    );
+
+    const documentJSONAfterInsert1 = document.toJSON();
+
+    commandCenter.processAction(
+      insertBlock({
+        targetId: TOGGLE_LIST2_BLOCK.id,
+        newBlock: SAMPLE_BLOCK4,
+        strategy: "append",
+      }),
+    );
+
+    const documentJSONAfterInsert2 = document.toJSON();
+
+    // Act
+    commandCenter.undo();
+
+    // Assert
+    expect(document.toJSON()).toBe(documentJSONAfterInsert1);
+    expect(history.getCurrentPosition()).toBe(1);
+
+    // Act
+    commandCenter.undo();
+
+    // Assert
+    expect(document.toJSON()).toBe(INITIAL_HISTORY_DOC_JSON);
+    expect(history.getCurrentPosition()).toBe(0);
+
+    // Act
+    commandCenter.redo();
+    commandCenter.redo();
+
+    // Assert
+    expect(document.toJSON()).toBe(documentJSONAfterInsert2);
+    expect(history.getCurrentPosition()).toBe(2);
+    expect(history.getHistory()).toStrictEqual([
+      INITIAL_HISTORY_DOC_JSON,
+      documentJSONAfterInsert1,
+      documentJSONAfterInsert2,
+    ]);
+
+    assertTreeIntegrity(document);
   });
 });
