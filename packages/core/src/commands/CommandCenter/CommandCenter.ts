@@ -43,11 +43,12 @@ export class CommandCenter {
       type: action.type,
       payload: action.payload,
       document: this.document,
-      eventBus: this.eventBus,
-      history: this.history,
     });
 
-    command.execute();
+    const event = command.execute();
+
+    this.recordHistory(action);
+    this.eventBus.emit(event.type, event);
     this.emitChangeEvents(action.type);
   }
 
@@ -69,6 +70,17 @@ export class CommandCenter {
   public setHistory(newHistory: readonly string[]): void {
     this.historyManager.setHistory(newHistory);
     this.emitChangeEvents("history:set");
+  }
+
+  private recordHistory(action: EditorAction) {
+    const shouldClearHistory =
+      action.type === "document:swap" && action.payload.clearHistory;
+
+    if (shouldClearHistory) {
+      this.historyManager.clear();
+    }
+
+    this.historyManager.record();
   }
 
   private emitChangeEvents(trigger: ChangeTrigger) {

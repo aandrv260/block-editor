@@ -1,23 +1,17 @@
 import { createDocumentSwapEvent } from "../../../events/editor-event-bus/editorEvent.emits";
+import type { DocumentSwapEvent } from "../../../events/editor-event-bus/event-types/document-swap-event.models";
 import { Command } from "../Command";
 
 export class SwapDocumentCommand extends Command<"document:swap"> {
-  public execute(): void {
-    const { element, clearHistory } = this.payload;
-    this.document.swap(element);
+  /**
+   * Only swaps the document. The command center clears the history when the `clearHistory` flag is set.
+   */
+  public execute(): DocumentSwapEvent {
+    this.document.swap(this.payload.element);
 
-    if (clearHistory) {
-      this.history.clear();
-    }
-
-    this.history.add(this.document.toJSON());
-
-    this.eventBus.emit(
-      "document:swap",
-      createDocumentSwapEvent({
-        element: this.payload.element,
-        historyCleared: this.payload.clearHistory,
-      }),
-    );
+    return createDocumentSwapEvent({
+      element: this.payload.element,
+      historyCleared: this.payload.clearHistory,
+    });
   }
 }

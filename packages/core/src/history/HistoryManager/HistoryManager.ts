@@ -31,6 +31,17 @@ export class HistoryManager {
     this.history = history;
   }
 
+  /**
+   * Adds the current document as a new record in the history.
+   */
+  public record(): void {
+    this.history.add(this.document.toJSON());
+  }
+
+  public clear(): void {
+    this.history.clear();
+  }
+
   public undo(): void {
     const previousDocumentJSON = this.history.undo();
 

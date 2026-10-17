@@ -19,7 +19,6 @@ import {
   TOGGLE_LIST6_BLOCK,
 } from "../../../document/utils/document-test.utils";
 import { EditorDocument } from "../../../document/EditorDocument";
-import { DOCUMENT_HISTORY_RECORDS_LIMIT } from "../../../history/DocumentHistory/DocumentHistory.utils";
 import type { UpdateBlockChildrenStrategy } from "../../../document/models/document.models";
 
 const createUpdateCommand = (
@@ -266,9 +265,9 @@ describe("UpdateBlockCommand", () => {
     assertTreeIntegrity(document);
   });
 
-  it("adds the new snapshot of the document after change to the history", () => {
+  it("leaves a document that parses back from its JSON to the same tree", () => {
     // Arrange
-    const { document, history, updateCommand } = createUpdateCommand(
+    const { document, updateCommand } = createUpdateCommand(
       {
         blockId: SAMPLE_BLOCK1.id,
         newBlock: SAMPLE_BLOCK3,
@@ -301,27 +300,13 @@ describe("UpdateBlockCommand", () => {
       ],
     });
 
-    expect(history.getHistory()).toStrictEqual([initialDocumentJSON]);
-    expect(history.getCurrent()).toBe(initialDocumentJSON);
-    expect(history.getCurrentPosition()).toBe(0);
-    expect(history.getLimit()).toBe(DOCUMENT_HISTORY_RECORDS_LIMIT);
-    expect(history.getSize()).toBe(1);
-
     // Act
     updateCommand.execute();
 
     // Assert
     const documentJSONAfterUpdate = document.toJSON();
 
-    expect(history.getHistory()).toStrictEqual([
-      initialDocumentJSON,
-      documentJSONAfterUpdate,
-    ]);
-
-    expect(history.getCurrent()).toBe(documentJSONAfterUpdate);
     expect(initialDocumentJSON).not.toBe(documentJSONAfterUpdate);
-    expect(history.getCurrentPosition()).toBe(1);
-    expect(history.getSize()).toBe(2);
     assertTreeIntegrity(document);
     expect(EditorDocument.fromJSON(documentJSONAfterUpdate)).toStrictEqual(document);
   });
@@ -329,10 +314,10 @@ describe("UpdateBlockCommand", () => {
   test.each([["preserve"], ["replace"], ["drop"]] as [
     UpdateBlockChildrenStrategy,
   ][])(
-    "emits an event with payload the blockId of the updated item when childrenStrategy is set to %s",
+    "returns the block:update event with the blockId of the updated block when childrenStrategy is set to %s",
     childrenStrategy => {
       // Arrange
-      const { eventBus, updateCommand } = createUpdateCommand(
+      const { updateCommand } = createUpdateCommand(
         {
           blockId: TOGGLE_LIST4_BLOCK.id,
           newBlock: TOGGLE_LIST6_BLOCK,
@@ -344,14 +329,11 @@ describe("UpdateBlockCommand", () => {
         ],
       );
 
-      const updateBlockEventCallback = vi.fn();
-      eventBus.on("block:update", updateBlockEventCallback);
-
       // Act
-      updateCommand.execute();
+      const event = updateCommand.execute();
 
       // Assert
-      expect(updateBlockEventCallback).toHaveBeenCalledExactlyOnceWith({
+      expect(event).toStrictEqual({
         type: "block:update",
         blockId: TOGGLE_LIST4_BLOCK.id,
         newBlock: TOGGLE_LIST6_BLOCK,
@@ -360,67 +342,24 @@ describe("UpdateBlockCommand", () => {
     },
   );
 
-  it("emits only block:update event", () => {
-    // Arrange
-    const { eventBus, updateCommand } = createUpdateCommand(
-      {
-        blockId: SAMPLE_BLOCK1.id,
-        newBlock: SAMPLE_BLOCK3,
-        childrenStrategy: "drop",
-      },
-      [
-        ["root", TOGGLE_LIST1_BLOCK],
-        [TOGGLE_LIST1_BLOCK.id, SAMPLE_BLOCK1],
-      ],
-    );
-
-    const onInsertBlock = vi.fn();
-    const onDeleteBlock = vi.fn();
-    const onMoveBlock = vi.fn();
-    const onUpdateBlock = vi.fn();
-
-    eventBus.on("block:insert", onInsertBlock);
-    eventBus.on("block:delete", onDeleteBlock);
-    eventBus.on("block:move", onMoveBlock);
-    eventBus.on("block:update", onUpdateBlock);
-
-    // Act
-    updateCommand.execute();
-
-    // Assert
-    expect(onInsertBlock).not.toHaveBeenCalled();
-    expect(onDeleteBlock).not.toHaveBeenCalled();
-    expect(onMoveBlock).not.toHaveBeenCalled();
-    expect(onUpdateBlock).toHaveBeenCalledExactlyOnceWith({
-      type: "block:update",
-      blockId: SAMPLE_BLOCK1.id,
-      newBlock: SAMPLE_BLOCK3,
-      childrenStrategy: "drop",
-    });
-  });
-
   test("whole update flow with different strategies", () => {
     // Arrange
-    const {
-      document,
-      history,
-      eventBus,
-      updateCommand: updateCommandWithPreserveStrategy,
-    } = createUpdateCommand(
-      {
-        blockId: TOGGLE_LIST1_BLOCK.id,
-        newBlock: TOGGLE_LIST3_BLOCK,
-        childrenStrategy: "preserve",
-      },
-      [
-        ["root", TOGGLE_LIST1_BLOCK],
-        ["root", SAMPLE_BLOCK1],
-        [TOGGLE_LIST1_BLOCK.id, TOGGLE_LIST2_BLOCK],
-        [TOGGLE_LIST1_BLOCK.id, SAMPLE_BLOCK3],
-        [TOGGLE_LIST2_BLOCK.id, SAMPLE_BLOCK4],
-        [TOGGLE_LIST2_BLOCK.id, SAMPLE_BLOCK5],
-      ],
-    );
+    const { document, updateCommand: updateCommandWithPreserveStrategy } =
+      createUpdateCommand(
+        {
+          blockId: TOGGLE_LIST1_BLOCK.id,
+          newBlock: TOGGLE_LIST3_BLOCK,
+          childrenStrategy: "preserve",
+        },
+        [
+          ["root", TOGGLE_LIST1_BLOCK],
+          ["root", SAMPLE_BLOCK1],
+          [TOGGLE_LIST1_BLOCK.id, TOGGLE_LIST2_BLOCK],
+          [TOGGLE_LIST1_BLOCK.id, SAMPLE_BLOCK3],
+          [TOGGLE_LIST2_BLOCK.id, SAMPLE_BLOCK4],
+          [TOGGLE_LIST2_BLOCK.id, SAMPLE_BLOCK5],
+        ],
+      );
 
     // Assert
     expect(document.getRoot()).toEqual({
@@ -489,8 +428,6 @@ describe("UpdateBlockCommand", () => {
         newBlock: TOGGLE_LIST4_BLOCK,
         childrenStrategy: "drop",
       },
-      eventBus,
-      history,
       document,
     );
 
@@ -539,8 +476,6 @@ describe("UpdateBlockCommand", () => {
         newBlock: { ...TOGGLE_LIST5_BLOCK, children: [SAMPLE_BLOCK6] },
         childrenStrategy: "replace",
       },
-      eventBus,
-      history,
       document,
     );
 

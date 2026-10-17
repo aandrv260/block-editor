@@ -254,15 +254,9 @@ describe("MoveBlockCommand", () => {
     assertTreeIntegrity(document);
   });
 
-  it("adds the new snapshot of the document after change to the history", () => {
+  it("leaves a document that parses back from its JSON to the same tree", () => {
     // Arrange
-    const {
-      document,
-      history,
-      moveCommand,
-      assertCorrectTreeStructure,
-      assertInitialHistoryIsCorrect,
-    } = createMoveCommand({
+    const { document, moveCommand, assertCorrectTreeStructure } = createMoveCommand({
       ...DEFAULT_PAYLOAD,
       strategy: "append",
     });
@@ -271,7 +265,6 @@ describe("MoveBlockCommand", () => {
 
     // Assert
     assertCorrectTreeStructure();
-    assertInitialHistoryIsCorrect(initialDocumentJSON);
 
     // Act
     moveCommand.execute();
@@ -279,69 +272,30 @@ describe("MoveBlockCommand", () => {
     // Assert
     const currentDocumentJSON = document.toJSON();
 
-    expect(history.getHistory()).toStrictEqual([
-      initialDocumentJSON,
-      currentDocumentJSON,
-    ]);
-
-    expect(history.getCurrent()).toBe(currentDocumentJSON);
     expect(initialDocumentJSON).not.toBe(currentDocumentJSON);
-    expect(history.getCurrentPosition()).toBe(1);
-    expect(history.getSize()).toBe(2);
     assertTreeIntegrity(document);
-
     expect(EditorDocument.fromJSON(currentDocumentJSON)).toStrictEqual(document);
   });
 
   test.each([["append"], ["before"], ["after"]] satisfies [MoveBlockStrategy][])(
-    "emits an event with payload the blockId of the moved item with strategy %s",
+    "returns the block:move event with the blockId of the moved block with strategy %s",
     strategy => {
       // Arrange
-      const { eventBus, moveCommand } = createMoveCommand({
+      const { moveCommand } = createMoveCommand({
         ...DEFAULT_PAYLOAD,
         strategy,
       });
 
-      const moveBlockEventCallback = vi.fn();
-      eventBus.on("block:move", moveBlockEventCallback);
-
       // Act
-      moveCommand.execute();
+      const event = moveCommand.execute();
 
       // Assert
-      expect(moveBlockEventCallback).toHaveBeenCalledExactlyOnceWith({
+      expect(event).toStrictEqual({
         type: "block:move",
         blockId: SAMPLE_BLOCK4.id,
         targetId: TOGGLE_LIST1_BLOCK.id,
         strategy,
       });
-    },
-  );
-
-  test.each([["append"], ["before"], ["after"]] satisfies [MoveBlockStrategy][])(
-    "emits only block:move event when the strategy is %s",
-    strategy => {
-      // Arrange
-      const { eventBus, moveCommand } = createMoveCommand({
-        ...DEFAULT_PAYLOAD,
-        strategy,
-      });
-
-      const updateCallback = vi.fn();
-      const deleteCallback = vi.fn();
-      const insertCallback = vi.fn();
-
-      eventBus.on("block:update", updateCallback);
-      eventBus.on("block:delete", deleteCallback);
-      eventBus.on("block:insert", insertCallback);
-
-      // Act
-      moveCommand.execute();
-
-      // Assert
-      expect(updateCallback).not.toHaveBeenCalled();
-      expect(deleteCallback).not.toHaveBeenCalled();
-      expect(insertCallback).not.toHaveBeenCalled();
     },
   );
 });

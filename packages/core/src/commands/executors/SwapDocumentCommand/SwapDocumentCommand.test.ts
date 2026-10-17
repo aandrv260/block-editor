@@ -6,11 +6,9 @@ import {
   SAMPLE_BLOCK1,
   SAMPLE_BLOCK2,
   SAMPLE_BLOCK3,
-  SAMPLE_BLOCK4,
   TOGGLE_LIST1_BLOCK,
   TOGGLE_LIST2_BLOCK,
 } from "../../../document/utils/document-test.utils";
-import { InsertBlockCommand } from "../InsertBlockCommand";
 import { createCommand } from "../utils/commandExecutors-test.utils";
 import { SwapDocumentCommand } from "./SwapDocumentCommand";
 
@@ -25,8 +23,6 @@ const createSwapDocumentCommand = ({
 }: CreateSwapDocumentCommandConfig) => {
   const {
     command: swapDocumentCommand,
-    eventBus,
-    history,
     document,
     ...commandUtils
   } = createCommand<"document:swap">({
@@ -77,20 +73,10 @@ const createSwapDocumentCommand = ({
     expect(document.getBlock("p1")).toBeNull();
   };
 
-  const insertCommand = new InsertBlockCommand(
-    { newBlock: SAMPLE_BLOCK4, targetId: TOGGLE_LIST2_BLOCK.id, strategy: "after" },
-    eventBus,
-    history,
-    document,
-  );
-
   return {
     ...commandUtils,
     swapDocumentCommand,
-    eventBus,
-    history,
     document,
-    insertCommand,
     assertInitialDocumentStructure,
   };
 };
@@ -226,158 +212,57 @@ describe("SwapDocumentCommand", () => {
     assertTreeIntegrity(document);
   });
 
-  it("clears the history correctly when the clearHistory flag is true", () => {
+  it("returns the document:swap event when a JSON is passed as the element to construct the new document from", () => {
     // Arrange
-    const {
-      swapDocumentCommand,
-      history,
-      insertCommand,
-      document,
-      INITIAL_DOCUMENT_JSON,
-      assertInitialHistoryIsCorrect,
-    } = createSwapDocumentCommand({
+    const { swapDocumentCommand } = createSwapDocumentCommand({
       elementToSwapWith: json,
       clearHistory: true,
     });
 
-    // Assert
-    assertInitialHistoryIsCorrect(INITIAL_DOCUMENT_JSON);
-
-    // Arrange
-    insertCommand.execute();
-    const documentJSONAfterInsert = document.toJSON();
-
-    // Assert
-    expect(history.getHistory()).toEqual([
-      INITIAL_DOCUMENT_JSON,
-      documentJSONAfterInsert,
-    ]);
-
-    expect(history.getCurrent()).toBe(documentJSONAfterInsert);
-    expect(history.getCurrentPosition()).toBe(1);
-
     // Act
-    swapDocumentCommand.execute();
-    const documentJSONAfterSwap = document.toJSON();
+    const event = swapDocumentCommand.execute();
 
     // Assert
-    expect(history.getHistory()).toEqual([documentJSONAfterSwap]);
-    expect(history.getCurrent()).toBe(documentJSONAfterSwap);
-    expect(history.getCurrentPosition()).toBe(0);
-    expect(history.getSize()).toBe(1);
-  });
-
-  it("appends to the history when the clearHistory flag is false", () => {
-    // Arrange
-    const {
-      swapDocumentCommand,
-      history,
-      insertCommand,
-      document,
-      INITIAL_DOCUMENT_JSON,
-      assertInitialHistoryIsCorrect,
-    } = createSwapDocumentCommand({
-      elementToSwapWith: json,
-      clearHistory: false,
-    });
-
-    // Assert
-    assertInitialHistoryIsCorrect(INITIAL_DOCUMENT_JSON);
-
-    // Arrange
-
-    insertCommand.execute();
-    const documentJSONAfterInsert = document.toJSON();
-
-    // Assert
-    expect(history.getHistory()).toEqual([
-      INITIAL_DOCUMENT_JSON,
-      documentJSONAfterInsert,
-    ]);
-
-    expect(history.getCurrent()).toBe(documentJSONAfterInsert);
-    expect(history.getCurrentPosition()).toBe(1);
-
-    // Act
-    swapDocumentCommand.execute();
-    const documentJSONAfterSwap = document.toJSON();
-
-    // Assert
-    expect(history.getCurrent()).toBe(documentJSONAfterSwap);
-    expect(history.getCurrentPosition()).toBe(2);
-    expect(history.getHistory()).toEqual([
-      INITIAL_DOCUMENT_JSON,
-      documentJSONAfterInsert,
-      documentJSONAfterSwap,
-    ]);
-
-    expect(history.getSize()).toBe(3);
-  });
-
-  it("emits the correct event when the command is executed and a JSON is passed as the element to construct the new document from", () => {
-    // Arrange
-    const { swapDocumentCommand, eventBus, insertCommand } =
-      createSwapDocumentCommand({
-        elementToSwapWith: json,
-        clearHistory: true,
-      });
-
-    const onSwapEvent = vi.fn();
-    eventBus.on("document:swap", onSwapEvent);
-
-    // Act
-    insertCommand.execute();
-
-    // Act
-    swapDocumentCommand.execute();
-
-    // Assert
-    expect(onSwapEvent).toHaveBeenCalledExactlyOnceWith({
+    expect(event).toStrictEqual({
       type: "document:swap",
       element: json,
       historyCleared: true,
     });
   });
 
-  it("emits the correct event when the command is executed and a DocumentRoot is passed as the element to construct the new document from", () => {
+  it("returns the document:swap event when a DocumentRoot is passed as the element to construct the new document from", () => {
     // Arrange
-    const { swapDocumentCommand, eventBus } = createSwapDocumentCommand({
+    const { swapDocumentCommand } = createSwapDocumentCommand({
       elementToSwapWith: rootToSwapWith,
       clearHistory: false,
     });
 
-    const onSwapEvent = vi.fn();
-    eventBus.on("document:swap", onSwapEvent);
-
     // Act
-    swapDocumentCommand.execute();
+    const event = swapDocumentCommand.execute();
 
     // Assert
-    expect(onSwapEvent).toHaveBeenCalledExactlyOnceWith({
+    expect(event).toStrictEqual({
       type: "document:swap",
       element: rootToSwapWith,
       historyCleared: false,
     });
   });
 
-  it("emits the correct event when the command is executed and a EditorDocument is passed as the element to construct the new document from", () => {
+  it("returns the document:swap event when an EditorDocument is passed as the element to construct the new document from", () => {
     // Arrange
     const editorDocumentToSwapWith = EditorDocument.fromJSON(json);
 
-    const { swapDocumentCommand, history, eventBus } = createSwapDocumentCommand({
+    const { swapDocumentCommand, document } = createSwapDocumentCommand({
       elementToSwapWith: editorDocumentToSwapWith,
       clearHistory: false,
     });
 
-    const onSwapEvent = vi.fn();
-    eventBus.on("document:swap", onSwapEvent);
-
     // Act
-    swapDocumentCommand.execute();
+    const event = swapDocumentCommand.execute();
 
     // Assert
-    expect(history.getCurrent()).toBe(editorDocumentToSwapWith.toJSON());
-    expect(onSwapEvent).toHaveBeenCalledExactlyOnceWith({
+    expect(document.toJSON()).toBe(editorDocumentToSwapWith.toJSON());
+    expect(event).toStrictEqual({
       type: "document:swap",
       element: editorDocumentToSwapWith,
       historyCleared: false,

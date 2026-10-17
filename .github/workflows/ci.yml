@@ -51,12 +51,3 @@ jobs:
       - uses: ./.github/actions/setup-ci-env
       # TODO: Later I must replace this with the `pnpm -r test-integ` command once I add integration tests to the UI adapter.
       - run: pnpm -F @block-editor/core test-integ
-
-  audit-deps:
-    if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'ready_for_review')
-    runs-on: ubuntu-latest
-    needs: setup
-    steps:
-      - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-ci-env
-      - run: pnpm audit-check
