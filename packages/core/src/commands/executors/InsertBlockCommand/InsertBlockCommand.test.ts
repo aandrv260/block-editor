@@ -230,92 +230,25 @@ describe("InsertBlockCommand", () => {
     assertTreeIntegrity(document);
   });
 
-  it("adds the new snapshot of the document after change to the history", () => {
-    // Arrange
-    const {
-      document,
-      history,
-      insertCommand,
-      assertCorrectTreeStructure,
-      assertInitialHistoryIsCorrect,
-    } = createInsertCommand({
-      ...DEFAULT_PAYLOAD,
-      strategy: "before",
-    });
-
-    const initialDocumentJSON = document.toJSON();
-
-    // Assert
-    assertCorrectTreeStructure();
-    assertInitialHistoryIsCorrect(initialDocumentJSON);
-
-    // Act
-    insertCommand.execute();
-
-    // Assert
-    const currentDocumentJSON = document.toJSON();
-
-    expect(history.getHistory()).toStrictEqual([
-      initialDocumentJSON,
-      currentDocumentJSON,
-    ]);
-
-    expect(history.getCurrent()).toBe(currentDocumentJSON);
-    expect(history.getCurrentPosition()).toBe(1);
-    expect(history.getSize()).toBe(2);
-    expect(initialDocumentJSON).not.toBe(currentDocumentJSON);
-    assertTreeIntegrity(document);
-  });
-
   test.each([["before"], ["after"]] satisfies [InsertBlockEventStrategy][])(
-    "emits an event with payload the blockId of the inserted item with strategy %s",
+    "returns the block:insert event with the blockId of the inserted block with strategy %s",
     strategy => {
       // Arrange
-      const { eventBus, insertCommand } = createInsertCommand({
+      const { insertCommand } = createInsertCommand({
         ...DEFAULT_PAYLOAD,
         strategy,
       });
 
-      const insertBlockEventCallback = vi.fn();
-      eventBus.on("block:insert", insertBlockEventCallback);
-
       // Act
-      insertCommand.execute();
+      const event = insertCommand.execute();
 
       // Assert
-      expect(insertBlockEventCallback).toHaveBeenCalledExactlyOnceWith({
+      expect(event).toStrictEqual({
         type: "block:insert",
         blockId: TOGGLE_LIST3_BLOCK.id,
         targetId: SAMPLE_BLOCK2.id,
         strategy,
       });
-    },
-  );
-
-  test.each([["before"], ["after"]] satisfies [InsertBlockEventStrategy][])(
-    "emits only block:insert event when the strategy is %s",
-    strategy => {
-      // Arrange
-      const { eventBus, insertCommand } = createInsertCommand({
-        ...DEFAULT_PAYLOAD,
-        strategy,
-      });
-
-      const updateCallback = vi.fn();
-      const deleteCallback = vi.fn();
-      const moveCallback = vi.fn();
-
-      eventBus.on("block:update", updateCallback);
-      eventBus.on("block:delete", deleteCallback);
-      eventBus.on("block:move", moveCallback);
-
-      // Act
-      insertCommand.execute();
-
-      // Assert
-      expect(updateCallback).not.toHaveBeenCalled();
-      expect(deleteCallback).not.toHaveBeenCalled();
-      expect(moveCallback).not.toHaveBeenCalled();
     },
   );
 });

@@ -84,17 +84,13 @@ describe("DeleteBlockCommand", () => {
     assertTreeIntegrity(document);
   });
 
-  it("adds the new snapshot of the document after change to the history", () => {
+  it("leaves a document that parses back from its JSON to the same tree", () => {
     // Arrange
-    const { document, history, deleteCommand, assertInitialHistoryIsCorrect } =
-      createDeleteCommand({
-        blockId: TOGGLE_LIST1_BLOCK.id,
-      });
+    const { document, deleteCommand } = createDeleteCommand({
+      blockId: TOGGLE_LIST1_BLOCK.id,
+    });
 
     const initialDocumentJSON = document.toJSON();
-
-    // Assert
-    assertInitialHistoryIsCorrect(initialDocumentJSON);
 
     // Act
     deleteCommand.execute();
@@ -102,80 +98,38 @@ describe("DeleteBlockCommand", () => {
     const currentDocumentJSON = document.toJSON();
 
     // Assert
-    expect(history.getHistory()).toEqual([initialDocumentJSON, currentDocumentJSON]);
-    expect(history.getCurrent()).toBe(currentDocumentJSON);
-    expect(history.getCurrentPosition()).toBe(1);
-    expect(history.getSize()).toBe(2);
     expect(initialDocumentJSON).not.toBe(currentDocumentJSON);
     assertTreeIntegrity(document);
     expect(EditorDocument.fromJSON(currentDocumentJSON)).toStrictEqual(document);
   });
 
-  it("emits an event with payload the blockId of the deleted item", () => {
+  it("returns the block:delete event with the blockId of the deleted block", () => {
     // Arrange
-    const { eventBus, deleteCommand } = createDeleteCommand({
+    const { deleteCommand } = createDeleteCommand({
       blockId: TOGGLE_LIST1_BLOCK.id,
     });
 
-    const deleteBlockEventCallback = vi.fn();
-    eventBus.on("block:delete", deleteBlockEventCallback);
-
     // Act
-    deleteCommand.execute();
+    const event = deleteCommand.execute();
 
     // Assert
-    expect(deleteBlockEventCallback).toHaveBeenCalledExactlyOnceWith({
+    expect(event).toStrictEqual({
       type: "block:delete",
       blockId: TOGGLE_LIST1_BLOCK.id,
     });
   });
 
-  it("emits only block:delete event", () => {
-    // Arrange
-    const { eventBus, deleteCommand } = createDeleteCommand({
-      blockId: TOGGLE_LIST1_BLOCK.id,
-    });
-
-    const insertCallback = vi.fn();
-    const updateCallback = vi.fn();
-    const moveCallback = vi.fn();
-
-    eventBus.on("block:insert", insertCallback);
-    eventBus.on("block:move", moveCallback);
-    eventBus.on("block:update", updateCallback);
-
-    // Act
-    deleteCommand.execute();
-
-    // Assert
-    expect(insertCallback).not.toHaveBeenCalled();
-    expect(updateCallback).not.toHaveBeenCalled();
-    expect(moveCallback).not.toHaveBeenCalled();
-  });
-
   test("the whole functionality at once works properly", () => {
     // Arrange
-    const { document, history, eventBus, deleteCommand } = createDeleteCommand({
+    const { document, deleteCommand } = createDeleteCommand({
       blockId: TOGGLE_LIST1_BLOCK.id,
     });
 
-    const initialDocumentJSON = document.toJSON();
-    const deleteBlockEventCallback = vi.fn();
-
-    eventBus.on("block:delete", deleteBlockEventCallback);
-
     // Act
-    deleteCommand.execute();
-
-    const currentDocumentJSON = document.toJSON();
+    const event = deleteCommand.execute();
 
     // Assert
-    expect(history.getHistory()).toEqual([initialDocumentJSON, currentDocumentJSON]);
-    expect(history.getCurrent()).toBe(currentDocumentJSON);
-    expect(history.getCurrentPosition()).toBe(1);
-    expect(history.getSize()).toBe(2);
-
-    expect(deleteBlockEventCallback).toHaveBeenCalledExactlyOnceWith({
+    expect(event).toStrictEqual({
       type: "block:delete",
       blockId: TOGGLE_LIST1_BLOCK.id,
     });
@@ -186,5 +140,7 @@ describe("DeleteBlockCommand", () => {
         children: [],
       }),
     );
+
+    assertTreeIntegrity(document);
   });
 });

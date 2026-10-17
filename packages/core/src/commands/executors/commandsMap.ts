@@ -21,10 +21,8 @@ const commandsMap: CommandsRecord = {
 export const getEditorCommand = <T extends EditorActionType>({
   type,
   payload,
-  eventBus,
-  history,
   document,
 }: GeEditorCommandConfig<T>): Command<T> => {
   const CommandClass = commandsMap[type];
-  return new CommandClass(payload, eventBus, history, document);
+  return new CommandClass(payload, document);
 };

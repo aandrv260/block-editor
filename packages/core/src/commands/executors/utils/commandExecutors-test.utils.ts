@@ -3,10 +3,7 @@ import type {
   EditorActionType,
 } from "../../../actions/actions.models";
 import { EditorDocument } from "../../../document/EditorDocument";
-import { EventBus } from "../../../events/event-bus/EventBus";
-import type { EditorEventBus } from "../../../events/editor-event-bus/editorEvent.models";
 import type { CommandConstructor } from "../commandExecutors.models";
-import { DocumentHistory } from "../../../history/DocumentHistory";
 import type { BlockPayload } from "../../../document/models/document-payload.models";
 import {
   SAMPLE_BLOCK3,
@@ -14,7 +11,6 @@ import {
   TOGGLE_LIST1_BLOCK,
   TOGGLE_LIST2_BLOCK,
 } from "../../../document/utils/document-test.utils";
-import { DOCUMENT_HISTORY_RECORDS_LIMIT } from "../../../history/DocumentHistory/DocumentHistory.utils";
 
 export type DocumentBlocksInitialization = [
   parentBlockId: string,
@@ -25,7 +21,6 @@ interface CreateCommandConfig<T extends EditorActionType> {
   command: CommandConstructor<T>;
   payload: EditorActionMap[T]["payload"];
   documentBlocks?: DocumentBlocksInitialization[];
-  historyLimit?: number;
 }
 
 export const DEFAULT_INITIAL_BLOCKS: DocumentBlocksInitialization[] = [
@@ -52,26 +47,11 @@ export const createCommand = <T extends EditorActionType>({
   command,
   payload,
   documentBlocks,
-  historyLimit,
 }: CreateCommandConfig<T>) => {
   const Command = command;
-  const eventBus: EditorEventBus = new EventBus();
   const document = createTestDocument(documentBlocks);
 
-  const history = new DocumentHistory({
-    initialDocumentJSON: document.toJSON(),
-    limit: historyLimit,
-  });
-
   const INITIAL_DOCUMENT_JSON = document.toJSON();
-
-  const assertInitialHistoryIsCorrect = (initialDocumentJSON: string) => {
-    expect(history.getHistory()).toStrictEqual([initialDocumentJSON]);
-    expect(history.getCurrent()).toBe(initialDocumentJSON);
-    expect(history.getCurrentPosition()).toBe(0);
-    expect(history.getLimit()).toBe(DOCUMENT_HISTORY_RECORDS_LIMIT);
-    expect(history.getSize()).toBe(1);
-  };
 
   const assertInitialDefaultDocumentStructure = () => {
     expect(document.getBlock(TOGGLE_LIST1_BLOCK.id)).toBe(
@@ -120,12 +100,9 @@ export const createCommand = <T extends EditorActionType>({
   };
 
   return {
-    command: new Command(payload, eventBus, history, document),
-    eventBus,
+    command: new Command(payload, document),
     document,
-    history,
     assertInitialDefaultDocumentStructure,
-    assertInitialHistoryIsCorrect,
     INITIAL_DOCUMENT_JSON,
   };
 };
