@@ -19,24 +19,22 @@ describe("Editor full integration", () => {
     // Arrange
     const { editor, assertHistory, INITIAL_DOCUMENT_JSON } = createEditor();
     const appendEventCallback = vi.fn();
-    const onPersistInsert = vi.fn();
-    const onPersistDelete = vi.fn();
-    const onPersist = vi.fn();
+    const onChangeInsert = vi.fn();
+    const onChangeDelete = vi.fn();
     const onEditorChange = vi.fn();
 
     editor.subscribe("block:insert", appendEventCallback);
-    editor.subscribe("editor:persist", onPersist);
     editor.on("editor:change").subscribe(onEditorChange);
 
     editor
-      .on("editor:persist")
+      .on("editor:change")
       .filter(event => event.triggerAction === "block:insert")
-      .subscribe(onPersistInsert);
+      .subscribe(onChangeInsert);
 
     editor
-      .on("editor:persist")
+      .on("editor:change")
       .filter(event => event.triggerAction === "block:delete")
-      .subscribe(onPersistDelete);
+      .subscribe(onChangeDelete);
 
     // Assert
     assertHistory({
@@ -61,13 +59,6 @@ describe("Editor full integration", () => {
     expect(editor.getNextSiblingBlock(TOGGLE_LIST1_BLOCK.id)).toBeNull();
     expect(editor.getPreviousSiblingBlock(TOGGLE_LIST1_BLOCK.id)).toBeNull();
 
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: editor.getDocumentJSON(),
-      history: editor.getHistory(),
-      triggerAction: "block:insert",
-    });
-
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
       type: "editor:change",
       documentJSON: editor.getDocumentJSON(),
@@ -77,12 +68,14 @@ describe("Editor full integration", () => {
       triggerAction: "block:insert",
     });
 
-    expect(onPersistDelete).not.toHaveBeenCalled();
+    expect(onChangeDelete).not.toHaveBeenCalled();
 
-    expect(onPersistInsert).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
+    expect(onChangeInsert).toHaveBeenCalledExactlyOnceWith({
+      type: "editor:change",
       documentJSON: editor.getDocumentJSON(),
       history: editor.getHistory(),
+      currentPositionInHistory: editor.getCurrentPositionInHistory(),
+      root: editor.getRoot(),
       triggerAction: "block:insert",
     });
 
@@ -149,13 +142,6 @@ describe("Editor full integration", () => {
       editor.getBlock(SAMPLE_BLOCK2.id),
     );
 
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: editor.getDocumentJSON(),
-      history: editor.getHistory(),
-      triggerAction: "block:insert",
-    });
-
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
       type: "editor:change",
       documentJSON: editor.getDocumentJSON(),
@@ -165,12 +151,14 @@ describe("Editor full integration", () => {
       triggerAction: "block:insert",
     });
 
-    expect(onPersistDelete).not.toHaveBeenCalled();
+    expect(onChangeDelete).not.toHaveBeenCalled();
 
-    expect(onPersistInsert).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
+    expect(onChangeInsert).toHaveBeenCalledExactlyOnceWith({
+      type: "editor:change",
       documentJSON: editor.getDocumentJSON(),
       history: editor.getHistory(),
+      currentPositionInHistory: editor.getCurrentPositionInHistory(),
+      root: editor.getRoot(),
       triggerAction: "block:insert",
     });
 
@@ -226,13 +214,6 @@ describe("Editor full integration", () => {
       editor.getBlock(SAMPLE_BLOCK2.id),
     );
 
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: editor.getDocumentJSON(),
-      history: editor.getHistory(),
-      triggerAction: "block:insert",
-    });
-
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
       type: "editor:change",
       documentJSON: editor.getDocumentJSON(),
@@ -242,12 +223,14 @@ describe("Editor full integration", () => {
       triggerAction: "block:insert",
     });
 
-    expect(onPersistDelete).not.toHaveBeenCalled();
+    expect(onChangeDelete).not.toHaveBeenCalled();
 
-    expect(onPersistInsert).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
+    expect(onChangeInsert).toHaveBeenCalledExactlyOnceWith({
+      type: "editor:change",
       documentJSON: editor.getDocumentJSON(),
       history: editor.getHistory(),
+      currentPositionInHistory: editor.getCurrentPositionInHistory(),
+      root: editor.getRoot(),
       triggerAction: "block:insert",
     });
 
@@ -317,13 +300,6 @@ describe("Editor full integration", () => {
     expect(editor.getNextSiblingBlock(TOGGLE_LIST1_BLOCK.id)).toBeNull();
     expect(editor.getPreviousSiblingBlock(TOGGLE_LIST1_BLOCK.id)).toBeNull();
 
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: editor.getDocumentJSON(),
-      history: editor.getHistory(),
-      triggerAction: "block:delete",
-    });
-
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
       type: "editor:change",
       documentJSON: editor.getDocumentJSON(),
@@ -333,12 +309,14 @@ describe("Editor full integration", () => {
       triggerAction: "block:delete",
     });
 
-    expect(onPersistInsert).not.toHaveBeenCalled();
+    expect(onChangeInsert).not.toHaveBeenCalled();
 
-    expect(onPersistDelete).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
+    expect(onChangeDelete).toHaveBeenCalledExactlyOnceWith({
+      type: "editor:change",
       documentJSON: editor.getDocumentJSON(),
       history: editor.getHistory(),
+      currentPositionInHistory: editor.getCurrentPositionInHistory(),
+      root: editor.getRoot(),
       triggerAction: "block:delete",
     });
 
@@ -381,13 +359,6 @@ describe("Editor full integration", () => {
     // Assert
     expect(editor.getDocumentSize()).toBe(2);
 
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: editor.getDocumentJSON(),
-      history: editor.getHistory(),
-      triggerAction: "block:update",
-    });
-
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
       type: "editor:change",
       documentJSON: editor.getDocumentJSON(),
@@ -397,8 +368,8 @@ describe("Editor full integration", () => {
       triggerAction: "block:update",
     });
 
-    expect(onPersistDelete).not.toHaveBeenCalled();
-    expect(onPersistInsert).not.toHaveBeenCalled();
+    expect(onChangeDelete).not.toHaveBeenCalled();
+    expect(onChangeInsert).not.toHaveBeenCalled();
 
     expect(updateEventCallback).toHaveBeenCalledExactlyOnceWith({
       type: "block:update",
@@ -442,13 +413,6 @@ describe("Editor full integration", () => {
     // Assert
     expect(editor.getDocumentSize()).toBe(3);
 
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: editor.getDocumentJSON(),
-      history: editor.getHistory(),
-      triggerAction: "block:insert",
-    });
-
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
       type: "editor:change",
       documentJSON: editor.getDocumentJSON(),
@@ -458,12 +422,14 @@ describe("Editor full integration", () => {
       triggerAction: "block:insert",
     });
 
-    expect(onPersistDelete).not.toHaveBeenCalled();
+    expect(onChangeDelete).not.toHaveBeenCalled();
 
-    expect(onPersistInsert).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
+    expect(onChangeInsert).toHaveBeenCalledExactlyOnceWith({
+      type: "editor:change",
       documentJSON: editor.getDocumentJSON(),
       history: editor.getHistory(),
+      currentPositionInHistory: editor.getCurrentPositionInHistory(),
+      root: editor.getRoot(),
       triggerAction: "block:insert",
     });
 
@@ -511,13 +477,6 @@ describe("Editor full integration", () => {
     // Assert
     expect(editor.getDocumentSize()).toBe(2);
 
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: editor.getDocumentJSON(),
-      history: editor.getHistory(),
-      triggerAction: "block:update",
-    });
-
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
       type: "editor:change",
       documentJSON: editor.getDocumentJSON(),
@@ -527,8 +486,8 @@ describe("Editor full integration", () => {
       triggerAction: "block:update",
     });
 
-    expect(onPersistDelete).not.toHaveBeenCalled();
-    expect(onPersistInsert).not.toHaveBeenCalled();
+    expect(onChangeDelete).not.toHaveBeenCalled();
+    expect(onChangeInsert).not.toHaveBeenCalled();
 
     expect(
       updateBlock5DroppingChildrenEventCallback,
@@ -572,13 +531,6 @@ describe("Editor full integration", () => {
     // Assert
     expect(editor.getDocumentSize()).toBe(3);
 
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: editor.getDocumentJSON(),
-      history: editor.getHistory(),
-      triggerAction: "block:insert",
-    });
-
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
       type: "editor:change",
       documentJSON: editor.getDocumentJSON(),
@@ -588,11 +540,13 @@ describe("Editor full integration", () => {
       triggerAction: "block:insert",
     });
 
-    expect(onPersistDelete).not.toHaveBeenCalled();
-    expect(onPersistInsert).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
+    expect(onChangeDelete).not.toHaveBeenCalled();
+    expect(onChangeInsert).toHaveBeenCalledExactlyOnceWith({
+      type: "editor:change",
       documentJSON: editor.getDocumentJSON(),
       history: editor.getHistory(),
+      currentPositionInHistory: editor.getCurrentPositionInHistory(),
+      root: editor.getRoot(),
       triggerAction: "block:insert",
     });
 
@@ -639,13 +593,6 @@ describe("Editor full integration", () => {
     // Assert
     expect(editor.getDocumentSize()).toBe(3);
 
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: editor.getDocumentJSON(),
-      history: editor.getHistory(),
-      triggerAction: "block:move",
-    });
-
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
       type: "editor:change",
       documentJSON: editor.getDocumentJSON(),
@@ -655,8 +602,8 @@ describe("Editor full integration", () => {
       triggerAction: "block:move",
     });
 
-    expect(onPersistDelete).not.toHaveBeenCalled();
-    expect(onPersistInsert).not.toHaveBeenCalled();
+    expect(onChangeDelete).not.toHaveBeenCalled();
+    expect(onChangeInsert).not.toHaveBeenCalled();
 
     expect(moveBlock7AfterBlock8EventCallback).toHaveBeenCalledExactlyOnceWith({
       type: "block:move",
@@ -702,13 +649,6 @@ describe("Editor full integration", () => {
     // Assert
     expect(editor.getDocumentSize()).toBe(3);
 
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: editor.getDocumentJSON(),
-      history: editor.getHistory(),
-      triggerAction: "block:move",
-    });
-
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
       type: "editor:change",
       documentJSON: editor.getDocumentJSON(),
@@ -718,8 +658,8 @@ describe("Editor full integration", () => {
       triggerAction: "block:move",
     });
 
-    expect(onPersistDelete).not.toHaveBeenCalled();
-    expect(onPersistInsert).not.toHaveBeenCalled();
+    expect(onChangeDelete).not.toHaveBeenCalled();
+    expect(onChangeInsert).not.toHaveBeenCalled();
 
     expect(moveBlock7BeforeBlock8EventCallback).toHaveBeenCalledExactlyOnceWith({
       type: "block:move",
@@ -761,13 +701,6 @@ describe("Editor full integration", () => {
     // Assert
     expect(editor.getDocumentSize()).toBe(3);
 
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: editor.getDocumentJSON(),
-      history: editor.getHistory(),
-      triggerAction: "document:swap",
-    });
-
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
       type: "editor:change",
       documentJSON: editor.getDocumentJSON(),
@@ -777,8 +710,8 @@ describe("Editor full integration", () => {
       triggerAction: "document:swap",
     });
 
-    expect(onPersistDelete).not.toHaveBeenCalled();
-    expect(onPersistInsert).not.toHaveBeenCalled();
+    expect(onChangeDelete).not.toHaveBeenCalled();
+    expect(onChangeInsert).not.toHaveBeenCalled();
 
     expect(editor.getRoot()).toStrictEqual(
       expect.objectContaining({

@@ -476,18 +476,12 @@ describe("Editor document integration", () => {
 
     editor.subscribe("block:update", updateBlockEventCallback);
     editor.subscribe("block:insert", insertBlockEventCallback);
-
-    const onPersist = vi.fn();
     const onEditorChange = vi.fn();
-
-    editor.subscribe("editor:persist", onPersist);
     editor.on("editor:change").subscribe(onEditorChange);
 
     // Assert - Initial state before any action
     expect(updateBlockEventCallback).not.toHaveBeenCalled();
     expect(insertBlockEventCallback).not.toHaveBeenCalled();
-
-    expect(onPersist).not.toHaveBeenCalled();
     expect(onEditorChange).not.toHaveBeenCalled();
 
     expect(editor.getRoot()).toEqual({
@@ -549,13 +543,6 @@ describe("Editor document integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: 1,
       root: editor.getRoot(),
-      triggerAction: "block:update",
-    });
-
-    expect(onPersist).toHaveBeenNthCalledWith(1, {
-      type: "editor:persist",
-      documentJSON: DOCUMENT_JSON_AFTER_PRESERVE,
-      history: editor.getHistory(),
       triggerAction: "block:update",
     });
 
@@ -622,13 +609,6 @@ describe("Editor document integration", () => {
       triggerAction: "block:update",
     });
 
-    expect(onPersist).toHaveBeenNthCalledWith(2, {
-      type: "editor:persist",
-      documentJSON: DOCUMENT_JSON_AFTER_DROP,
-      history: editor.getHistory(),
-      triggerAction: "block:update",
-    });
-
     expect(updateBlockEventCallback).toHaveBeenNthCalledWith(2, {
       type: "block:update",
       blockId: TOGGLE_LIST2_BLOCK.id,
@@ -686,13 +666,6 @@ describe("Editor document integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: 3,
       root: editor.getRoot(),
-      triggerAction: "block:insert",
-    });
-
-    expect(onPersist).toHaveBeenNthCalledWith(3, {
-      type: "editor:persist",
-      documentJSON: DOCUMENT_JSON_AFTER_APPEND,
-      history: editor.getHistory(),
       triggerAction: "block:insert",
     });
 
@@ -755,13 +728,6 @@ describe("Editor document integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: 4,
       root: editor.getRoot(),
-      triggerAction: "block:update",
-    });
-
-    expect(onPersist).toHaveBeenNthCalledWith(4, {
-      type: "editor:persist",
-      documentJSON: DOCUMENT_JSON_AFTER_REPLACE,
-      history: editor.getHistory(),
       triggerAction: "block:update",
     });
 

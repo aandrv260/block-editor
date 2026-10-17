@@ -7,7 +7,6 @@ import type { HistoryUndoEvent } from "./event-types/history-undo-event.models";
 import type { HistoryRedoEvent } from "./event-types/history-redo-event.models";
 import type { HistoryJumpEvent } from "./event-types/history-jump-event.models";
 import type { DocumentSwapEvent } from "./event-types/document-swap-event.models";
-import type { EditorPersistEvent } from "./event-types/editor-persist-event.models";
 import type { EditorChangeEvent } from "./event-types/editor-change-event.models";
 import type { HistorySetEvent } from "./event-types/history-set-event.models";
 
@@ -20,7 +19,6 @@ export type EditorEventsMap = {
   "history:redo": HistoryRedoEvent;
   "history:jump": HistoryJumpEvent;
   "document:swap": DocumentSwapEvent;
-  "editor:persist": EditorPersistEvent;
   "editor:change": EditorChangeEvent;
   "history:set": HistorySetEvent;
 };

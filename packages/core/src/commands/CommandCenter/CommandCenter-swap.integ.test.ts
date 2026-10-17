@@ -44,11 +44,9 @@ describe("CommandCenter swap command", () => {
       } = createCommandCenter();
 
       const onSwap = vi.fn();
-      const onPersist = vi.fn();
       const onEditorChange = vi.fn();
 
       eventBus.on("document:swap", onSwap);
-      eventBus.on("editor:persist", onPersist);
       eventBus.on("editor:change", onEditorChange);
 
       commandCenter.processAction(
@@ -62,13 +60,6 @@ describe("CommandCenter swap command", () => {
       const DOCUMENT_JSON_AFTER_INSERT1 = document.toJSON();
 
       // Assert
-      expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-        type: "editor:persist",
-        documentJSON: DOCUMENT_JSON_AFTER_INSERT1,
-        history: history.getHistory(),
-        triggerAction: "block:insert",
-      });
-
       expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
         type: "editor:change",
         documentJSON: DOCUMENT_JSON_AFTER_INSERT1,
@@ -98,13 +89,6 @@ describe("CommandCenter swap command", () => {
       const DOCUMENT_JSON_AFTER_SWAP = document.toJSON();
 
       // Assert
-      expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-        type: "editor:persist",
-        documentJSON: DOCUMENT_JSON_AFTER_SWAP,
-        history: history.getHistory(),
-        triggerAction: "document:swap",
-      });
-
       expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
         type: "editor:change",
         documentJSON: DOCUMENT_JSON_AFTER_SWAP,
@@ -161,11 +145,9 @@ describe("CommandCenter swap command", () => {
       createCommandCenter();
 
     const onSwap = vi.fn();
-    const onPersist = vi.fn();
     const onEditorChange = vi.fn();
 
     eventBus.on("document:swap", onSwap);
-    eventBus.on("editor:persist", onPersist);
     eventBus.on("editor:change", onEditorChange);
 
     commandCenter.processAction(
@@ -179,13 +161,6 @@ describe("CommandCenter swap command", () => {
     const DOCUMENT_JSON_AFTER_INSERT1 = document.toJSON();
 
     // Assert
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: DOCUMENT_JSON_AFTER_INSERT1,
-      history: history.getHistory(),
-      triggerAction: "block:insert",
-    });
-
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
       type: "editor:change",
       documentJSON: DOCUMENT_JSON_AFTER_INSERT1,
@@ -215,13 +190,6 @@ describe("CommandCenter swap command", () => {
     const DOCUMENT_JSON_AFTER_SWAP = document.toJSON();
 
     // Assert
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: DOCUMENT_JSON_AFTER_SWAP,
-      history: history.getHistory(),
-      triggerAction: "document:swap",
-    });
-
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
       type: "editor:change",
       documentJSON: DOCUMENT_JSON_AFTER_SWAP,
@@ -285,11 +253,9 @@ describe("CommandCenter swap command", () => {
       ]);
 
       const onSwap = vi.fn();
-      const onPersist = vi.fn();
       const onEditorChange = vi.fn();
 
       eventBus.on("document:swap", onSwap);
-      eventBus.on("editor:persist", onPersist);
       eventBus.on("editor:change", onEditorChange);
 
       commandCenter.processAction(
@@ -303,13 +269,6 @@ describe("CommandCenter swap command", () => {
       const DOCUMENT_HISTORY_AFTER_INSERT1 = document.toJSON();
 
       // Assert
-      expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-        type: "editor:persist",
-        documentJSON: DOCUMENT_HISTORY_AFTER_INSERT1,
-        history: history.getHistory(),
-        triggerAction: "block:insert",
-      });
-
       expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
         type: "editor:change",
         documentJSON: DOCUMENT_HISTORY_AFTER_INSERT1,
@@ -337,13 +296,6 @@ describe("CommandCenter swap command", () => {
       );
 
       // Assert
-      expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-        type: "editor:persist",
-        documentJSON: document.toJSON(),
-        history: history.getHistory(),
-        triggerAction: "document:swap",
-      });
-
       expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
         type: "editor:change",
         documentJSON: document.toJSON(),
@@ -396,11 +348,9 @@ describe("CommandCenter swap command", () => {
     ]);
 
     const onSwap = vi.fn();
-    const onPersist = vi.fn();
     const onEditorChange = vi.fn();
 
     eventBus.on("document:swap", onSwap);
-    eventBus.on("editor:persist", onPersist);
     eventBus.on("editor:change", onEditorChange);
 
     commandCenter.processAction(
@@ -414,13 +364,6 @@ describe("CommandCenter swap command", () => {
     const DOCUMENT_HISTORY_AFTER_INSERT1 = document.toJSON();
 
     // Assert
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: DOCUMENT_HISTORY_AFTER_INSERT1,
-      history: history.getHistory(),
-      triggerAction: "block:insert",
-    });
-
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
       type: "editor:change",
       documentJSON: DOCUMENT_HISTORY_AFTER_INSERT1,
@@ -448,13 +391,6 @@ describe("CommandCenter swap command", () => {
     );
 
     // Assert
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: document.toJSON(),
-      history: history.getHistory(),
-      triggerAction: "document:swap",
-    });
-
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
       type: "editor:change",
       documentJSON: document.toJSON(),
@@ -497,11 +433,9 @@ describe("CommandCenter swap command", () => {
       createCommandCenter();
 
     const onSwap = vi.fn();
-    const onPersist = vi.fn();
     const onEditorChange = vi.fn();
 
     eventBus.on("document:swap", onSwap);
-    eventBus.on("editor:persist", onPersist);
     eventBus.on("editor:change", onEditorChange);
 
     const documentToSwapWith = EditorDocument.fromJSON(json);
@@ -517,13 +451,6 @@ describe("CommandCenter swap command", () => {
     const DOCUMENT_HISTORY_AFTER_INSERT1 = document.toJSON();
 
     // Assert
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: DOCUMENT_HISTORY_AFTER_INSERT1,
-      history: history.getHistory(),
-      triggerAction: "block:insert",
-    });
-
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
       type: "editor:change",
       documentJSON: DOCUMENT_HISTORY_AFTER_INSERT1,
@@ -551,13 +478,6 @@ describe("CommandCenter swap command", () => {
     );
 
     // Assert
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: document.toJSON(),
-      history: history.getHistory(),
-      triggerAction: "document:swap",
-    });
-
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
       type: "editor:change",
       documentJSON: document.toJSON(),

@@ -6,7 +6,6 @@ export type {
 export * from "./editor-event-bus/event-types/delete-block-event.models";
 export * from "./editor-event-bus/event-types/document-swap-event.models";
 export * from "./editor-event-bus/event-types/editor-change-event.models";
-export * from "./editor-event-bus/event-types/editor-persist-event.models";
 export * from "./editor-event-bus/event-types/history-jump-event.models";
 export * from "./editor-event-bus/event-types/history-redo-event.models";
 export * from "./editor-event-bus/event-types/history-set-event.models";

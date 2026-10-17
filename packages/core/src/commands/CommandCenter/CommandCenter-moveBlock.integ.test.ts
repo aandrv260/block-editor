@@ -17,13 +17,10 @@ describe("CommandCenter move block", () => {
       assertInitialDefaultDocumentStructure,
       INITIAL_HISTORY_DOC_JSON,
     } = createCommandCenter();
-
-    const onPersist = vi.fn();
     const moveBlockEventCallback = vi.fn();
     const onEditorChange = vi.fn();
 
     eventBus.on("block:move", moveBlockEventCallback);
-    eventBus.on("editor:persist", onPersist);
     eventBus.on("editor:change", onEditorChange);
 
     // Assert
@@ -45,13 +42,6 @@ describe("CommandCenter move block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:move",
-    });
-
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: document.toJSON(),
-      history: history.getHistory(),
       triggerAction: "block:move",
     });
 
@@ -101,11 +91,9 @@ describe("CommandCenter move block", () => {
       INITIAL_HISTORY_DOC_JSON,
     } = createCommandCenter();
     const moveBlockEventCallback = vi.fn();
-    const onPersist = vi.fn();
     const onEditorChange = vi.fn();
 
     eventBus.on("block:move", moveBlockEventCallback);
-    eventBus.on("editor:persist", onPersist);
     eventBus.on("editor:change", onEditorChange);
 
     // Assert
@@ -127,13 +115,6 @@ describe("CommandCenter move block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:move",
-    });
-
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: document.toJSON(),
-      history: history.getHistory(),
       triggerAction: "block:move",
     });
 
@@ -184,11 +165,9 @@ describe("CommandCenter move block", () => {
     } = createCommandCenter();
 
     const moveBlockEventCallback = vi.fn();
-    const onPersist = vi.fn();
     const onEditorChange = vi.fn();
 
     eventBus.on("block:move", moveBlockEventCallback);
-    eventBus.on("editor:persist", onPersist);
     eventBus.on("editor:change", onEditorChange);
 
     // Assert
@@ -210,13 +189,6 @@ describe("CommandCenter move block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:move",
-    });
-
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: document.toJSON(),
-      history: history.getHistory(),
       triggerAction: "block:move",
     });
 

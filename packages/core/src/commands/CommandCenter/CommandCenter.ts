@@ -3,10 +3,7 @@ import type { DocumentHistory } from "../../history/DocumentHistory";
 import { HistoryManager } from "../../history/HistoryManager";
 import type { HistoryOperationType } from "../../history/models/history-operation.models";
 import { EditorDocument } from "../../document/EditorDocument";
-import {
-  createEditorChangeEvent,
-  createEditorPersistEvent,
-} from "../../events/editor-event-bus/editorEvent.emits";
+import { createEditorChangeEvent } from "../../events/editor-event-bus/editorEvent.emits";
 import type { EditorEventBus } from "../../events/editor-event-bus/editorEvent.models";
 import { getEditorCommand } from "../executors/commandsMap";
 
@@ -22,7 +19,7 @@ type ChangeTrigger = EditorActionType | HistoryOperationType;
  * Responsibilities:
  * - For an action, it will execute the command corresponding to the action and update the history.
  * - It delegates the history operations (undo, redo, jump and set) to the history manager because they are not actions.
- * - It emits the editor change events after every action and history operation.
+ * - It emits the editor change event after every action and history operation.
  * - This is the only part of the system allowed to mutate the document and history.
  */
 export class CommandCenter {
@@ -49,27 +46,27 @@ export class CommandCenter {
 
     this.recordHistory(action);
     this.eventBus.emit(event.type, event);
-    this.emitChangeEvents(action.type);
+    this.emitChangeEvent(action.type);
   }
 
   public undo(): void {
     this.historyManager.undo();
-    this.emitChangeEvents("history:undo");
+    this.emitChangeEvent("history:undo");
   }
 
   public redo(): void {
     this.historyManager.redo();
-    this.emitChangeEvents("history:redo");
+    this.emitChangeEvent("history:redo");
   }
 
   public jumpTo(index: number): void {
     this.historyManager.jumpTo(index);
-    this.emitChangeEvents("history:jump");
+    this.emitChangeEvent("history:jump");
   }
 
   public setHistory(newHistory: readonly string[]): void {
     this.historyManager.setHistory(newHistory);
-    this.emitChangeEvents("history:set");
+    this.emitChangeEvent("history:set");
   }
 
   private recordHistory(action: EditorAction) {
@@ -83,22 +80,11 @@ export class CommandCenter {
     this.historyManager.record();
   }
 
-  private emitChangeEvents(trigger: ChangeTrigger) {
-    const documentJSON = this.document.toJSON();
-
-    this.eventBus.emit(
-      "editor:persist",
-      createEditorPersistEvent({
-        documentJSON,
-        history: this.history.getHistory(),
-        triggerAction: trigger,
-      }),
-    );
-
+  private emitChangeEvent(trigger: ChangeTrigger) {
     this.eventBus.emit(
       "editor:change",
       createEditorChangeEvent({
-        documentJSON,
+        documentJSON: this.document.toJSON(),
         history: this.history.getHistory(),
         currentPositionInHistory: this.history.getCurrentPosition(),
         root: this.document.getRoot(),
