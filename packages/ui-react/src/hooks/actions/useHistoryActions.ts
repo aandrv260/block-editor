@@ -1,23 +1,22 @@
-import { historyRedo, historyUndo, historyJump } from "@block-editor/core";
-import { useDispatcher } from "./useDispatcher";
 import { useCallback } from "react";
+import { useEditorContext } from "../../context/hooks/useEditorContext";
 
 export const useHistoryActions = () => {
-  const dispatch = useDispatcher();
+  const { editor } = useEditorContext();
 
   const undo = useCallback(() => {
-    dispatch(historyUndo());
-  }, [dispatch]);
+    editor.undo();
+  }, [editor]);
 
   const redo = useCallback(() => {
-    dispatch(historyRedo());
-  }, [dispatch]);
+    editor.redo();
+  }, [editor]);
 
   const jumpToPointInHistory = useCallback(
     (index: number) => {
-      dispatch(historyJump(index));
+      editor.jumpToPointInHistory(index);
     },
-    [dispatch],
+    [editor],
   );
 
   return {

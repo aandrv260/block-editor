@@ -14,15 +14,9 @@ import type { IEditor } from "./IEditor";
 import type { Block, DocumentNode } from "@/blocks/models/block.models";
 import type { ConstructableDocumentElement } from "@/document/models/document.models";
 import type { DeepReadonly } from "@/common/types/object.types";
-import {
-  historyJump,
-  historyRedo,
-  historyUndo,
-  swapDocument,
-} from "@/actions/actions";
+import { swapDocument } from "@/actions/actions";
 import { EventStream } from "@/events/EventStream/EventStream";
 import type { IEventStream } from "@/events/EventStream/IEventStream";
-import { historySet } from "@/actions/actions";
 
 interface SwapDocumentConfig {
   element: ConstructableDocumentElement;
@@ -75,7 +69,7 @@ export class Editor implements IEditor {
   }
 
   public setHistory(history: readonly string[]): void {
-    this.commandCenter.processAction(historySet({ history }));
+    this.commandCenter.setHistory(history);
   }
 
   public getCurrentHistoryRecord(): string | null {
@@ -119,16 +113,16 @@ export class Editor implements IEditor {
   }
 
   public jumpToPointInHistory(index: number): string | null {
-    this.commandCenter.processAction(historyJump(index));
+    this.commandCenter.jumpTo(index);
     return this.history.getCurrent();
   }
 
   public undo(): void {
-    this.commandCenter.processAction(historyUndo());
+    this.commandCenter.undo();
   }
 
   public redo(): void {
-    this.commandCenter.processAction(historyRedo());
+    this.commandCenter.redo();
   }
 
   public getDocumentJSON(): string {

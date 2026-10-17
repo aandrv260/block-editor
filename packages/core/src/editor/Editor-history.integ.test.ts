@@ -14,7 +14,6 @@ import {
 } from "@/document/utils/document-test.utils";
 import { createTestDocument } from "@/commands/executors/utils/commandExecutors-test.utils";
 import { moveBlock } from "@/actions/actions";
-import { historySet } from "@/actions/actions";
 
 describe("Editor history", () => {
   test("history grows with the dispatch of actions and shifts when necessary to cover the limit", () => {
@@ -254,9 +253,7 @@ describe("Editor history", () => {
       "The last record in the history is not the same as the current document!",
     );
 
-    expect(() =>
-      editor.dispatchAction(historySet({ history: [document2.toJSON()] })),
-    ).toThrowError(
+    expect(() => editor.setHistory([document2.toJSON()])).toThrowError(
       "The last record in the history is not the same as the current document!",
     );
 

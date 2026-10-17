@@ -17,14 +17,20 @@ export const DEFAULT_COMMAND_CENTER_DOCUMENT_BLOCKS: DocumentBlocksInitializatio
     [TOGGLE_LIST1_BLOCK.id, TOGGLE_LIST2_BLOCK],
   ];
 
+interface CreateCommandCenterOptions {
+  historyLimit?: number;
+}
+
 export const createCommandCenter = (
   documentBlocks: DocumentBlocksInitialization[] = DEFAULT_COMMAND_CENTER_DOCUMENT_BLOCKS,
+  { historyLimit }: CreateCommandCenterOptions = {},
 ) => {
   const eventBus: EditorEventBus = new EventBus();
   const document = createTestDocument(documentBlocks);
 
   const history = new DocumentHistory({
     initialDocumentJSON: document.toJSON(),
+    limit: historyLimit,
   });
 
   const commandCenter = new CommandCenter({
