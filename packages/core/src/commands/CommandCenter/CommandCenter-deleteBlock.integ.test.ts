@@ -18,11 +18,9 @@ describe("CommandCenter delete block", () => {
     } = createCommandCenter();
 
     const deleteBlockEventCallback = vi.fn();
-    const onPersist = vi.fn();
     const onEditorChange = vi.fn();
 
     eventBus.on("block:delete", deleteBlockEventCallback);
-    eventBus.on("editor:persist", onPersist);
     eventBus.on("editor:change", onEditorChange);
 
     // Assert
@@ -36,13 +34,6 @@ describe("CommandCenter delete block", () => {
     );
 
     // Assert
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: document.toJSON(),
-      history: history.getHistory(),
-      triggerAction: "block:delete",
-    });
-
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
       type: "editor:change",
       documentJSON: document.toJSON(),
@@ -81,11 +72,9 @@ describe("CommandCenter delete block", () => {
       createCommandCenter();
 
     const onDelete = vi.fn();
-    const onPersist = vi.fn();
     const onEditorChange = vi.fn();
 
     eventBus.on("block:delete", onDelete);
-    eventBus.on("editor:persist", onPersist);
     eventBus.on("editor:change", onEditorChange);
 
     // Act and assert
@@ -94,7 +83,6 @@ describe("CommandCenter delete block", () => {
     ).toThrowError("The block you're trying to delete does not exist!");
 
     expect(onDelete).not.toHaveBeenCalled();
-    expect(onPersist).not.toHaveBeenCalled();
     expect(onEditorChange).not.toHaveBeenCalled();
 
     expect(history.getHistory()).toStrictEqual([INITIAL_HISTORY_DOC_JSON]);

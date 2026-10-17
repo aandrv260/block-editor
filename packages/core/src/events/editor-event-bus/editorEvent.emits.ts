@@ -1,7 +1,6 @@
 import type { DeleteBlockEvent } from "./event-types/delete-block-event.models";
 import type { DocumentSwapEvent } from "./event-types/document-swap-event.models";
 import type { EditorChangeEvent } from "./event-types/editor-change-event.models";
-import type { EditorPersistEvent } from "./event-types/editor-persist-event.models";
 import type { HistoryJumpEvent } from "./event-types/history-jump-event.models";
 import type { HistoryRedoEvent } from "./event-types/history-redo-event.models";
 import type { HistorySetEvent } from "./event-types/history-set-event.models";
@@ -92,17 +91,6 @@ export const createHistorySetEvent = ({
     history,
     currentPosition,
     currentRecord,
-  };
-};
-
-export const createEditorPersistEvent = (
-  payload: Omit<EditorPersistEvent, "type">,
-): EditorPersistEvent => {
-  return {
-    type: "editor:persist",
-    documentJSON: payload.documentJSON,
-    history: payload.history,
-    triggerAction: payload.triggerAction,
   };
 };
 

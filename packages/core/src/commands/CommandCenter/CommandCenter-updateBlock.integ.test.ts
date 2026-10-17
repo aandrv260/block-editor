@@ -24,15 +24,12 @@ describe("CommandCenter update block", () => {
       ]);
 
     const updateBlockEventCallback = vi.fn();
-    const onPersist = vi.fn();
     const onEditorChange = vi.fn();
 
     eventBus.on("block:update", updateBlockEventCallback);
-    eventBus.on("editor:persist", onPersist);
     eventBus.on("editor:change", onEditorChange);
 
     // Assert
-    expect(onPersist).not.toHaveBeenCalled();
     expect(onEditorChange).not.toHaveBeenCalled();
 
     expect(document.getRoot()).toEqual({
@@ -68,13 +65,6 @@ describe("CommandCenter update block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:update",
-    });
-
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: document.toJSON(),
-      history: history.getHistory(),
       triggerAction: "block:update",
     });
 
@@ -122,15 +112,12 @@ describe("CommandCenter update block", () => {
       ]);
 
     const updateBlockEventCallback = vi.fn();
-    const onPersist = vi.fn();
     const onEditorChange = vi.fn();
 
     eventBus.on("block:update", updateBlockEventCallback);
-    eventBus.on("editor:persist", onPersist);
     eventBus.on("editor:change", onEditorChange);
 
     // Assert
-    expect(onPersist).not.toHaveBeenCalled();
     expect(onEditorChange).not.toHaveBeenCalled();
 
     expect(document.getRoot()).toEqual({
@@ -186,13 +173,6 @@ describe("CommandCenter update block", () => {
       triggerAction: "block:update",
     });
 
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: document.toJSON(),
-      history: history.getHistory(),
-      triggerAction: "block:update",
-    });
-
     expect(onEditorChange).toHaveBeenCalledWith({
       type: "editor:change",
       documentJSON: document.toJSON(),
@@ -226,15 +206,12 @@ describe("CommandCenter update block", () => {
       ]);
 
     const updateBlockEventCallback = vi.fn();
-    const onPersist = vi.fn();
     const onEditorChange = vi.fn();
 
     eventBus.on("block:update", updateBlockEventCallback);
-    eventBus.on("editor:persist", onPersist);
     eventBus.on("editor:change", onEditorChange);
 
     // Assert
-    expect(onPersist).not.toHaveBeenCalled();
     expect(onEditorChange).not.toHaveBeenCalled();
 
     expect(document.getRoot()).toEqual({
@@ -290,13 +267,6 @@ describe("CommandCenter update block", () => {
       triggerAction: "block:update",
     });
 
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: document.toJSON(),
-      history: history.getHistory(),
-      triggerAction: "block:update",
-    });
-
     expect(updateBlockEventCallback).toHaveBeenCalledWith({
       type: "block:update",
       blockId: TOGGLE_LIST1_BLOCK.id,
@@ -332,16 +302,13 @@ describe("CommandCenter update block", () => {
 
     const updateBlockEventCallback = vi.fn();
     const insertBlockEventCallback = vi.fn();
-    const onPersist = vi.fn();
     const onEditorChange = vi.fn();
 
     eventBus.on("block:update", updateBlockEventCallback);
     eventBus.on("block:insert", insertBlockEventCallback);
-    eventBus.on("editor:persist", onPersist);
     eventBus.on("editor:change", onEditorChange);
 
     // Assert - Initial state before any action
-    expect(onPersist).not.toHaveBeenCalled();
     expect(onEditorChange).not.toHaveBeenCalled();
 
     expect(document.getRoot()).toEqual({
@@ -404,13 +371,6 @@ describe("CommandCenter update block", () => {
       triggerAction: "block:update",
     });
 
-    expect(onPersist).toHaveBeenNthCalledWith(1, {
-      type: "editor:persist",
-      documentJSON: DOCUMENT_JSON_AFTER_PRESERVE,
-      history: history.getHistory(),
-      triggerAction: "block:update",
-    });
-
     expect(updateBlockEventCallback).toHaveBeenNthCalledWith(1, {
       type: "block:update",
       blockId: TOGGLE_LIST1_BLOCK.id,
@@ -462,13 +422,6 @@ describe("CommandCenter update block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 2,
       root: document.getRoot(),
-      triggerAction: "block:update",
-    });
-
-    expect(onPersist).toHaveBeenNthCalledWith(2, {
-      type: "editor:persist",
-      documentJSON: DOCUMENT_JSON_AFTER_DROP,
-      history: history.getHistory(),
       triggerAction: "block:update",
     });
 
@@ -528,13 +481,6 @@ describe("CommandCenter update block", () => {
       triggerAction: "block:insert",
     });
 
-    expect(onPersist).toHaveBeenNthCalledWith(3, {
-      type: "editor:persist",
-      documentJSON: DOCUMENT_JSON_AFTER_APPEND,
-      history: history.getHistory(),
-      triggerAction: "block:insert",
-    });
-
     expect(insertBlockEventCallback).toHaveBeenCalledExactlyOnceWith({
       type: "block:insert",
       blockId: SAMPLE_BLOCK5.id,
@@ -589,13 +535,6 @@ describe("CommandCenter update block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 4,
       root: document.getRoot(),
-      triggerAction: "block:update",
-    });
-
-    expect(onPersist).toHaveBeenNthCalledWith(4, {
-      type: "editor:persist",
-      documentJSON: DOCUMENT_JSON_AFTER_REPLACE,
-      history: history.getHistory(),
       triggerAction: "block:update",
     });
 

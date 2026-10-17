@@ -19,11 +19,9 @@ describe("CommandCenter insert block", () => {
       INITIAL_HISTORY_DOC_JSON,
     } = createCommandCenter();
     const insertBlockEventCallback = vi.fn();
-    const onPersist = vi.fn();
     const onEditorChange = vi.fn();
 
     eventBus.on("block:insert", insertBlockEventCallback);
-    eventBus.on("editor:persist", onPersist);
     eventBus.on("editor:change", onEditorChange);
 
     // Assert
@@ -47,13 +45,6 @@ describe("CommandCenter insert block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:insert",
-    });
-
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: DOCUMENT_JSON_AFTER_INSERT1,
-      history: history.getHistory(),
       triggerAction: "block:insert",
     });
 
@@ -107,11 +98,9 @@ describe("CommandCenter insert block", () => {
       INITIAL_HISTORY_DOC_JSON,
     } = createCommandCenter();
     const insertBlockEventCallback = vi.fn();
-    const onPersist = vi.fn();
     const onEditorChange = vi.fn();
 
     eventBus.on("block:insert", insertBlockEventCallback);
-    eventBus.on("editor:persist", onPersist);
     eventBus.on("editor:change", onEditorChange);
 
     // Assert
@@ -133,13 +122,6 @@ describe("CommandCenter insert block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:insert",
-    });
-
-    expect(onPersist).toHaveBeenCalledExactlyOnceWith({
-      type: "editor:persist",
-      documentJSON: document.toJSON(),
-      history: history.getHistory(),
       triggerAction: "block:insert",
     });
 
