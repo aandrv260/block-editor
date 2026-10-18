@@ -1,29 +1,24 @@
-import type { BlockVariant } from "../../blocks/models/variants/block-variant.models";
-import type { BulletListVariant } from "../../blocks/models/variants/bullet-list/bullet-list-block.models";
-import type { CalloutVariant } from "../../blocks/models/variants/callout/callout-block.models";
-import type { HeadingVariant } from "../../blocks/models/variants/heading/heading-block.models";
-import type { QuoteVariant } from "../../blocks/models/variants/quote/quote-block.models";
-import type { TextVariant } from "../../blocks/models/variants/text/text-block.models";
-import type { ToggleListVariant } from "../../blocks/models/variants/toggle-list/toggle-list.models";
+import type {
+  Block,
+  BulletListBlock,
+  CalloutBlock,
+  HeadingBlock,
+  QuoteBlock,
+  TextBlock,
+  ToggleListBlock,
+} from "../../blocks/models/block.models";
 
-export interface BlockPayloadBase {
-  id: string;
+interface BlockPayloadBase {
   children?: BlockPayload[];
 }
 
-type ConstructVariantBlock<T extends BlockVariant> = BlockPayloadBase & T;
-
-type HeadingBlockPayload = ConstructVariantBlock<HeadingVariant>;
-type TextBlockPayload = ConstructVariantBlock<TextVariant>;
-type ToggleListBlockPayload = ConstructVariantBlock<ToggleListVariant>;
-type QuoteBlockPayload = ConstructVariantBlock<QuoteVariant>;
-type CalloutBlockPayload = ConstructVariantBlock<CalloutVariant>;
-type BulletListBlockPayload = ConstructVariantBlock<BulletListVariant>;
+type BlockPayloadOf<TBlock extends Block> = Omit<TBlock, "parentId" | "children"> &
+  BlockPayloadBase;
 
 export type BlockPayload =
-  | HeadingBlockPayload
-  | TextBlockPayload
-  | ToggleListBlockPayload
-  | QuoteBlockPayload
-  | CalloutBlockPayload
-  | BulletListBlockPayload;
+  | BlockPayloadOf<HeadingBlock>
+  | BlockPayloadOf<TextBlock>
+  | BlockPayloadOf<ToggleListBlock>
+  | BlockPayloadOf<QuoteBlock>
+  | BlockPayloadOf<CalloutBlock>
+  | BlockPayloadOf<BulletListBlock>;
