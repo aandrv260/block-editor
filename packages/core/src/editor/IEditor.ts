@@ -1,6 +1,5 @@
 import type { DeepReadonly } from "@/common/types/object.types";
 import type { CommandArgsOf } from "@/commands/executors/commandExecutors.models";
-import type { EditorAction } from "@/actions/actions.models";
 import type { Block, DocumentNode } from "@/blocks/models/block.models";
 import type { DocumentRoot } from "@/document/DocumentRoot/DocumentRoot";
 import type {
@@ -25,20 +24,6 @@ export interface IEditor<TSchema extends EditorSchema = DefaultEditorSchema> {
    * Returns -1 if the history is empty which is rare.
    */
   getCurrentPositionInHistory(): number;
-
-  /**
-   * This enables you to mutate the editor state. Actions are pure and without any side effects.
-   *
-   * Do not mutate the editor document directly. Always dispatch actions to ensure predictability and purity in your application code.
-   *
-   * You can either pass the whole action object yourself or use the provided action creator utils `moveBlock`, `insertBlock`, `updateBlock`, `deleteBlock` for better readability and clarity.
-   *
-   * Example:
-   * ```TS
-   * editor.dispatchAction(moveBlock({ blockId: '1', targetId: '2', strategy: 'before' }));
-   * ```
-   */
-  dispatchAction(action: EditorAction): void;
 
   /**
    * Executes the command registered for the type. The payload is typed by the command, and commands without a payload take no second argument.
@@ -117,13 +102,13 @@ export interface IEditor<TSchema extends EditorSchema = DefaultEditorSchema> {
   jumpToPointInHistory(index: number): string | null;
 
   /**
-   * Undo the last action. This will reset the current position in the history to the previous index. Emits a `history:undo` event.
+   * Undo the last change. This will reset the current position in the history to the previous index. Emits a `history:undo` event.
    * @returns The JSON snapshot of the document at the previous index. Returns null if the current is the first record in history.
    */
   undo(): void;
 
   /**
-   * Redo the last action. This will reset the current position in the history to the next index. Emits a `history:redo` event.
+   * Redo the last change. This will reset the current position in the history to the next index. Emits a `history:redo` event.
    */
   redo(): void;
 

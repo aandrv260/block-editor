@@ -1,4 +1,3 @@
-import { deleteBlock, insertBlock, moveBlock, updateBlock } from "@/actions/actions";
 import {
   assertTreeIntegrity,
   SAMPLE_BLOCK10,
@@ -46,13 +45,11 @@ describe("Editor full integration", () => {
     expect(editor.getDocumentSize()).toBe(1);
 
     // Act - Add a block
-    editor.dispatchAction(
-      insertBlock({
-        targetId: editor.getRoot().id,
-        strategy: "append",
-        newBlock: { ...TOGGLE_LIST1_BLOCK, children: [SAMPLE_BLOCK2] },
-      }),
-    );
+    editor.execute("block:insert", {
+      targetId: editor.getRoot().id,
+      strategy: "append",
+      newBlock: { ...TOGGLE_LIST1_BLOCK, children: [SAMPLE_BLOCK2] },
+    });
 
     // Assert correct
     expect(editor.isOnlyBlockInDocument(TOGGLE_LIST1_BLOCK.id)).toBe(false);
@@ -125,13 +122,11 @@ describe("Editor full integration", () => {
     const insertAfterEventCallback = vi.fn();
     editor.subscribe("block:insert", insertAfterEventCallback);
 
-    editor.dispatchAction(
-      insertBlock({
-        targetId: SAMPLE_BLOCK2.id,
-        strategy: "after",
-        newBlock: SAMPLE_BLOCK3,
-      }),
-    );
+    editor.execute("block:insert", {
+      targetId: SAMPLE_BLOCK2.id,
+      strategy: "after",
+      newBlock: SAMPLE_BLOCK3,
+    });
 
     // Assert
     expect(editor.getDocumentSize()).toBe(4);
@@ -196,13 +191,11 @@ describe("Editor full integration", () => {
     const insertBeforeEventCallback = vi.fn();
     editor.subscribe("block:insert", insertBeforeEventCallback);
 
-    editor.dispatchAction(
-      insertBlock({
-        targetId: TOGGLE_LIST1_BLOCK.id,
-        strategy: "before",
-        newBlock: SAMPLE_BLOCK4,
-      }),
-    );
+    editor.execute("block:insert", {
+      targetId: TOGGLE_LIST1_BLOCK.id,
+      strategy: "before",
+      newBlock: SAMPLE_BLOCK4,
+    });
 
     // Assert
     expect(editor.getDocumentSize()).toBe(5);
@@ -288,11 +281,9 @@ describe("Editor full integration", () => {
     const deleteEventCallback = vi.fn();
     editor.subscribe("block:delete", deleteEventCallback);
 
-    editor.dispatchAction(
-      deleteBlock({
-        blockId: TOGGLE_LIST1_BLOCK.id,
-      }),
-    );
+    editor.execute("block:delete", {
+      blockId: TOGGLE_LIST1_BLOCK.id,
+    });
 
     // Assert
     expect(editor.getDocumentSize()).toBe(2);
@@ -348,13 +339,11 @@ describe("Editor full integration", () => {
     const updateEventCallback = vi.fn();
     editor.subscribe("block:update", updateEventCallback);
 
-    editor.dispatchAction(
-      updateBlock({
-        blockId: SAMPLE_BLOCK4.id,
-        newBlock: TOGGLE_LIST5_BLOCK,
-        childrenStrategy: "drop",
-      }),
-    );
+    editor.execute("block:update", {
+      blockId: SAMPLE_BLOCK4.id,
+      newBlock: TOGGLE_LIST5_BLOCK,
+      childrenStrategy: "drop",
+    });
 
     // Assert
     expect(editor.getDocumentSize()).toBe(2);
@@ -402,13 +391,11 @@ describe("Editor full integration", () => {
     const appendToBlock5EventCallback = vi.fn();
     editor.subscribe("block:insert", appendToBlock5EventCallback);
 
-    editor.dispatchAction(
-      insertBlock({
-        targetId: TOGGLE_LIST5_BLOCK.id,
-        strategy: "append",
-        newBlock: SAMPLE_BLOCK6,
-      }),
-    );
+    editor.execute("block:insert", {
+      targetId: TOGGLE_LIST5_BLOCK.id,
+      strategy: "append",
+      newBlock: SAMPLE_BLOCK6,
+    });
 
     // Assert
     expect(editor.getDocumentSize()).toBe(3);
@@ -466,13 +453,11 @@ describe("Editor full integration", () => {
     const updateBlock5DroppingChildrenEventCallback = vi.fn();
     editor.subscribe("block:update", updateBlock5DroppingChildrenEventCallback);
 
-    editor.dispatchAction(
-      updateBlock({
-        blockId: TOGGLE_LIST5_BLOCK.id,
-        newBlock: SAMPLE_BLOCK7,
-        childrenStrategy: "drop",
-      }),
-    );
+    editor.execute("block:update", {
+      blockId: TOGGLE_LIST5_BLOCK.id,
+      newBlock: SAMPLE_BLOCK7,
+      childrenStrategy: "drop",
+    });
 
     // Assert
     expect(editor.getDocumentSize()).toBe(2);
@@ -520,13 +505,11 @@ describe("Editor full integration", () => {
     const addBlockAfterBlock7EventCallback = vi.fn();
     editor.subscribe("block:insert", addBlockAfterBlock7EventCallback);
 
-    editor.dispatchAction(
-      insertBlock({
-        targetId: SAMPLE_BLOCK7.id,
-        strategy: "after",
-        newBlock: SAMPLE_BLOCK8,
-      }),
-    );
+    editor.execute("block:insert", {
+      targetId: SAMPLE_BLOCK7.id,
+      strategy: "after",
+      newBlock: SAMPLE_BLOCK8,
+    });
 
     // Assert
     expect(editor.getDocumentSize()).toBe(3);
@@ -582,13 +565,11 @@ describe("Editor full integration", () => {
     const moveBlock7AfterBlock8EventCallback = vi.fn();
     editor.subscribe("block:move", moveBlock7AfterBlock8EventCallback);
 
-    editor.dispatchAction(
-      moveBlock({
-        blockId: SAMPLE_BLOCK7.id,
-        targetId: SAMPLE_BLOCK8.id,
-        strategy: "after",
-      }),
-    );
+    editor.execute("block:move", {
+      blockId: SAMPLE_BLOCK7.id,
+      targetId: SAMPLE_BLOCK8.id,
+      strategy: "after",
+    });
 
     // Assert
     expect(editor.getDocumentSize()).toBe(3);
@@ -638,13 +619,11 @@ describe("Editor full integration", () => {
     const moveBlock7BeforeBlock8EventCallback = vi.fn();
     editor.subscribe("block:move", moveBlock7BeforeBlock8EventCallback);
 
-    editor.dispatchAction(
-      moveBlock({
-        blockId: SAMPLE_BLOCK7.id,
-        targetId: SAMPLE_BLOCK8.id,
-        strategy: "before",
-      }),
-    );
+    editor.execute("block:move", {
+      blockId: SAMPLE_BLOCK7.id,
+      targetId: SAMPLE_BLOCK8.id,
+      strategy: "before",
+    });
 
     // Assert
     expect(editor.getDocumentSize()).toBe(3);

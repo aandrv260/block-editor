@@ -1,5 +1,4 @@
 export * from "./useEditor";
-export * from "./actions/useDispatcher";
 export * from "./actions/useInsertBlock";
 export * from "./actions/useDeleteBlock";
 export * from "./actions/useMoveBlock";

@@ -1,5 +1,4 @@
 import { EditorDocument } from "../../document/EditorDocument";
-import { insertBlock, updateBlock } from "../../actions/actions";
 import {
   assertTreeIntegrity,
   SAMPLE_BLOCK3,
@@ -15,7 +14,7 @@ import {
 import { createCommandCenter } from "./CommandCenter-test.utils";
 
 describe("CommandCenter update block", () => {
-  it("executes the update block command based on the update block action input when dropping the children", () => {
+  it("executes the update block command based on the update block payload when dropping the children", () => {
     // Arrange
     const { document, history, eventBus, commandCenter, INITIAL_HISTORY_DOC_JSON } =
       createCommandCenter([
@@ -51,13 +50,11 @@ describe("CommandCenter update block", () => {
     });
 
     // Act
-    commandCenter.processAction(
-      updateBlock({
-        blockId: TOGGLE_LIST2_BLOCK.id,
-        newBlock: SAMPLE_BLOCK4,
-        childrenStrategy: "drop",
-      }),
-    );
+    commandCenter.execute("block:update", {
+      blockId: TOGGLE_LIST2_BLOCK.id,
+      newBlock: SAMPLE_BLOCK4,
+      childrenStrategy: "drop",
+    });
 
     // Assert
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
@@ -103,7 +100,7 @@ describe("CommandCenter update block", () => {
     assertTreeIntegrity(document);
   });
 
-  it("executes the update block command based on the update block action input when preserving the children", () => {
+  it("executes the update block command based on the update block payload when preserving the children", () => {
     // Arrange
     const { document, history, eventBus, commandCenter, INITIAL_HISTORY_DOC_JSON } =
       createCommandCenter([
@@ -139,13 +136,11 @@ describe("CommandCenter update block", () => {
     });
 
     // Act
-    commandCenter.processAction(
-      updateBlock({
-        blockId: TOGGLE_LIST1_BLOCK.id,
-        newBlock: TOGGLE_LIST4_BLOCK,
-        childrenStrategy: "preserve",
-      }),
-    );
+    commandCenter.execute("block:update", {
+      blockId: TOGGLE_LIST1_BLOCK.id,
+      newBlock: TOGGLE_LIST4_BLOCK,
+      childrenStrategy: "preserve",
+    });
 
     // Assert
     expect(document.getRoot()).toEqual({
@@ -198,7 +193,7 @@ describe("CommandCenter update block", () => {
     expect(EditorDocument.fromJSON(document.toJSON())).toStrictEqual(document);
   });
 
-  it("executes the update block command based on the update block action input when replacing the children", () => {
+  it("executes the update block command based on the update block payload when replacing the children", () => {
     // Arrange
     const { document, history, eventBus, commandCenter, INITIAL_HISTORY_DOC_JSON } =
       createCommandCenter([
@@ -234,16 +229,14 @@ describe("CommandCenter update block", () => {
     });
 
     // Act
-    commandCenter.processAction(
-      updateBlock({
-        blockId: TOGGLE_LIST1_BLOCK.id,
-        newBlock: {
-          ...TOGGLE_LIST4_BLOCK,
-          children: [SAMPLE_BLOCK4, SAMPLE_BLOCK5],
-        },
-        childrenStrategy: "replace",
-      }),
-    );
+    commandCenter.execute("block:update", {
+      blockId: TOGGLE_LIST1_BLOCK.id,
+      newBlock: {
+        ...TOGGLE_LIST4_BLOCK,
+        children: [SAMPLE_BLOCK4, SAMPLE_BLOCK5],
+      },
+      childrenStrategy: "replace",
+    });
 
     // Assert
     expect(document.getRoot()).toEqual({
@@ -310,7 +303,7 @@ describe("CommandCenter update block", () => {
     eventBus.on("block:insert", insertBlockEventCallback);
     eventBus.on("editor:change", onEditorChange);
 
-    // Assert - Initial state before any action
+    // Assert - Initial state before any command
     expect(onEditorChange).not.toHaveBeenCalled();
 
     expect(document.getRoot()).toEqual({
@@ -336,17 +329,15 @@ describe("CommandCenter update block", () => {
     expect(history.getSize()).toBe(1);
 
     // Act 1 - Update with "preserve" strategy
-    commandCenter.processAction(
-      updateBlock({
-        blockId: TOGGLE_LIST1_BLOCK.id,
-        newBlock: TOGGLE_LIST4_BLOCK,
-        childrenStrategy: "preserve",
-      }),
-    );
+    commandCenter.execute("block:update", {
+      blockId: TOGGLE_LIST1_BLOCK.id,
+      newBlock: TOGGLE_LIST4_BLOCK,
+      childrenStrategy: "preserve",
+    });
 
     const DOCUMENT_JSON_AFTER_PRESERVE = document.toJSON();
 
-    // Assert - State after preserve action
+    // Assert - State after preserve command
     expect(document.getRoot()).toEqual({
       id: document.ROOT_ID,
       children: [
@@ -391,17 +382,15 @@ describe("CommandCenter update block", () => {
     assertTreeIntegrity(document);
 
     // Act 2 - Update with "drop" strategy
-    commandCenter.processAction(
-      updateBlock({
-        blockId: TOGGLE_LIST2_BLOCK.id,
-        newBlock: SAMPLE_BLOCK4,
-        childrenStrategy: "drop",
-      }),
-    );
+    commandCenter.execute("block:update", {
+      blockId: TOGGLE_LIST2_BLOCK.id,
+      newBlock: SAMPLE_BLOCK4,
+      childrenStrategy: "drop",
+    });
 
     const DOCUMENT_JSON_AFTER_DROP = document.toJSON();
 
-    // Assert - State after drop action
+    // Assert - State after drop command
     expect(document.getRoot()).toEqual({
       id: document.ROOT_ID,
       children: [
@@ -445,18 +434,16 @@ describe("CommandCenter update block", () => {
 
     assertTreeIntegrity(document);
 
-    // Act - Insert block with append strategy (non-update action between 2nd and 3rd update)
-    commandCenter.processAction(
-      insertBlock({
-        targetId: TOGGLE_LIST4_BLOCK.id,
-        newBlock: SAMPLE_BLOCK5,
-        strategy: "append",
-      }),
-    );
+    // Act - Insert block with append strategy (non-update command between 2nd and 3rd update)
+    commandCenter.execute("block:insert", {
+      targetId: TOGGLE_LIST4_BLOCK.id,
+      newBlock: SAMPLE_BLOCK5,
+      strategy: "append",
+    });
 
     const DOCUMENT_JSON_AFTER_APPEND = document.toJSON();
 
-    // Assert - State after append action
+    // Assert - State after append command
     expect(document.getRoot()).toEqual({
       id: document.ROOT_ID,
       children: [
@@ -503,20 +490,18 @@ describe("CommandCenter update block", () => {
     assertTreeIntegrity(document);
 
     // Act 3 - Update with "replace" strategy
-    commandCenter.processAction(
-      updateBlock({
-        blockId: TOGGLE_LIST4_BLOCK.id,
-        newBlock: {
-          ...TOGGLE_LIST5_BLOCK,
-          children: [SAMPLE_BLOCK6, SAMPLE_BLOCK9],
-        },
-        childrenStrategy: "replace",
-      }),
-    );
+    commandCenter.execute("block:update", {
+      blockId: TOGGLE_LIST4_BLOCK.id,
+      newBlock: {
+        ...TOGGLE_LIST5_BLOCK,
+        children: [SAMPLE_BLOCK6, SAMPLE_BLOCK9],
+      },
+      childrenStrategy: "replace",
+    });
 
     const DOCUMENT_JSON_AFTER_REPLACE = document.toJSON();
 
-    // Assert - State after replace action
+    // Assert - State after replace command
     expect(document.getRoot()).toEqual({
       id: document.ROOT_ID,
       children: [

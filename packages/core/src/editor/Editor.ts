@@ -1,6 +1,5 @@
 import { CommandCenter } from "@/commands/CommandCenter/CommandCenter";
 import { DocumentHistory } from "@/history/DocumentHistory";
-import type { EditorAction } from "@/actions/actions.models";
 import type { DocumentRoot } from "@/document/DocumentRoot/DocumentRoot";
 import { EditorDocument } from "@/document/EditorDocument";
 import type {
@@ -10,7 +9,10 @@ import type {
 } from "@/events/editor-event-bus/editorEvent.models";
 import { EventBus } from "@/events/event-bus/EventBus";
 import type { CommandArgsOf } from "@/commands/executors/commandExecutors.models";
-import { DEFAULT_COMMANDS } from "@/commands/executors/defaultCommands";
+import {
+  DEFAULT_COMMANDS,
+  type DefaultCommands,
+} from "@/commands/executors/defaultCommands";
 import type {
   CommandType,
   DefaultEditorSchema,
@@ -19,15 +21,10 @@ import type {
 import type { IEditor } from "./IEditor";
 import type { Block, DocumentNode } from "@/blocks/models/block.models";
 import type { ConstructableDocumentElement } from "@/document/models/document.models";
+import type { SwapDocumentPayload } from "@/commands/executors/SwapDocumentCommand/SwapDocumentCommand";
 import type { DeepReadonly } from "@/common/types/object.types";
-import { swapDocument } from "@/actions/actions";
 import { EventStream } from "@/events/EventStream/EventStream";
 import type { IEventStream } from "@/events/EventStream/IEventStream";
-
-interface SwapDocumentConfig {
-  element: ConstructableDocumentElement;
-  clearHistory?: boolean;
-}
 
 export interface EditorConfig<TSchema extends EditorSchema = DefaultEditorSchema> {
   /**
@@ -78,7 +75,7 @@ export class Editor<
       eventBus: this.eventBus,
       history: this.history,
       document: this.document,
-      commands: { ...DEFAULT_COMMANDS, ...commands } as TSchema["commands"],
+      commands: { ...DEFAULT_COMMANDS, ...commands },
     });
   }
 
@@ -107,11 +104,6 @@ export class Editor<
     ...args: CommandArgsOf<TSchema["commands"][TType]>
   ): void {
     this.commandCenter.execute(type, ...args);
-  }
-
-  // TODO: Remove together with the action creators once every caller uses `execute`.
-  public dispatchAction(action: EditorAction): void {
-    this.commandCenter.processAction(action);
   }
 
   public getRoot(): DeepReadonly<DocumentRoot> {
@@ -194,12 +186,8 @@ export class Editor<
    * Most often used when after you load the document from a server, IndexedDB, etc and you want to sync it with the editor state.
    * @param element - The new document element to swap with.
    */
-  public swapDocument({ element, clearHistory }: SwapDocumentConfig): void {
-    this.commandCenter.processAction(
-      swapDocument({
-        element,
-        clearHistory,
-      }),
-    );
+  public swapDocument(payload: SwapDocumentPayload): void {
+    const commandCenter = this.commandCenter as CommandCenter<DefaultCommands>;
+    commandCenter.execute("document:swap", payload);
   }
 }

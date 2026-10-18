@@ -1,5 +1,4 @@
 import { createCommandCenter } from "./CommandCenter-test.utils";
-import { insertBlock } from "../../actions/actions";
 import {
   assertTreeIntegrity,
   SAMPLE_BLOCK4,
@@ -8,7 +7,7 @@ import {
 } from "../../document/utils/document-test.utils";
 
 describe("CommandCenter insert block", () => {
-  it("executes correctly the insert block command with `before` strategy based on the insert block action input", () => {
+  it("executes correctly the insert block command with `before` strategy based on the insert block payload", () => {
     // Arrange
     const {
       document,
@@ -28,13 +27,11 @@ describe("CommandCenter insert block", () => {
     assertInitialDefaultDocumentStructure();
 
     // Act
-    commandCenter.processAction(
-      insertBlock({
-        targetId: TOGGLE_LIST2_BLOCK.id,
-        strategy: "before",
-        newBlock: SAMPLE_BLOCK4,
-      }),
-    );
+    commandCenter.execute("block:insert", {
+      targetId: TOGGLE_LIST2_BLOCK.id,
+      strategy: "before",
+      newBlock: SAMPLE_BLOCK4,
+    });
 
     const DOCUMENT_JSON_AFTER_INSERT1 = document.toJSON();
 
@@ -87,7 +84,7 @@ describe("CommandCenter insert block", () => {
     assertTreeIntegrity(document);
   });
 
-  it("executes correctly the insert block command with `after` strategy based on the insert block action input", () => {
+  it("executes correctly the insert block command with `after` strategy based on the insert block payload", () => {
     // Arrange
     const {
       document,
@@ -107,13 +104,11 @@ describe("CommandCenter insert block", () => {
     assertInitialDefaultDocumentStructure();
 
     // Act
-    commandCenter.processAction(
-      insertBlock({
-        targetId: TOGGLE_LIST1_BLOCK.id,
-        strategy: "after",
-        newBlock: SAMPLE_BLOCK4,
-      }),
-    );
+    commandCenter.execute("block:insert", {
+      targetId: TOGGLE_LIST1_BLOCK.id,
+      strategy: "after",
+      newBlock: SAMPLE_BLOCK4,
+    });
 
     // Assert
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({

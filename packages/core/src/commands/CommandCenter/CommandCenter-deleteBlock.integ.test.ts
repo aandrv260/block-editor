@@ -4,12 +4,11 @@ import {
   TOGGLE_LIST1_BLOCK,
 } from "../../document/utils/document-test.utils";
 import { createCommandCenter } from "./CommandCenter-test.utils";
-import { deleteBlock } from "../../actions/actions";
 import { assertEngineError } from "../../errors/test-utils/error-test.utils";
 import { BlockToDeleteNotFoundError } from "../errors/delete-block/BlockToDeleteNotFoundError";
 
 describe("CommandCenter delete block", () => {
-  it("executes the delete block command based on the delete block action input", () => {
+  it("executes the delete block command based on the delete block payload", () => {
     // Arrange
     const {
       document,
@@ -30,11 +29,9 @@ describe("CommandCenter delete block", () => {
     assertInitialDefaultDocumentStructure();
 
     // Act
-    commandCenter.processAction(
-      deleteBlock({
-        blockId: TOGGLE_LIST1_BLOCK.id,
-      }),
-    );
+    commandCenter.execute("block:delete", {
+      blockId: TOGGLE_LIST1_BLOCK.id,
+    });
 
     // Assert
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
@@ -83,8 +80,7 @@ describe("CommandCenter delete block", () => {
 
     // Act and assert
     assertEngineError(
-      () =>
-        commandCenter.processAction(deleteBlock({ blockId: "not_existing_block" })),
+      () => commandCenter.execute("block:delete", { blockId: "not_existing_block" }),
       {
         ExpectedErrorClass: BlockToDeleteNotFoundError,
         expectedCode: "COMMAND:BLOCK_TO_DELETE_NOT_FOUND",
@@ -111,7 +107,7 @@ describe("CommandCenter delete block", () => {
     });
 
     // Act
-    commandCenter.processAction(deleteBlock({ blockId: TOGGLE_LIST1_BLOCK.id }));
+    commandCenter.execute("block:delete", { blockId: TOGGLE_LIST1_BLOCK.id });
 
     // Assert
     expect(currentRecordWhenEmitted).toBe(document.toJSON());

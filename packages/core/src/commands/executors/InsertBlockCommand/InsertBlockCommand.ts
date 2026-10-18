@@ -1,9 +1,17 @@
-import type { InsertBlockActionPayload } from "../../../actions/action-types/insert-block-action.models";
+import type { BlockPayload } from "../../../document/models/document-payload.models";
 import { createInsertBlockEvent } from "../../../events/editor-event-bus/editorEvent.emits";
 import type { InsertBlockEvent } from "../../../events/editor-event-bus/event-types/insert-block-event.models";
 import type { CommandContext } from "../commandExecutors.models";
 
-type InsertBlockCommandContext = CommandContext<InsertBlockActionPayload>;
+export type InsertBlockStrategy = "after" | "before" | "append";
+
+export interface InsertBlockPayload {
+  newBlock: BlockPayload;
+  targetId: string;
+  strategy: InsertBlockStrategy;
+}
+
+type InsertBlockCommandContext = CommandContext<InsertBlockPayload>;
 
 export const insertBlockCommand = (
   context: InsertBlockCommandContext,

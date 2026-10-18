@@ -1,5 +1,4 @@
 import { createEditor, createDocumentToSwapWith } from "./Editor-test.utils";
-import { insertBlock, deleteBlock, swapDocument } from "@/actions/actions";
 import {
   SAMPLE_BLOCK1,
   SAMPLE_BLOCK3,
@@ -13,10 +12,9 @@ import {
   TOGGLE_LIST2_BLOCK,
 } from "@/document/utils/document-test.utils";
 import { createTestDocument } from "@/commands/executors/utils/commandExecutors-test.utils";
-import { moveBlock } from "@/actions/actions";
 
 describe("Editor history", () => {
-  test("history grows with the dispatch of actions and shifts when necessary to cover the limit", () => {
+  test("history grows with every executed command and shifts when necessary to cover the limit", () => {
     // Arrange
     const { editor, assertHistory, INITIAL_DOCUMENT_JSON } = createEditor({
       historyLimit: 2,
@@ -42,13 +40,11 @@ describe("Editor history", () => {
     });
 
     // Act
-    editor.dispatchAction(
-      insertBlock({
-        targetId: editor.getRoot().id,
-        strategy: "append",
-        newBlock: SAMPLE_BLOCK1,
-      }),
-    );
+    editor.execute("block:insert", {
+      targetId: editor.getRoot().id,
+      strategy: "append",
+      newBlock: SAMPLE_BLOCK1,
+    });
 
     const documentJSONAfterFirstInsert = editor.getDocumentJSON();
 
@@ -69,7 +65,7 @@ describe("Editor history", () => {
     // Act
     vi.clearAllMocks();
 
-    editor.dispatchAction(deleteBlock({ blockId: SAMPLE_BLOCK1.id }));
+    editor.execute("block:delete", { blockId: SAMPLE_BLOCK1.id });
     const documentJSONAfterFirstDelete = editor.getDocumentJSON();
 
     // Assert
@@ -151,13 +147,11 @@ describe("Editor history", () => {
     const documentToSwapWith = createDocumentToSwapWith();
 
     // Act
-    editor.dispatchAction(
-      insertBlock({
-        targetId: editor["document"].ROOT_ID,
-        newBlock: SAMPLE_BLOCK1,
-        strategy: "append",
-      }),
-    );
+    editor.execute("block:insert", {
+      targetId: editor["document"].ROOT_ID,
+      newBlock: SAMPLE_BLOCK1,
+      strategy: "append",
+    });
     const DOCUMENT_JSON_AFTER_INSERT1 = editor.getDocumentJSON();
 
     // Assert
@@ -189,13 +183,11 @@ describe("Editor history", () => {
     const documentToSwapWith = createDocumentToSwapWith();
 
     // Act
-    editor.dispatchAction(
-      insertBlock({
-        targetId: editor["document"].ROOT_ID,
-        newBlock: SAMPLE_BLOCK1,
-        strategy: "append",
-      }),
-    );
+    editor.execute("block:insert", {
+      targetId: editor["document"].ROOT_ID,
+      newBlock: SAMPLE_BLOCK1,
+      strategy: "append",
+    });
     const DOCUMENT_JSON_AFTER_INSERT1 = editor.getDocumentJSON();
 
     // Assert
@@ -208,12 +200,10 @@ describe("Editor history", () => {
     expect(editor.getCurrentPositionInHistory()).toBe(1);
 
     // Act
-    editor.dispatchAction(
-      swapDocument({
-        element: documentToSwapWith,
-        clearHistory: false,
-      }),
-    );
+    editor.execute("document:swap", {
+      element: documentToSwapWith,
+      clearHistory: false,
+    });
 
     const DOCUMENT_HISTORY_AFTER_SWAP = editor.getDocumentJSON();
 
@@ -260,7 +250,7 @@ describe("Editor history", () => {
     expect(onHistorySet).not.toHaveBeenCalled();
   });
 
-  it("sets the history correctly, whether the new history is empty or not, in combination with other actions", () => {
+  it("sets the history correctly, whether the new history is empty or not, in combination with other commands", () => {
     // Arrange
     // Arrange
     const initialDocument = createTestDocument([
@@ -289,13 +279,11 @@ describe("Editor history", () => {
     expect(editor.getCurrentPositionInHistory()).toBe(0);
 
     // Act - insert a record
-    editor.dispatchAction(
-      insertBlock({
-        targetId: "root",
-        newBlock: SAMPLE_BLOCK4,
-        strategy: "append",
-      }),
-    );
+    editor.execute("block:insert", {
+      targetId: "root",
+      newBlock: SAMPLE_BLOCK4,
+      strategy: "append",
+    });
 
     const DOCUMENT_HISTORY_JSON_AFTER_INSERT1 = editor.getDocumentJSON();
 
@@ -341,13 +329,11 @@ describe("Editor history", () => {
     });
 
     // Act - move block4 to be a descendant of 2
-    editor.dispatchAction(
-      moveBlock({
-        blockId: SAMPLE_BLOCK4.id,
-        targetId: TOGGLE_LIST2_BLOCK.id,
-        strategy: "append",
-      }),
-    );
+    editor.execute("block:move", {
+      blockId: SAMPLE_BLOCK4.id,
+      targetId: TOGGLE_LIST2_BLOCK.id,
+      strategy: "append",
+    });
 
     const DOCUMENT_JSON_AFTER_MOVE1 = editor.getDocumentJSON();
 

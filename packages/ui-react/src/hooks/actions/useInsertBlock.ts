@@ -1,19 +1,14 @@
 import { useCallback } from "react";
-import { useDispatcher } from "./useDispatcher";
-import {
-  type InsertBlockActionPayload,
-  insertBlock as insertBlockAction,
-} from "@block-editor/core";
+import type { InsertBlockPayload } from "@block-editor/core";
+import { useEditorContext } from "../../context/hooks/useEditorContext";
 
 export const useInsertBlock = () => {
-  const dispatch = useDispatcher();
+  const { editor } = useEditorContext();
 
-  const insertBlock = useCallback(
-    (payload: InsertBlockActionPayload) => {
-      dispatch(insertBlockAction(payload));
+  return useCallback(
+    (payload: InsertBlockPayload) => {
+      editor.execute("block:insert", payload);
     },
-    [dispatch],
+    [editor],
   );
-
-  return insertBlock;
 };

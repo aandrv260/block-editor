@@ -1,11 +1,14 @@
 import type { Block } from "../../../blocks/models/block.models";
-import type { DeleteBlockActionPayload } from "../../../actions/action-types/delete-block-action.models";
 import { createDeleteBlockEvent } from "../../../events/editor-event-bus/editorEvent.emits";
 import type { DeleteBlockEvent } from "../../../events/editor-event-bus/event-types/delete-block-event.models";
 import { BlockToDeleteNotFoundError } from "../../errors/delete-block/BlockToDeleteNotFoundError";
 import type { CommandContext } from "../commandExecutors.models";
 
-type DeleteBlockCommandContext = CommandContext<DeleteBlockActionPayload>;
+export interface DeleteBlockPayload {
+  blockId: string;
+}
+
+type DeleteBlockCommandContext = CommandContext<DeleteBlockPayload>;
 
 export const deleteBlockCommand = (
   context: DeleteBlockCommandContext,

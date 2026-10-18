@@ -1,6 +1,5 @@
 import { EditorDocument } from "../../document/EditorDocument";
 import { createCommandCenter } from "./CommandCenter-test.utils";
-import { moveBlock } from "../../actions/actions";
 import {
   TOGGLE_LIST2_BLOCK,
   TOGGLE_LIST1_BLOCK,
@@ -8,7 +7,7 @@ import {
 } from "../../document/utils/document-test.utils";
 
 describe("CommandCenter move block", () => {
-  it("executes correctly the move block command with `append` strategy based on the move block action input", () => {
+  it("executes correctly the move block command with `append` strategy based on the move block payload", () => {
     // Arrange
     const {
       document,
@@ -28,13 +27,11 @@ describe("CommandCenter move block", () => {
     assertInitialDefaultDocumentStructure();
 
     // Act
-    commandCenter.processAction(
-      moveBlock({
-        blockId: TOGGLE_LIST2_BLOCK.id,
-        targetId: document.ROOT_ID,
-        strategy: "append",
-      }),
-    );
+    commandCenter.execute("block:move", {
+      blockId: TOGGLE_LIST2_BLOCK.id,
+      targetId: document.ROOT_ID,
+      strategy: "append",
+    });
 
     // Assert
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
@@ -82,7 +79,7 @@ describe("CommandCenter move block", () => {
     expect(EditorDocument.fromJSON(document.toJSON())).toStrictEqual(document);
   });
 
-  it("executes correctly the move block command with `before` strategy based on the move block action input", () => {
+  it("executes correctly the move block command with `before` strategy based on the move block payload", () => {
     // Arrange
     const {
       document,
@@ -102,13 +99,11 @@ describe("CommandCenter move block", () => {
     assertInitialDefaultDocumentStructure();
 
     // Act
-    commandCenter.processAction(
-      moveBlock({
-        blockId: TOGGLE_LIST2_BLOCK.id,
-        targetId: TOGGLE_LIST1_BLOCK.id,
-        strategy: "before",
-      }),
-    );
+    commandCenter.execute("block:move", {
+      blockId: TOGGLE_LIST2_BLOCK.id,
+      targetId: TOGGLE_LIST1_BLOCK.id,
+      strategy: "before",
+    });
 
     // Assert
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
@@ -155,7 +150,7 @@ describe("CommandCenter move block", () => {
     assertTreeIntegrity(document);
   });
 
-  it("executes correctly the move block command with `after` strategy based on the move block action input", () => {
+  it("executes correctly the move block command with `after` strategy based on the move block payload", () => {
     // Arrange
     const {
       document,
@@ -176,13 +171,11 @@ describe("CommandCenter move block", () => {
     assertInitialDefaultDocumentStructure();
 
     // Act
-    commandCenter.processAction(
-      moveBlock({
-        blockId: TOGGLE_LIST2_BLOCK.id,
-        targetId: TOGGLE_LIST1_BLOCK.id,
-        strategy: "after",
-      }),
-    );
+    commandCenter.execute("block:move", {
+      blockId: TOGGLE_LIST2_BLOCK.id,
+      targetId: TOGGLE_LIST1_BLOCK.id,
+      strategy: "after",
+    });
 
     // Assert
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({

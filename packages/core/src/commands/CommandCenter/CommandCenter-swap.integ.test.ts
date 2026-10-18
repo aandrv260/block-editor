@@ -1,4 +1,3 @@
-import { insertBlock, swapDocument } from "../../actions/actions";
 import {
   SAMPLE_BLOCK3,
   SAMPLE_BLOCK4,
@@ -32,7 +31,7 @@ const json = `
 
 describe("CommandCenter swap command", () => {
   test.each([[false], [undefined]])(
-    "executes the swap document command based on the swap document action input correctly with clearHistory=%s and constructs the document from JSON",
+    "executes the swap document command based on the swap document payload correctly with clearHistory=%s and constructs the document from JSON",
     clearHistory => {
       // Arrange
       const {
@@ -49,13 +48,11 @@ describe("CommandCenter swap command", () => {
       eventBus.on("document:swap", onSwap);
       eventBus.on("editor:change", onEditorChange);
 
-      commandCenter.processAction(
-        insertBlock({
-          targetId: TOGGLE_LIST2_BLOCK.id,
-          newBlock: SAMPLE_BLOCK3,
-          strategy: "append",
-        }),
-      );
+      commandCenter.execute("block:insert", {
+        targetId: TOGGLE_LIST2_BLOCK.id,
+        newBlock: SAMPLE_BLOCK3,
+        strategy: "append",
+      });
 
       const DOCUMENT_JSON_AFTER_INSERT1 = document.toJSON();
 
@@ -79,12 +76,10 @@ describe("CommandCenter swap command", () => {
 
       // Act
       vi.clearAllMocks();
-      commandCenter.processAction(
-        swapDocument({
-          element: json,
-          clearHistory,
-        }),
-      );
+      commandCenter.execute("document:swap", {
+        element: json,
+        clearHistory,
+      });
 
       const DOCUMENT_JSON_AFTER_SWAP = document.toJSON();
 
@@ -139,7 +134,7 @@ describe("CommandCenter swap command", () => {
     },
   );
 
-  it("executes the swap document command based on the swap document action input correctly with clearHistory=true and constructs the document from JSON", () => {
+  it("executes the swap document command based on the swap document payload correctly with clearHistory=true and constructs the document from JSON", () => {
     // Arrange
     const { document, history, eventBus, commandCenter, INITIAL_HISTORY_DOC_JSON } =
       createCommandCenter();
@@ -150,13 +145,11 @@ describe("CommandCenter swap command", () => {
     eventBus.on("document:swap", onSwap);
     eventBus.on("editor:change", onEditorChange);
 
-    commandCenter.processAction(
-      insertBlock({
-        targetId: TOGGLE_LIST2_BLOCK.id,
-        newBlock: SAMPLE_BLOCK3,
-        strategy: "append",
-      }),
-    );
+    commandCenter.execute("block:insert", {
+      targetId: TOGGLE_LIST2_BLOCK.id,
+      newBlock: SAMPLE_BLOCK3,
+      strategy: "append",
+    });
 
     const DOCUMENT_JSON_AFTER_INSERT1 = document.toJSON();
 
@@ -180,12 +173,10 @@ describe("CommandCenter swap command", () => {
 
     // Act
     vi.clearAllMocks();
-    commandCenter.processAction(
-      swapDocument({
-        element: json,
-        clearHistory: true,
-      }),
-    );
+    commandCenter.execute("document:swap", {
+      element: json,
+      clearHistory: true,
+    });
 
     const DOCUMENT_JSON_AFTER_SWAP = document.toJSON();
 
@@ -236,7 +227,7 @@ describe("CommandCenter swap command", () => {
   });
 
   test.each([[false], [undefined]])(
-    "executes the swap document command based on the swap document action input correctly with clearHistory=%s and constructs the document from DocumentRoot",
+    "executes the swap document command based on the swap document payload correctly with clearHistory=%s and constructs the document from DocumentRoot",
     clearHistory => {
       // Arrange
       const {
@@ -258,13 +249,11 @@ describe("CommandCenter swap command", () => {
       eventBus.on("document:swap", onSwap);
       eventBus.on("editor:change", onEditorChange);
 
-      commandCenter.processAction(
-        insertBlock({
-          targetId: TOGGLE_LIST2_BLOCK.id,
-          newBlock: SAMPLE_BLOCK3,
-          strategy: "append",
-        }),
-      );
+      commandCenter.execute("block:insert", {
+        targetId: TOGGLE_LIST2_BLOCK.id,
+        newBlock: SAMPLE_BLOCK3,
+        strategy: "append",
+      });
 
       const DOCUMENT_HISTORY_AFTER_INSERT1 = document.toJSON();
 
@@ -288,12 +277,10 @@ describe("CommandCenter swap command", () => {
 
       // Act
       vi.clearAllMocks();
-      commandCenter.processAction(
-        swapDocument({
-          element: documentRootToSwapWith,
-          clearHistory,
-        }),
-      );
+      commandCenter.execute("document:swap", {
+        element: documentRootToSwapWith,
+        clearHistory,
+      });
 
       // Assert
       expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
@@ -337,7 +324,7 @@ describe("CommandCenter swap command", () => {
     },
   );
 
-  it("executes the swap document command based on the swap document action input correctly with clearHistory=true and constructs the document from DocumentRoot", () => {
+  it("executes the swap document command based on the swap document payload correctly with clearHistory=true and constructs the document from DocumentRoot", () => {
     // Arrange
     const { document, history, eventBus, commandCenter, INITIAL_HISTORY_DOC_JSON } =
       createCommandCenter();
@@ -353,13 +340,11 @@ describe("CommandCenter swap command", () => {
     eventBus.on("document:swap", onSwap);
     eventBus.on("editor:change", onEditorChange);
 
-    commandCenter.processAction(
-      insertBlock({
-        targetId: TOGGLE_LIST2_BLOCK.id,
-        newBlock: SAMPLE_BLOCK3,
-        strategy: "append",
-      }),
-    );
+    commandCenter.execute("block:insert", {
+      targetId: TOGGLE_LIST2_BLOCK.id,
+      newBlock: SAMPLE_BLOCK3,
+      strategy: "append",
+    });
 
     const DOCUMENT_HISTORY_AFTER_INSERT1 = document.toJSON();
 
@@ -383,12 +368,10 @@ describe("CommandCenter swap command", () => {
 
     // Act
     vi.clearAllMocks();
-    commandCenter.processAction(
-      swapDocument({
-        element: documentRootToSwapWith,
-        clearHistory: true,
-      }),
-    );
+    commandCenter.execute("document:swap", {
+      element: documentRootToSwapWith,
+      clearHistory: true,
+    });
 
     // Assert
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({
@@ -427,7 +410,7 @@ describe("CommandCenter swap command", () => {
     });
   });
 
-  it("executes the swap document command based on the swap document action input correctly with clearHistory=true and constructs the document from EditorDocument", () => {
+  it("executes the swap document command based on the swap document payload correctly with clearHistory=true and constructs the document from EditorDocument", () => {
     // Arrange
     const { document, history, eventBus, commandCenter, INITIAL_HISTORY_DOC_JSON } =
       createCommandCenter();
@@ -440,13 +423,11 @@ describe("CommandCenter swap command", () => {
 
     const documentToSwapWith = EditorDocument.fromJSON(json);
 
-    commandCenter.processAction(
-      insertBlock({
-        targetId: TOGGLE_LIST2_BLOCK.id,
-        newBlock: SAMPLE_BLOCK3,
-        strategy: "append",
-      }),
-    );
+    commandCenter.execute("block:insert", {
+      targetId: TOGGLE_LIST2_BLOCK.id,
+      newBlock: SAMPLE_BLOCK3,
+      strategy: "append",
+    });
 
     const DOCUMENT_HISTORY_AFTER_INSERT1 = document.toJSON();
 
@@ -470,12 +451,10 @@ describe("CommandCenter swap command", () => {
 
     // Act
     vi.clearAllMocks();
-    commandCenter.processAction(
-      swapDocument({
-        element: documentToSwapWith,
-        clearHistory: true,
-      }),
-    );
+    commandCenter.execute("document:swap", {
+      element: documentToSwapWith,
+      clearHistory: true,
+    });
 
     // Assert
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith({

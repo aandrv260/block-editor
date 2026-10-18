@@ -1,19 +1,14 @@
 import { useCallback } from "react";
-import { useDispatcher } from "./useDispatcher";
-import {
-  type DeleteBlockActionPayload,
-  deleteBlock as deleteBlockAction,
-} from "@block-editor/core";
+import type { DeleteBlockPayload } from "@block-editor/core";
+import { useEditorContext } from "../../context/hooks/useEditorContext";
 
 export const useDeleteBlock = () => {
-  const dispatch = useDispatcher();
+  const { editor } = useEditorContext();
 
-  const deleteBlock = useCallback(
-    (payload: DeleteBlockActionPayload) => {
-      dispatch(deleteBlockAction(payload));
+  return useCallback(
+    (payload: DeleteBlockPayload) => {
+      editor.execute("block:delete", payload);
     },
-    [dispatch],
+    [editor],
   );
-
-  return deleteBlock;
 };
