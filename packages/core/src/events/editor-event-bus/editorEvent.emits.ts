@@ -94,9 +94,9 @@ export const createHistorySetEvent = ({
   };
 };
 
-export const createEditorChangeEvent = (
-  payload: Omit<EditorChangeEvent, "type">,
-): EditorChangeEvent => {
+export const createEditorChangeEvent = <TTrigger extends string>(
+  payload: Omit<EditorChangeEvent<TTrigger>, "type">,
+): EditorChangeEvent<TTrigger> => {
   return {
     type: "editor:change",
     documentJSON: payload.documentJSON,

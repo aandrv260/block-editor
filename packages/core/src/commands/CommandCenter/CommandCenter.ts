@@ -1,50 +1,93 @@
-import type { EditorAction, EditorActionType } from "../../actions/actions.models";
+import type { EditorAction } from "../../actions/actions.models";
 import type { DocumentHistory } from "../../history/DocumentHistory";
 import { HistoryManager } from "../../history/HistoryManager";
-import type { HistoryOperationType } from "../../history/models/history-operation.models";
 import { EditorDocument } from "../../document/EditorDocument";
 import { createEditorChangeEvent } from "../../events/editor-event-bus/editorEvent.emits";
-import type { EditorEventBus } from "../../events/editor-event-bus/editorEvent.models";
-import { executeCommand } from "../executors/commandsMap";
+import type {
+  CommandEvent,
+  EditorEventBus,
+} from "../../events/editor-event-bus/editorEvent.models";
+import type {
+  CommandArgsMap,
+  CommandsFor,
+} from "../executors/commandExecutors.models";
+import { executeAction } from "../executors/executeAction";
+import { UnknownCommandError } from "../errors/unknown-command/UnknownCommandError";
 
-interface CommandCenterConfig {
+interface CommandCenterConfig<TArgsMap extends CommandArgsMap> {
   document: EditorDocument;
   eventBus: EditorEventBus;
   history: DocumentHistory;
+  commands: CommandsFor<TArgsMap>;
 }
-
-type ChangeTrigger = EditorActionType | HistoryOperationType;
 
 /**
  * Responsibilities:
- * - For an action, it will execute the command corresponding to the action and update the history.
+ * - For a command type and its payload, it will execute the registered command and update the history.
  * - It delegates the history operations (undo, redo, jump and set) to the history manager because they are not actions.
  * - It emits the editor change event after every action and history operation.
  * - This is the only part of the system allowed to mutate the document and history.
  */
-export class CommandCenter {
+export class CommandCenter<TArgsMap extends CommandArgsMap> {
   private document: EditorDocument;
   private readonly history: DocumentHistory;
   private readonly historyManager: HistoryManager;
   private readonly eventBus: EditorEventBus;
+  private readonly commands: CommandsFor<TArgsMap>;
 
-  constructor({ document, history, eventBus }: CommandCenterConfig) {
+  constructor({
+    document,
+    history,
+    eventBus,
+    commands,
+  }: CommandCenterConfig<TArgsMap>) {
     this.document = document;
     this.eventBus = eventBus;
     this.history = history;
+    this.commands = commands;
     this.historyManager = new HistoryManager({ document, history, eventBus });
   }
 
+  /**
+   * Execute a command to mutate the editor.
+
+   * Throws an `UnknownCommandError` if no command is registered for the type.
+   */
+  public execute<TType extends keyof TArgsMap & string>(
+    type: TType,
+    ...args: TArgsMap[TType]
+  ): void {
+    const command = this.getCommand(type);
+    const event = command({ payload: args[0], document: this.document });
+
+    this.commit(type, event);
+  }
+
+  private getCommand<TType extends keyof TArgsMap & string>(
+    type: TType,
+  ): CommandsFor<TArgsMap>[TType] {
+    if (!Object.hasOwn(this.commands, type)) {
+      throw new UnknownCommandError(type);
+    }
+
+    return this.commands[type];
+  }
+
+  // TODO: Remove together with the action creators once every caller uses `execute`.
   public processAction(action: EditorAction) {
-    const event = executeCommand({
+    const event = executeAction({
       type: action.type,
       payload: action.payload,
       document: this.document,
     });
 
-    this.recordHistory(action);
+    this.commit(action.type, event);
+  }
+
+  private commit(type: string, event: CommandEvent) {
+    this.recordHistory(event);
     this.eventBus.emit(event.type, event);
-    this.emitChangeEvent(action.type);
+    this.emitChangeEvent(type);
   }
 
   public undo(): void {
@@ -67,9 +110,10 @@ export class CommandCenter {
     this.emitChangeEvent("history:set");
   }
 
-  private recordHistory(action: EditorAction) {
+  // TODO: Maybe put in the history manager.
+  private recordHistory(event: CommandEvent) {
     const shouldClearHistory =
-      action.type === "document:swap" && action.payload.clearHistory;
+      event.type === "document:swap" && event.historyCleared;
 
     if (shouldClearHistory) {
       this.historyManager.clear();
@@ -78,7 +122,7 @@ export class CommandCenter {
     this.historyManager.record();
   }
 
-  private emitChangeEvent(trigger: ChangeTrigger) {
+  private emitChangeEvent(trigger: string) {
     this.eventBus.emit(
       "editor:change",
       createEditorChangeEvent({

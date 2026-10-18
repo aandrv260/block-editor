@@ -4,12 +4,19 @@ import type { EditorAction } from "@/actions/actions.models";
 import type { DocumentRoot } from "@/document/DocumentRoot/DocumentRoot";
 import { EditorDocument } from "@/document/EditorDocument";
 import type {
-  EditorEventBus,
   EditorEventHandler,
   EditorEventsMap,
   EditorEventType,
 } from "@/events/editor-event-bus/editorEvent.models";
 import { EventBus } from "@/events/event-bus/EventBus";
+import type { CommandsFor } from "@/commands/executors/commandExecutors.models";
+import { DEFAULT_COMMANDS } from "@/commands/executors/defaultCommands";
+import type {
+  CommandType,
+  CustomCommandsFor,
+  DefaultEditorSchema,
+  EditorSchema,
+} from "./editor-schema.models";
 import type { IEditor } from "./IEditor";
 import type { Block, DocumentNode } from "@/blocks/models/block.models";
 import type { ConstructableDocumentElement } from "@/document/models/document.models";
@@ -23,7 +30,7 @@ interface SwapDocumentConfig {
   clearHistory?: boolean;
 }
 
-interface EditorConfig {
+interface EditorConfig<TSchema extends EditorSchema> {
   /**
    * The initial document to use for the editor. The editor can construct a document out of a `JSON` string, a `DocumentRoot` or `EditorDocument`.
    *
@@ -37,17 +44,28 @@ interface EditorConfig {
    * The maximum number of history records allowed for the time being is 150.
    */
   historyLimit?: number;
+
+  /**
+   * Add custom commands to the editor.
+   */
+  commands?: CustomCommandsFor<TSchema>;
 }
 
 // TODO: Move docs to IEditor interface. Also, define a more clear contract and use cases for the cleanup method or remove it.
-export class Editor implements IEditor {
+export class Editor<
+  TSchema extends EditorSchema = DefaultEditorSchema,
+> implements IEditor<TSchema> {
   private document: EditorDocument;
   private readonly history: DocumentHistory;
-  private readonly eventBus: EditorEventBus;
-  private readonly commandCenter: CommandCenter;
+  private readonly eventBus: EventBus<EditorEventsMap<TSchema>>;
+  private readonly commandCenter: CommandCenter<TSchema["commands"]>;
   public readonly ROOT_ID: string;
 
-  constructor({ initialDocument, historyLimit }: EditorConfig = {}) {
+  constructor({
+    initialDocument,
+    historyLimit,
+    commands,
+  }: EditorConfig<TSchema> = {}) {
     this.document = EditorDocument.from(initialDocument);
     this.ROOT_ID = this.document.ROOT_ID;
     this.eventBus = new EventBus();
@@ -61,6 +79,9 @@ export class Editor implements IEditor {
       eventBus: this.eventBus,
       history: this.history,
       document: this.document,
+      commands: { ...DEFAULT_COMMANDS, ...commands } as CommandsFor<
+        TSchema["commands"]
+      >,
     });
   }
 
@@ -84,6 +105,14 @@ export class Editor implements IEditor {
     return this.history.getCurrentPosition();
   }
 
+  public execute<TType extends CommandType<TSchema>>(
+    type: TType,
+    ...args: TSchema["commands"][TType]
+  ): void {
+    this.commandCenter.execute(type, ...args);
+  }
+
+  // TODO: Remove together with the action creators once every caller uses `execute`.
   public dispatchAction(action: EditorAction): void {
     this.commandCenter.processAction(action);
   }
@@ -133,9 +162,9 @@ export class Editor implements IEditor {
     this.eventBus.cleanup();
   }
 
-  public on<TEvent extends EditorEventType>(
+  public on<TEvent extends EditorEventType<TSchema>>(
     event: TEvent,
-  ): IEventStream<EditorEventsMap[TEvent]> {
+  ): IEventStream<EditorEventsMap<TSchema>[TEvent]> {
     return new EventStream(handler => this.eventBus.on(event, handler));
   }
 
@@ -144,9 +173,9 @@ export class Editor implements IEditor {
    *
    * Use in cases where you know you won't have to filter or map the event payload and just want to directly react to it.
    */
-  public subscribe<T extends EditorEventType>(
+  public subscribe<T extends EditorEventType<TSchema>>(
     event: T,
-    handler: EditorEventHandler<T>,
+    handler: EditorEventHandler<TSchema, T>,
   ): VoidFunction {
     const unsubscribe = this.eventBus.on(event, handler);
     return unsubscribe;
@@ -157,9 +186,9 @@ export class Editor implements IEditor {
    *
    * Use in cases where you want to unsubscribe from an event that you subscribed to directly with subscribe() or through an event stream.
    */
-  public unsubscribe<T extends EditorEventType>(
+  public unsubscribe<T extends EditorEventType<TSchema>>(
     event: T,
-    handler: EditorEventHandler<T>,
+    handler: EditorEventHandler<TSchema, T>,
   ): void {
     this.eventBus.off(event, handler);
   }

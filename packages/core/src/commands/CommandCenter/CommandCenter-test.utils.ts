@@ -10,6 +10,8 @@ import {
 } from "../executors/utils/commandExecutors-test.utils";
 import { CommandCenter } from "./CommandCenter";
 import { DocumentHistory } from "../../history/DocumentHistory";
+import { DEFAULT_COMMANDS } from "../executors/defaultCommands";
+import type { DefaultEditorSchema } from "../../editor/editor-schema.models";
 
 export const DEFAULT_COMMAND_CENTER_DOCUMENT_BLOCKS: DocumentBlocksInitialization[] =
   [
@@ -33,10 +35,11 @@ export const createCommandCenter = (
     limit: historyLimit,
   });
 
-  const commandCenter = new CommandCenter({
+  const commandCenter = new CommandCenter<DefaultEditorSchema["commands"]>({
     document,
     eventBus,
     history,
+    commands: DEFAULT_COMMANDS,
   });
 
   const assertInitialDefaultDocumentStructure = () => {
