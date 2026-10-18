@@ -61,6 +61,7 @@ describe("blockCanHaveChildren()", () => {
       type: "toggle-list",
       data: { open: true },
       parentId: "root",
+      children: [],
     };
 
     // Assert

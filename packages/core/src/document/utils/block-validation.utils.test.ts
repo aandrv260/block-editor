@@ -827,6 +827,201 @@ describe("validateBlockVariant()", () => {
       expect(validateBlockVariant(typedBlock)).toBeUndefined();
     },
   );
+
+  test.each([
+    [
+      "has-2-fields-in-data",
+      { id: "1", type: "quote", parentId: "root", data: { text: "text", level: 1 } },
+    ],
+
+    ["has-no-data-field", { id: "1", type: "quote", parentId: "root" }],
+
+    [
+      "has-non-string-text",
+      { id: "1", type: "quote", parentId: "root", data: { text: 1 } },
+    ],
+
+    [
+      "has-children",
+      {
+        id: "1",
+        type: "quote",
+        parentId: "root",
+        data: { text: "text" },
+        children: [],
+      },
+    ],
+
+    [
+      "has-an-extra-field",
+      {
+        id: "1",
+        type: "quote",
+        parentId: "root",
+        data: { text: "text" },
+        extra: true,
+      },
+    ],
+  ])("throws an error if a quote block is invalid - %s", (_, block) => {
+    // Arrange
+    const typedBlock = block as Block;
+
+    const tryValidateBlockVariant = () => validateBlockVariant(typedBlock);
+
+    // Assert
+    assertEngineError(tryValidateBlockVariant, {
+      ExpectedErrorClass: InvalidBlockVariantError,
+      expectedCode: "DOCUMENT:INVALID_BLOCK_VARIANT",
+      expectedMessage: `Block type ${typedBlock.type} with ID ${typedBlock.id} has invalid properties.`,
+      expectedContext: { blockId: typedBlock.id, blockType: typedBlock.type },
+    });
+  });
+
+  test.each([
+    [{ id: "1", type: "quote", parentId: "root", data: { text: "text" } }],
+  ] satisfies [Block][])(
+    "does not throw an error and does not return anything if the quote validation passes",
+    block => {
+      // Arrange
+      const typedBlock = block as Block;
+
+      // Assert
+      expect(validateBlockVariant(typedBlock)).toBeUndefined();
+    },
+  );
+
+  test.each([
+    [
+      "has-2-fields-in-data",
+      {
+        id: "1",
+        type: "callout",
+        parentId: "root",
+        data: { text: "text", level: 1 },
+      },
+    ],
+
+    ["has-no-data-field", { id: "1", type: "callout", parentId: "root" }],
+
+    [
+      "has-non-string-text",
+      { id: "1", type: "callout", parentId: "root", data: { text: 1 } },
+    ],
+
+    [
+      "has-children",
+      {
+        id: "1",
+        type: "callout",
+        parentId: "root",
+        data: { text: "text" },
+        children: [],
+      },
+    ],
+
+    [
+      "has-an-extra-field",
+      {
+        id: "1",
+        type: "callout",
+        parentId: "root",
+        data: { text: "text" },
+        extra: true,
+      },
+    ],
+  ])("throws an error if a callout block is invalid - %s", (_, block) => {
+    // Arrange
+    const typedBlock = block as Block;
+
+    const tryValidateBlockVariant = () => validateBlockVariant(typedBlock);
+
+    // Assert
+    assertEngineError(tryValidateBlockVariant, {
+      ExpectedErrorClass: InvalidBlockVariantError,
+      expectedCode: "DOCUMENT:INVALID_BLOCK_VARIANT",
+      expectedMessage: `Block type ${typedBlock.type} with ID ${typedBlock.id} has invalid properties.`,
+      expectedContext: { blockId: typedBlock.id, blockType: typedBlock.type },
+    });
+  });
+
+  test.each([
+    [{ id: "1", type: "callout", parentId: "root", data: { text: "text" } }],
+  ] satisfies [Block][])(
+    "does not throw an error and does not return anything if the callout validation passes",
+    block => {
+      // Arrange
+      const typedBlock = block as Block;
+
+      // Assert
+      expect(validateBlockVariant(typedBlock)).toBeUndefined();
+    },
+  );
+
+  test.each([
+    [
+      "has-a-field-in-data",
+      {
+        id: "1",
+        type: "bullet-list",
+        parentId: "root",
+        data: { text: "text" },
+        children: [],
+      },
+    ],
+
+    [
+      "has-no-data-field",
+      { id: "1", type: "bullet-list", parentId: "root", children: [] },
+    ],
+
+    [
+      "has-no-children",
+      { id: "1", type: "bullet-list", parentId: "root", data: {} },
+    ],
+
+    [
+      "has-non-array-children",
+      { id: "1", type: "bullet-list", parentId: "root", data: {}, children: {} },
+    ],
+
+    [
+      "has-an-extra-field",
+      {
+        id: "1",
+        type: "bullet-list",
+        parentId: "root",
+        data: {},
+        children: [],
+        extra: true,
+      },
+    ],
+  ])("throws an error if a bullet-list block is invalid - %s", (_, block) => {
+    // Arrange
+    const typedBlock = block as Block;
+
+    const tryValidateBlockVariant = () => validateBlockVariant(typedBlock);
+
+    // Assert
+    assertEngineError(tryValidateBlockVariant, {
+      ExpectedErrorClass: InvalidBlockVariantError,
+      expectedCode: "DOCUMENT:INVALID_BLOCK_VARIANT",
+      expectedMessage: `Block type ${typedBlock.type} with ID ${typedBlock.id} has invalid properties.`,
+      expectedContext: { blockId: typedBlock.id, blockType: typedBlock.type },
+    });
+  });
+
+  test.each([
+    [{ id: "1", type: "bullet-list", parentId: "root", data: {}, children: [] }],
+  ] satisfies [Block][])(
+    "does not throw an error and does not return anything if the bullet-list validation passes",
+    block => {
+      // Arrange
+      const typedBlock = block as Block;
+
+      // Assert
+      expect(validateBlockVariant(typedBlock)).toBeUndefined();
+    },
+  );
 });
 
 describe("validateBlockStructure()", () => {

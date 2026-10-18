@@ -2,7 +2,7 @@ import { ALL_BLOCK_TYPES } from "../../blocks/models/block-type.models";
 import type { BlockType } from "../../blocks/models/block-type.models";
 import type { Block, DocumentNode } from "../../blocks/models/block.models";
 import { getChildren } from "./block-children.utils";
-import { BLOCK_VALIDATION_MAPPING } from "../../blocks/validations/block.validations";
+import { BLOCK_SCHEMAS } from "../../blocks/models/block.schemas";
 import { BlockIsNotAnObjectError, ParentBlockNotFoundError } from "../errors/common";
 import {
   InvalidBlockIDError,
@@ -14,6 +14,7 @@ import {
 } from "../errors/factories";
 import { DEFAULT_DOCUMENT_ROOT_ID } from "../DocumentRoot/DocumentRoot";
 import { isObject } from "@/common/object.utils";
+import * as v from "valibot";
 
 export const isBlockTypeValid = (blockType: unknown): blockType is BlockType =>
   ALL_BLOCK_TYPES.includes(blockType as BlockType);
@@ -121,9 +122,7 @@ export const validateBlockVariant = (block: Block) => {
     throw new InvalidBlockTypeError(blockId, blockType);
   }
 
-  const validateBlockVariant = BLOCK_VALIDATION_MAPPING[blockType];
-
-  if (!validateBlockVariant(block)) {
+  if (!v.is(BLOCK_SCHEMAS[blockType], block)) {
     throw new InvalidBlockVariantError(blockId, blockType);
   }
 };

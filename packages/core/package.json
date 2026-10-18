@@ -29,5 +29,8 @@
     "@vitest/coverage-v8": "^4.0.16",
     "tsc-alias": "^1.8.10",
     "vitest": "^4.0.16"
+  },
+  "dependencies": {
+    "valibot": "^1.5.0"
   }
 }

@@ -1,18 +1,16 @@
 import type { Block, DocumentNode } from "../../blocks/models/block.models";
-import { BLOCK_VARIANT_HAS_CHILDREN_MAPPING } from "../../blocks/models/variants/block-variant.models";
+import { blockTypeCanHaveChildren } from "../../blocks/models/block-type.models";
 import { DocumentRoot } from "../DocumentRoot/DocumentRoot";
 import type { BlockPayload } from "../models/document-payload.models";
 
 export const blockCanHaveChildren = (
   block: Block | DocumentRoot,
 ): block is Block & { children: Block[] } => {
-  return (
-    block instanceof DocumentRoot || BLOCK_VARIANT_HAS_CHILDREN_MAPPING[block.type]
-  );
+  return block instanceof DocumentRoot || blockTypeCanHaveChildren(block.type);
 };
 
 export const blockPayloadCanHaveChildren = (block: BlockPayload): boolean => {
-  return BLOCK_VARIANT_HAS_CHILDREN_MAPPING[block.type];
+  return blockTypeCanHaveChildren(block.type);
 };
 
 export const getUpdatedBlockParentChildren = (

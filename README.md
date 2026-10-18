@@ -6,7 +6,7 @@ Designed as a pure data engine with a strict separation between state, commands,
 
 Built to run in any JavaScript environment no matter if it's a web browser, server components, a desktop application, a mobile application or web workers.
 
-The engine has zero external dependencies by design.
+The engine has a single runtime dependency by design: [Valibot](https://valibot.dev), a tiny, tree-shakable schema library that validates blocks.
 
 ## Why this engine exists
 
@@ -121,9 +121,9 @@ The UI just takes the editor and based on its state, it constructs the DOM tree.
 
 **Note:** The UI implementation is intentionally minimal and incomplete. Its purpose is to demonstrate architectural boundaries and adapter design, not to serve as a polished editor UI.
 
-### Framework-agnostic core (zero dependencies, runs anywhere)
+### Framework-agnostic core (one tiny dependency, runs anywhere)
 
-Even though only an adapter for React is provided out of the box, you can use the core with any framework you want since the core has exactly 0 dependencies and is flexible in any environment.
+Even though only an adapter for React is provided out of the box, you can use the core with any framework you want since the core depends only on Valibot, which runs in any JavaScript environment.
 
 You can override the rendering and logic for all or only specific blocks.
 

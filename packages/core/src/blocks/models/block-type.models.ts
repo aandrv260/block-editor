@@ -1,12 +1,9 @@
-import type { UnwrapArray } from "@/common/types/array.types";
+import { getObjectKeys } from "@/common/object.utils";
+import { BLOCK_SCHEMAS, type BlockSchemas } from "./block.schemas";
 
-export const ALL_BLOCK_TYPES = [
-  "heading",
-  "text",
-  "toggle-list",
-  "quote",
-  "callout",
-  "bullet-list",
-] as const satisfies string[];
+export type BlockType = keyof BlockSchemas;
 
-export type BlockType = UnwrapArray<typeof ALL_BLOCK_TYPES>;
+export const ALL_BLOCK_TYPES = Object.freeze(getObjectKeys(BLOCK_SCHEMAS));
+
+export const blockTypeCanHaveChildren = (type: BlockType): boolean =>
+  "children" in BLOCK_SCHEMAS[type].entries;
