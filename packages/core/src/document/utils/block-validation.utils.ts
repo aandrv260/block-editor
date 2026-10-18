@@ -1,9 +1,20 @@
 import * as v from "valibot";
-import type { DocumentNode } from "../../blocks/models/block.models";
+import type { Block, DocumentNode } from "../../blocks/models/block.models";
+import { BlockSchema } from "../../blocks/models/block.schemas";
 import { getChildren } from "./block-children.utils";
-import { ParentBlockNotFoundError } from "../errors/common";
+import {
+  InvalidBlockError,
+  ParentBlockNotFoundError,
+  type DocumentIssue,
+} from "../errors/common";
 import { InvalidDocumentError } from "../errors/factories";
 import { DocumentSchema } from "../models/document.schema";
+
+const toDocumentIssues = (issues: v.GenericIssue[]): DocumentIssue[] =>
+  issues.map(issue => ({
+    path: v.getDotPath(issue) ?? "",
+    message: issue.message,
+  }));
 
 export const validateDocumentStructure: (
   document: unknown,
@@ -11,12 +22,17 @@ export const validateDocumentStructure: (
   const result = v.safeParse(DocumentSchema, document);
 
   if (!result.success) {
-    throw new InvalidDocumentError(
-      result.issues.map(issue => ({
-        path: v.getDotPath(issue) ?? "",
-        message: issue.message,
-      })),
-    );
+    throw new InvalidDocumentError(toDocumentIssues(result.issues));
+  }
+};
+
+export const validateBlockStructure: (
+  block: unknown,
+) => asserts block is Block = block => {
+  const result = v.safeParse(BlockSchema, block);
+
+  if (!result.success) {
+    throw new InvalidBlockError(toDocumentIssues(result.issues));
   }
 };
 

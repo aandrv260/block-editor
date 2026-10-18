@@ -2,12 +2,11 @@ import { assertTreeIntegrity } from "../utils/document-test.utils";
 import { DocumentRoot } from "../DocumentRoot/DocumentRoot";
 import { EditorDocument } from "./EditorDocument";
 import { assertEngineError } from "../../errors/test-utils/error-test.utils";
-import { ParentBlockNotFoundError } from "../errors/common";
+import { ParentBlockNotFoundError, type DocumentIssue } from "../errors/common";
 import {
   DuplicateOrCircularBlockError,
   InvalidDocumentError,
   InvalidDocumentJSONError,
-  type DocumentIssue,
 } from "../errors/factories";
 
 const assertInvalidDocument = (tryParse: () => unknown, issues: DocumentIssue[]) =>

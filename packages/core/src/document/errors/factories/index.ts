@@ -1,3 +1,3 @@
 export { DuplicateOrCircularBlockError } from "./DuplicateOrCircularBlockError";
-export { InvalidDocumentError, type DocumentIssue } from "./InvalidDocumentError";
+export { InvalidDocumentError } from "./InvalidDocumentError";
 export { InvalidDocumentJSONError } from "./InvalidDocumentJSONError";

@@ -25,6 +25,7 @@ import {
   BlockAlreadyExistsError,
   BlockCannotContainItselfError,
   BlockCannotHaveChildrenError,
+  InvalidBlockError,
 } from "../errors/common";
 
 describe("appendChild()", () => {
@@ -667,5 +668,73 @@ describe("appendChild()", () => {
     });
 
     assertTreeIntegrity(document);
+  });
+
+  it("throws an error and leaves the document unchanged if the new block is invalid", () => {
+    // Arrange
+    const document = new EditorDocument();
+    const data = { text: "some_text", color: "red" };
+    const initialDocumentJSON = document.toJSON();
+
+    const append = () =>
+      document.appendChild("root", { id: "node1", type: "text", data });
+
+    // Assert
+    assertEngineError(append, {
+      ExpectedErrorClass: InvalidBlockError,
+      expectedCode: "DOCUMENT:INVALID_BLOCK",
+      expectedMessage:
+        'Invalid block. data.color: Invalid key: Expected never but received "color"',
+      expectedContext: {
+        issues: [
+          {
+            path: "data.color",
+            message: 'Invalid key: Expected never but received "color"',
+          },
+        ],
+      },
+    });
+
+    expect(document.toJSON()).toBe(initialDocumentJSON);
+    expect(document.getBlock("node1")).toBeNull();
+  });
+
+  it("throws an error and leaves the document unchanged if a nested child of the new block is invalid", () => {
+    // Arrange
+    const document = new EditorDocument();
+    const data = { text: "some_text", color: "red" };
+    const initialDocumentJSON = document.toJSON();
+
+    const append = () =>
+      document.appendChild("root", {
+        ...TOGGLE_LIST1_BLOCK,
+        children: [
+          {
+            ...TOGGLE_LIST2_BLOCK,
+            children: [{ id: "node1", type: "text", data }],
+          },
+        ],
+      });
+
+    // Assert
+    assertEngineError(append, {
+      ExpectedErrorClass: InvalidBlockError,
+      expectedCode: "DOCUMENT:INVALID_BLOCK",
+      expectedMessage:
+        'Invalid block. children.0.children.0.data.color: Invalid key: Expected never but received "color"',
+      expectedContext: {
+        issues: [
+          {
+            path: "children.0.children.0.data.color",
+            message: 'Invalid key: Expected never but received "color"',
+          },
+        ],
+      },
+    });
+
+    expect(document.toJSON()).toBe(initialDocumentJSON);
+    expect(document.getBlock(TOGGLE_LIST1_BLOCK.id)).toBeNull();
+    expect(document.getBlock(TOGGLE_LIST2_BLOCK.id)).toBeNull();
+    expect(document.getBlock("node1")).toBeNull();
   });
 });

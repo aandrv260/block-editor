@@ -19,6 +19,7 @@ import {
   assertTreeIntegrity,
 } from "../utils/document-test.utils";
 import { assertEngineError } from "../../errors/test-utils/error-test.utils";
+import { InvalidBlockError } from "../errors/common";
 import { DocumentErrorCode } from "../errors/DocumentErrorCode";
 import {
   BlockToUpdateHasNoParentError,
@@ -1906,5 +1907,44 @@ describe("updateBlock()", () => {
     expect(sampleBlock2?.data).not.toBe(
       payload.children?.at(0)?.children?.at(1)?.data,
     );
+  });
+
+  it("throws an error and leaves the document unchanged if the new block is invalid", () => {
+    // Arrange
+    const document = new EditorDocument();
+    const data = { text: "some_text", color: "red" };
+
+    document.appendChild("root", SAMPLE_BLOCK1);
+
+    const documentJSONBeforeUpdate = document.toJSON();
+
+    const update = () =>
+      document.updateBlock(SAMPLE_BLOCK1.id, {
+        id: SAMPLE_BLOCK1.id,
+        type: "text",
+        data,
+      });
+
+    // Assert
+    assertEngineError(update, {
+      ExpectedErrorClass: InvalidBlockError,
+      expectedCode: "DOCUMENT:INVALID_BLOCK",
+      expectedMessage:
+        'Invalid block. data.color: Invalid key: Expected never but received "color"',
+      expectedContext: {
+        issues: [
+          {
+            path: "data.color",
+            message: 'Invalid key: Expected never but received "color"',
+          },
+        ],
+      },
+    });
+
+    expect(document.toJSON()).toBe(documentJSONBeforeUpdate);
+    expect(document.getBlock(SAMPLE_BLOCK1.id)).toEqual({
+      ...SAMPLE_BLOCK1,
+      parentId: "root",
+    });
   });
 });
