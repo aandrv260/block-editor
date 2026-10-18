@@ -21,6 +21,7 @@ import {
   BlockAlreadyExistsError,
   BlockCannotContainItselfError,
   BlockCannotHaveChildrenError,
+  InvalidBlockError,
   TargetBlockNotFoundError,
 } from "../errors/common";
 import {
@@ -597,5 +598,37 @@ describe("insertBefore()", () => {
         },
       ],
     });
+  });
+
+  it("throws an error and leaves the document unchanged if the new block is invalid", () => {
+    // Arrange
+    const document = new EditorDocument();
+    const data = { text: "some_text", color: "red" };
+
+    document.appendChild("root", SAMPLE_BLOCK1);
+
+    const documentJSONBeforeInsert = document.toJSON();
+
+    const insert = () =>
+      document.insertBefore(SAMPLE_BLOCK1.id, { id: "node2", type: "text", data });
+
+    // Assert
+    assertEngineError(insert, {
+      ExpectedErrorClass: InvalidBlockError,
+      expectedCode: "DOCUMENT:INVALID_BLOCK",
+      expectedMessage:
+        'Invalid block. data.color: Invalid key: Expected never but received "color"',
+      expectedContext: {
+        issues: [
+          {
+            path: "data.color",
+            message: 'Invalid key: Expected never but received "color"',
+          },
+        ],
+      },
+    });
+
+    expect(document.toJSON()).toBe(documentJSONBeforeInsert);
+    expect(document.getBlock("node2")).toBeNull();
   });
 });

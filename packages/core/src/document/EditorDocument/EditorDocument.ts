@@ -14,6 +14,7 @@ import { blockCanHaveChildren, getChildren } from "../utils/block-children.utils
 import { blockPayloadToDocumentBlock } from "../utils/block-mapping.utils";
 import {
   validateBlockParentLink,
+  validateBlockStructure,
   validateDocumentStructure,
 } from "../utils/block-validation.utils";
 import { getUpdatedBlockParentChildren } from "../utils/block-children.utils";
@@ -149,6 +150,7 @@ export class EditorDocument implements DocumentTree {
 
     const newBlockToAppend = blockPayloadToDocumentBlock(newBlock, parentId);
 
+    validateBlockStructure(newBlockToAppend);
     this.validateChildrenIds(newBlockToAppend);
 
     if (this.isDocumentRoot(parentId)) {
@@ -258,6 +260,7 @@ export class EditorDocument implements DocumentTree {
       parentOfTarget.id,
     );
 
+    validateBlockStructure(newBlockToInsert);
     this.validateChildrenIds(newBlockToInsert);
     this.updateChildren(newBlockToInsert);
 
@@ -363,6 +366,8 @@ export class EditorDocument implements DocumentTree {
       { ...payload, children: newChildren },
       parentOfBlockToRemove.id,
     );
+
+    validateBlockStructure(newBlock);
 
     this.handleUpdate({
       childrenStrategy,

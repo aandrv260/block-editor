@@ -6,6 +6,7 @@ import {
 } from "@/document/utils/document-test.utils";
 import { assertEngineError } from "@/errors/test-utils/error-test.utils";
 import { UnknownCommandError } from "@/commands/errors/unknown-command/UnknownCommandError";
+import { InvalidBlockError } from "@/document/errors/common";
 import type { DefaultCommands } from "@/commands/executors/defaultCommands";
 import type { CommandContext } from "@/commands/executors/commandExecutors.models";
 import { createEvent } from "@/events/editor-event-bus/createEvent";
@@ -116,6 +117,69 @@ describe("Editor execute", () => {
 
     expect(onEditorChange).not.toHaveBeenCalled();
     expect(editor.getHistory()).toStrictEqual([INITIAL_DOCUMENT_JSON]);
+  });
+
+  it("throws an InvalidBlockError and changes nothing when inserting an invalid block", () => {
+    // Arrange
+    const { editor, INITIAL_DOCUMENT_JSON } = createEditor();
+    const data = { text: "some_text", color: "red" };
+    const onInsert = vi.fn();
+    const onEditorChange = vi.fn();
+
+    editor.subscribe("block:insert", onInsert);
+    editor.subscribe("editor:change", onEditorChange);
+
+    // Act
+    const insert = () =>
+      editor.execute("insertBlock", {
+        targetId: editor.ROOT_ID,
+        strategy: "append",
+        newBlock: { id: "node2", type: "text", data },
+      });
+
+    // Assert
+    expect(insert).toThrowError(InvalidBlockError);
+    expect(onInsert).not.toHaveBeenCalled();
+    expect(onEditorChange).not.toHaveBeenCalled();
+    expect(editor.getDocumentJSON()).toBe(INITIAL_DOCUMENT_JSON);
+    expect(editor.getHistory()).toStrictEqual([INITIAL_DOCUMENT_JSON]);
+  });
+
+  it("throws an InvalidBlockError and changes nothing when updating a block to an invalid one", () => {
+    // Arrange
+    const { editor, INITIAL_DOCUMENT_JSON } = createEditor();
+    const data = { text: "some_text", color: "red" };
+    const onUpdate = vi.fn();
+    const onEditorChange = vi.fn();
+
+    editor.execute("insertBlock", {
+      targetId: editor.ROOT_ID,
+      strategy: "append",
+      newBlock: SAMPLE_BLOCK1,
+    });
+
+    const documentJSONBeforeUpdate = editor.getDocumentJSON();
+
+    editor.subscribe("block:update", onUpdate);
+    editor.subscribe("editor:change", onEditorChange);
+
+    // Act
+    const update = () =>
+      editor.execute("updateBlock", {
+        blockId: SAMPLE_BLOCK1.id,
+        newBlock: { id: SAMPLE_BLOCK1.id, type: "text", data },
+        childrenStrategy: "drop",
+      });
+
+    // Assert
+    expect(update).toThrowError(InvalidBlockError);
+    expect(onUpdate).not.toHaveBeenCalled();
+    expect(onEditorChange).not.toHaveBeenCalled();
+    expect(editor.getDocumentJSON()).toBe(documentJSONBeforeUpdate);
+    expect(editor.getHistory()).toStrictEqual([
+      INITIAL_DOCUMENT_JSON,
+      documentJSONBeforeUpdate,
+    ]);
   });
 
   it("does not treat inherited object keys as registered commands", () => {
