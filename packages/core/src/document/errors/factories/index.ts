@@ -1,8 +1,3 @@
 export { DuplicateOrCircularBlockError } from "./DuplicateOrCircularBlockError";
-export { InvalidBlockIDError } from "./InvalidBlockIDError";
-export { InvalidBlockParentIDError } from "./InvalidBlockParentIDError";
-export { InvalidBlockTypeError } from "./InvalidBlockTypeError";
-export { InvalidBlockVariantError } from "./InvalidBlockVariantError";
+export { InvalidDocumentError, type DocumentIssue } from "./InvalidDocumentError";
 export { InvalidDocumentJSONError } from "./InvalidDocumentJSONError";
-export { InvalidDocumentRootIDError } from "./InvalidDocumentRootIDError";
-export { InvalidDocumentStructureError } from "./InvalidDocumentStructureError";

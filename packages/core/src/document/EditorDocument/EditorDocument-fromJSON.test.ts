@@ -2,17 +2,21 @@ import { assertTreeIntegrity } from "../utils/document-test.utils";
 import { DocumentRoot } from "../DocumentRoot/DocumentRoot";
 import { EditorDocument } from "./EditorDocument";
 import { assertEngineError } from "../../errors/test-utils/error-test.utils";
-import { BlockIsNotAnObjectError, ParentBlockNotFoundError } from "../errors/common";
+import { ParentBlockNotFoundError } from "../errors/common";
 import {
   DuplicateOrCircularBlockError,
-  InvalidBlockIDError,
-  InvalidBlockParentIDError,
-  InvalidBlockTypeError,
-  InvalidBlockVariantError,
+  InvalidDocumentError,
   InvalidDocumentJSONError,
-  InvalidDocumentRootIDError,
-  InvalidDocumentStructureError,
+  type DocumentIssue,
 } from "../errors/factories";
+
+const assertInvalidDocument = (tryParse: () => unknown, issues: DocumentIssue[]) =>
+  assertEngineError(tryParse, {
+    ExpectedErrorClass: InvalidDocumentError,
+    expectedCode: "DOCUMENT:INVALID_DOCUMENT",
+    expectedMessage: `Invalid document. ${issues.map(({ path, message }) => `${path}: ${message}`).join("; ")}`,
+    expectedContext: { issues },
+  });
 
 describe("EditorDocument.fromJSON()", () => {
   test.each([
@@ -36,12 +40,9 @@ describe("EditorDocument.fromJSON()", () => {
     // Assert
     const tryParse = () => EditorDocument.fromJSON('{ "children": [] }');
 
-    assertEngineError(tryParse, {
-      ExpectedErrorClass: InvalidDocumentStructureError,
-      expectedCode: "DOCUMENT:INVALID_DOCUMENT_STRUCTURE",
-      expectedMessage:
-        "Invalid document structure — root block missing or incorrect.",
-    });
+    assertInvalidDocument(tryParse, [
+      { path: "id", message: 'Invalid key: Expected "id" but received undefined' },
+    ]);
   });
 
   it("throws an error if the root's ID is not equal to the default ROOT ID", () => {
@@ -49,24 +50,18 @@ describe("EditorDocument.fromJSON()", () => {
       EditorDocument.fromJSON('{ "id": "roog", "children": [] }');
 
     // Assert
-    assertEngineError(tryParse, {
-      ExpectedErrorClass: InvalidDocumentRootIDError,
-      expectedCode: "DOCUMENT:INVALID_DOCUMENT_ROOT_ID",
-      expectedMessage: "Invalid root ID detected: roog",
-      expectedContext: { rootId: "roog" },
-    });
+    assertInvalidDocument(tryParse, [
+      { path: "id", message: 'Invalid type: Expected "root" but received "roog"' },
+    ]);
   });
 
   it("throws an error if the root's ID is not a string", () => {
     const tryParse = () => EditorDocument.fromJSON('{ "id": 123, "children": [] }');
 
     // Assert
-    assertEngineError(tryParse, {
-      ExpectedErrorClass: InvalidDocumentRootIDError,
-      expectedCode: "DOCUMENT:INVALID_DOCUMENT_ROOT_ID",
-      expectedMessage: "Invalid root ID detected: 123",
-      expectedContext: { rootId: 123 },
-    });
+    assertInvalidDocument(tryParse, [
+      { path: "id", message: 'Invalid type: Expected "root" but received 123' },
+    ]);
   });
 
   it("throws an error if the root misses children property", () => {
@@ -74,12 +69,16 @@ describe("EditorDocument.fromJSON()", () => {
     const tryParse = () => EditorDocument.fromJSON('{ "id": "some_id" }');
 
     // Assert
-    assertEngineError(tryParse, {
-      ExpectedErrorClass: InvalidDocumentStructureError,
-      expectedCode: "DOCUMENT:INVALID_DOCUMENT_STRUCTURE",
-      expectedMessage:
-        "Invalid document structure — root block missing or incorrect.",
-    });
+    assertInvalidDocument(tryParse, [
+      {
+        path: "id",
+        message: 'Invalid type: Expected "root" but received "some_id"',
+      },
+      {
+        path: "children",
+        message: 'Invalid key: Expected "children" but received undefined',
+      },
+    ]);
   });
 
   it("throws an error if at least one of the root's descendants doesn't have a parentID link", () => {
@@ -111,13 +110,12 @@ describe("EditorDocument.fromJSON()", () => {
     const tryParse = () => EditorDocument.fromJSON(json);
 
     // Assert
-    assertEngineError(tryParse, {
-      ExpectedErrorClass: InvalidBlockParentIDError,
-      expectedCode: "DOCUMENT:INVALID_BLOCK_PARENT_ID",
-      expectedMessage:
-        "Missing or invalid parentId for block ID: 222-root. Parent ID must always be a string!",
-      expectedContext: { parentId: undefined, blockId: "222-root" },
-    });
+    assertInvalidDocument(tryParse, [
+      {
+        path: "children.1.parentId",
+        message: 'Invalid key: Expected "parentId" but received undefined',
+      },
+    ]);
   });
 
   it("throws an error if there are duplicate blocks", () => {
@@ -214,8 +212,8 @@ describe("EditorDocument.fromJSON()", () => {
             {
               "id": "111-root",
               "parentId": "root13",
-              "type": "paragraph",
-              "children": []
+              "type": "text",
+              "data": { "text": "Hello" }
             }
           ]
         }
@@ -296,12 +294,13 @@ describe("EditorDocument.fromJSON()", () => {
     const tryParse = () => EditorDocument.fromJSON(json);
 
     // Assert
-    assertEngineError(tryParse, {
-      ExpectedErrorClass: InvalidBlockTypeError,
-      expectedCode: "DOCUMENT:INVALID_BLOCK_TYPE",
-      expectedMessage: "Invalid block type undefined for block ID: 111-root",
-      expectedContext: { blockId: "111-root", blockType: undefined },
-    });
+    assertInvalidDocument(tryParse, [
+      {
+        path: "children.0.type",
+        message:
+          'Invalid type: Expected ("heading" | "text" | "toggle-list" | "quote" | "callout" | "bullet-list") but received undefined',
+      },
+    ]);
   });
 
   it("throws an error if the block doesn't have a valid type", () => {
@@ -323,12 +322,13 @@ describe("EditorDocument.fromJSON()", () => {
     // Assert
     const tryParse = () => EditorDocument.fromJSON(json);
 
-    assertEngineError(tryParse, {
-      ExpectedErrorClass: InvalidBlockTypeError,
-      expectedCode: "DOCUMENT:INVALID_BLOCK_TYPE",
-      expectedMessage: "Invalid block type some_invalid_type for block ID: 111-root",
-      expectedContext: { blockId: "111-root", blockType: "some_invalid_type" },
-    });
+    assertInvalidDocument(tryParse, [
+      {
+        path: "children.0.type",
+        message:
+          'Invalid type: Expected ("heading" | "text" | "toggle-list" | "quote" | "callout" | "bullet-list") but received "some_invalid_type"',
+      },
+    ]);
   });
 
   it("throws an error if at least one of the document blocks does not have an ID", () => {
@@ -367,13 +367,12 @@ describe("EditorDocument.fromJSON()", () => {
     const tryParse = () => EditorDocument.fromJSON(json);
 
     // Assert
-    assertEngineError(tryParse, {
-      ExpectedErrorClass: InvalidBlockIDError,
-      expectedCode: "DOCUMENT:INVALID_BLOCK_ID",
-      expectedMessage:
-        "Missing or invalid block ID for block with parent ID: toggle-list2. ID must always be a string!",
-      expectedContext: { parentId: "toggle-list2", blockId: undefined },
-    });
+    assertInvalidDocument(tryParse, [
+      {
+        path: "children.0.children.0.children.0.id",
+        message: 'Invalid key: Expected "id" but received undefined',
+      },
+    ]);
   });
 
   it.todo(
@@ -407,13 +406,7 @@ describe("EditorDocument.fromJSON()", () => {
       // Assert
       const tryParse = () => EditorDocument.fromJSON(json);
 
-      assertEngineError(tryParse, {
-        ExpectedErrorClass: InvalidBlockVariantError,
-        expectedCode: "DOCUMENT:INVALID_BLOCK_VARIANT",
-        expectedMessage:
-          "Block type heading with ID heading1 has invalid properties.",
-        expectedContext: { blockId: "heading1", blockType: "heading" },
-      });
+      expect(tryParse).toThrow(InvalidDocumentError);
     },
   );
 
@@ -444,12 +437,7 @@ describe("EditorDocument.fromJSON()", () => {
       const tryParse = () => EditorDocument.fromJSON(json);
 
       // Assert
-      assertEngineError(tryParse, {
-        ExpectedErrorClass: InvalidBlockVariantError,
-        expectedCode: "DOCUMENT:INVALID_BLOCK_VARIANT",
-        expectedMessage: "Block type text with ID text1 has invalid properties.",
-        expectedContext: { blockId: "text1", blockType: "text" },
-      });
+      expect(tryParse).toThrow(InvalidDocumentError);
     },
   );
 
@@ -579,12 +567,12 @@ describe("EditorDocument.fromJSON()", () => {
       // Assert
       const tryParse = () => EditorDocument.fromJSON(json);
 
-      assertEngineError(tryParse, {
-        ExpectedErrorClass: BlockIsNotAnObjectError,
-        expectedCode: "DOCUMENT:BLOCK_IS_NOT_AN_OBJECT",
-        expectedMessage: `Block is not an object!`,
-        expectedContext: { block },
-      });
+      assertInvalidDocument(tryParse, [
+        {
+          path: "children.0",
+          message: `Invalid type: Expected Object but received ${block}`,
+        },
+      ]);
     },
   );
 
