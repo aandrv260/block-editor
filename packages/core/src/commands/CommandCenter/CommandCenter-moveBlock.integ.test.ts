@@ -1,3 +1,4 @@
+import { EditorDocument } from "../../document/EditorDocument";
 import { createCommandCenter } from "./CommandCenter-test.utils";
 import { moveBlock } from "../../actions/actions";
 import {
@@ -78,6 +79,7 @@ describe("CommandCenter move block", () => {
     ]);
 
     assertTreeIntegrity(document);
+    expect(EditorDocument.fromJSON(document.toJSON())).toStrictEqual(document);
   });
 
   it("executes correctly the move block command with `before` strategy based on the move block action input", () => {

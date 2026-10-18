@@ -1,3 +1,4 @@
+import { EditorDocument } from "../../document/EditorDocument";
 import { insertBlock, updateBlock } from "../../actions/actions";
 import {
   assertTreeIntegrity,
@@ -194,6 +195,7 @@ describe("CommandCenter update block", () => {
     expect(history.getSize()).toBe(2);
 
     assertTreeIntegrity(document);
+    expect(EditorDocument.fromJSON(document.toJSON())).toStrictEqual(document);
   });
 
   it("executes the update block command based on the update block action input when replacing the children", () => {
