@@ -4,8 +4,11 @@ import type { Block, DocumentNode } from "@/blocks/models/block.models";
 import type { DocumentRoot } from "@/document/DocumentRoot/DocumentRoot";
 import type {
   EditorEventHandler,
+  EditorEventsMap,
   EditorEventType,
 } from "@/events/editor-event-bus/editorEvent.models";
+import type { IEventStream } from "@/events/EventStream/IEventStream";
+import type { SwapDocumentPayload } from "@/commands/executors/SwapDocumentCommand/SwapDocumentCommand";
 import type {
   CommandType,
   DefaultEditorSchema,
@@ -13,6 +16,8 @@ import type {
 } from "./editor-schema.models";
 
 export interface IEditor<TSchema extends EditorSchema = DefaultEditorSchema> {
+  readonly ROOT_ID: string;
+
   /**
    * Return shallow copy of the document history.
    */
@@ -119,13 +124,37 @@ export interface IEditor<TSchema extends EditorSchema = DefaultEditorSchema> {
    */
   cleanup(): void;
 
-  subscribe<T extends EditorEventType<TSchema>>(
+  /**
+   * Subscribe directly to events without any streams in between.
+   *
+   * Use in cases where you know you won't have to filter or map the event payload and just want to directly react to it.
+   */
+  subscribe<T extends EditorEventType>(
     event: T,
-    handler: EditorEventHandler<TSchema, T>,
+    handler: EditorEventHandler<T>,
   ): VoidFunction;
 
-  unsubscribe<T extends EditorEventType<TSchema>>(
+  /**
+   * Unsubscribe from an event.
+   *
+   * Use in cases where you want to unsubscribe from an event that you subscribed to directly with subscribe() or through an event stream.
+   */
+  unsubscribe<T extends EditorEventType>(
     event: T,
-    handler: EditorEventHandler<TSchema, T>,
+    handler: EditorEventHandler<T>,
   ): void;
+
+  on<TEvent extends EditorEventType>(
+    event: TEvent,
+  ): IEventStream<EditorEventsMap[TEvent]>;
+
+  getCurrentHistoryRecord(): string | null;
+
+  getHistoryRecordByIndex(index: number): string | null;
+
+  /**
+   * Most often used when after you load the document from a server, IndexedDB, etc and you want to sync it with the editor state.
+   * @param element - The new document element to swap with.
+   */
+  swapDocument(payload: SwapDocumentPayload): void;
 }

@@ -1,4 +1,5 @@
-import { useEditor, useHistory } from "@block-editor/react";
+import { useHistory } from "@block-editor/react";
+import { useAppEditor } from "../../editor";
 import { useState } from "react";
 import EditorStateTab from "./EditorStateTab";
 import { cls } from "@/common/cls";
@@ -18,7 +19,7 @@ interface Props {
 
 export default function EditorState({ className }: Props) {
   const [activeTab, setActiveTab] = useState<"document" | "history">("document");
-  const { documentRoot } = useEditor();
+  const { documentRoot } = useAppEditor();
   const { history } = useHistory();
 
   const content =

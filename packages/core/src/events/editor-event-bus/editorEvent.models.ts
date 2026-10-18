@@ -6,12 +6,6 @@ import type {
   MoveBlockStrategy,
   UpdateBlockChildrenStrategy,
 } from "@/document/models/document.models";
-import type {
-  CommandType,
-  DefaultEditorSchema,
-  EditorSchema,
-} from "@/editor/editor-schema.models";
-import type { HistoryOperationType } from "@/history/models/history-operation.models";
 import type { EventBus } from "../event-bus/EventBus";
 
 type NoEventData = Record<never, never>;
@@ -35,7 +29,7 @@ type DocumentEventsData = {
   };
 };
 
-type SystemEventsData<TSchema extends EditorSchema> = {
+type SystemEventsData = {
   "history:undo": NoEventData;
   "history:redo": NoEventData;
   "history:jump": { index: number };
@@ -49,34 +43,29 @@ type SystemEventsData<TSchema extends EditorSchema> = {
     history: string[];
     currentPositionInHistory: number;
     root: DeepReadonly<DocumentRoot>;
-    trigger: CommandType<TSchema> | HistoryOperationType;
+    trigger: string;
   };
 };
 
-export type EditorEventsData<TSchema extends EditorSchema = DefaultEditorSchema> =
-  DocumentEventsData & SystemEventsData<TSchema>;
+export type EditorEventsData = DocumentEventsData & SystemEventsData;
 
 type EventsOf<TEventsData> = {
   [TType in keyof TEventsData]: { type: TType } & TEventsData[TType];
 };
 
-export type EditorEventsMap<TSchema extends EditorSchema = DefaultEditorSchema> =
-  EventsOf<EditorEventsData<TSchema>>;
+export type EditorEventsMap = EventsOf<EditorEventsData>;
 
-export type EditorEventType<TSchema extends EditorSchema = DefaultEditorSchema> =
-  keyof EditorEventsMap<TSchema> & string;
+export type EditorEventType = keyof EditorEventsMap & string;
 
-export type EditorEvent<TSchema extends EditorSchema = DefaultEditorSchema> =
-  EditorEventsMap<TSchema>[EditorEventType<TSchema>];
+export type EditorEvent = EditorEventsMap[EditorEventType];
 
 export type CommandEvent = EventsOf<DocumentEventsData>[keyof DocumentEventsData];
 
-export type EditorEventHandler<
-  TSchema extends EditorSchema,
-  TEventType extends EditorEventType<TSchema>,
-> = (event: EditorEventsMap<TSchema>[TEventType]) => void;
+export type EditorEventHandler<TEventType extends EditorEventType> = (
+  event: EditorEventsMap[TEventType],
+) => void;
 
 /**
  * The event bus the internals use. Its event names are fixed, so every emit is type-checked.
  */
-export type EditorEventBus = EventBus<EditorEventsMap<EditorSchema>>;
+export type EditorEventBus = EventBus<EditorEventsMap>;
