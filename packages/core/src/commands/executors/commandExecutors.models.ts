@@ -1,28 +1,35 @@
-import type {
-  EditorActionMap,
-  EditorActionType,
-} from "../../actions/actions.models";
-import type { EditorEventsMap } from "../../events/editor-event-bus/editorEvent.models";
 import type { EditorDocument } from "../../document/EditorDocument";
+import type { CommandEvent } from "../../events/editor-event-bus/editorEvent.models";
 
 export interface CommandContext<TPayload> {
   payload: TPayload;
   document: EditorDocument;
 }
 
-/**
- * Changes the document and returns the event that describes the change.
- */
-export type Command<T extends EditorActionType> = (
-  context: CommandContext<EditorActionMap[T]["payload"]>,
-) => EditorEventsMap[T];
+export type Command = (context: CommandContext<never>) => CommandEvent;
 
-export type CommandsRecord = {
-  [T in EditorActionType]: Command<T>;
+export type Commands = Record<string, Command>;
+
+export type CommandPayload<TCommand> = TCommand extends (
+  context: CommandContext<infer TPayload>,
+) => CommandEvent
+  ? TPayload
+  : never;
+
+export type CommandArgs = [payload?: unknown];
+
+export type CommandArgsOf<TCommand> = [CommandPayload<TCommand>] extends [void]
+  ? [payload?: undefined]
+  : [payload: CommandPayload<TCommand>];
+
+export type CommandArgsMap = Record<string, CommandArgs>;
+
+export type CommandArgsMapOf<TCommands extends Commands> = {
+  [TType in keyof TCommands]: CommandArgsOf<TCommands[TType]>;
 };
 
-export interface ExecuteCommandConfig<T extends EditorActionType> {
-  type: T;
-  payload: EditorActionMap[T]["payload"];
-  document: EditorDocument;
-}
+export type CommandsFor<TArgsMap extends CommandArgsMap> = {
+  [TType in keyof TArgsMap]: (
+    context: CommandContext<TArgsMap[TType][0]>,
+  ) => CommandEvent;
+};

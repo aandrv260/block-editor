@@ -6,8 +6,13 @@ import type {
   EditorEventHandler,
   EditorEventType,
 } from "@/events/editor-event-bus/editorEvent.models";
+import type {
+  CommandType,
+  DefaultEditorSchema,
+  EditorSchema,
+} from "./editor-schema.models";
 
-export interface IEditor {
+export interface IEditor<TSchema extends EditorSchema = DefaultEditorSchema> {
   /**
    * Return shallow copy of the document history.
    */
@@ -33,6 +38,25 @@ export interface IEditor {
    * ```
    */
   dispatchAction(action: EditorAction): void;
+
+  /**
+   * Executes the command registered for the type. The payload is typed by the command, and commands without a payload take no second argument.
+   *
+   * Throws an `UnknownCommandError` if no command is registered for the type.
+   *
+   * Example:
+   * ```TS
+   * editor.execute("block:move", {
+        blockId: "1",
+        targetId: "2",
+        strategy: "before",
+    });
+   * ```
+   */
+  execute<TType extends CommandType<TSchema>>(
+    type: TType,
+    ...args: TSchema["commands"][TType]
+  ): void;
 
   /**
    * Set the history of the editor.
@@ -109,13 +133,13 @@ export interface IEditor {
    */
   cleanup(): void;
 
-  subscribe<T extends EditorEventType>(
+  subscribe<T extends EditorEventType<TSchema>>(
     event: T,
-    handler: EditorEventHandler<T>,
+    handler: EditorEventHandler<TSchema, T>,
   ): VoidFunction;
 
-  unsubscribe<T extends EditorEventType>(
+  unsubscribe<T extends EditorEventType<TSchema>>(
     event: T,
-    handler: EditorEventHandler<T>,
+    handler: EditorEventHandler<TSchema, T>,
   ): void;
 }
