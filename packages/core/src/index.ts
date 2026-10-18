@@ -8,3 +8,8 @@ export * from "./history";
 export * from "./events";
 export * from "./editor";
 export * from "./common";
+export { createCommand } from "./commands/createCommand";
+export type {
+  CommandContext,
+  Commands,
+} from "./commands/executors/commandExecutors.models";

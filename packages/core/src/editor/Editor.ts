@@ -9,11 +9,10 @@ import type {
   EditorEventType,
 } from "@/events/editor-event-bus/editorEvent.models";
 import { EventBus } from "@/events/event-bus/EventBus";
-import type { CommandsFor } from "@/commands/executors/commandExecutors.models";
+import type { CommandArgsOf } from "@/commands/executors/commandExecutors.models";
 import { DEFAULT_COMMANDS } from "@/commands/executors/defaultCommands";
 import type {
   CommandType,
-  CustomCommandsFor,
   DefaultEditorSchema,
   EditorSchema,
 } from "./editor-schema.models";
@@ -30,7 +29,7 @@ interface SwapDocumentConfig {
   clearHistory?: boolean;
 }
 
-interface EditorConfig<TSchema extends EditorSchema> {
+export interface EditorConfig<TSchema extends EditorSchema = DefaultEditorSchema> {
   /**
    * The initial document to use for the editor. The editor can construct a document out of a `JSON` string, a `DocumentRoot` or `EditorDocument`.
    *
@@ -48,7 +47,7 @@ interface EditorConfig<TSchema extends EditorSchema> {
   /**
    * Add custom commands to the editor.
    */
-  commands?: CustomCommandsFor<TSchema>;
+  commands?: Partial<TSchema["commands"]>;
 }
 
 // TODO: Move docs to IEditor interface. Also, define a more clear contract and use cases for the cleanup method or remove it.
@@ -79,9 +78,7 @@ export class Editor<
       eventBus: this.eventBus,
       history: this.history,
       document: this.document,
-      commands: { ...DEFAULT_COMMANDS, ...commands } as CommandsFor<
-        TSchema["commands"]
-      >,
+      commands: { ...DEFAULT_COMMANDS, ...commands } as TSchema["commands"],
     });
   }
 
@@ -107,7 +104,7 @@ export class Editor<
 
   public execute<TType extends CommandType<TSchema>>(
     type: TType,
-    ...args: TSchema["commands"][TType]
+    ...args: CommandArgsOf<TSchema["commands"][TType]>
   ): void {
     this.commandCenter.execute(type, ...args);
   }
@@ -194,7 +191,7 @@ export class Editor<
   }
 
   /**
-   * Most often used when after you load the document from a server, localStorage, etc and you want to sync it with the editor state.
+   * Most often used when after you load the document from a server, IndexedDB, etc and you want to sync it with the editor state.
    * @param element - The new document element to swap with.
    */
   public swapDocument({ element, clearHistory }: SwapDocumentConfig): void {

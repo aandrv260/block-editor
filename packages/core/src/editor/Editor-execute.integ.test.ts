@@ -8,12 +8,8 @@ import {
 import { assertEngineError } from "@/errors/test-utils/error-test.utils";
 import { UnknownCommandError } from "@/commands/errors/unknown-command/UnknownCommandError";
 import type { DefaultCommands } from "@/commands/executors/defaultCommands";
-import type {
-  CommandArgsMapOf,
-  CommandContext,
-} from "@/commands/executors/commandExecutors.models";
+import type { CommandContext } from "@/commands/executors/commandExecutors.models";
 import { createDeleteBlockEvent } from "@/events/editor-event-bus/editorEvent.emits";
-import type { Blocks } from "./editor-schema.models";
 
 const deleteFirstBlockCommand = ({ document }: CommandContext<void>) => {
   const firstBlockId = document.getRoot().children[0].id;
@@ -28,8 +24,7 @@ const CUSTOM_COMMANDS = {
 };
 
 type SchemaWithCustomCommand = {
-  commands: CommandArgsMapOf<DefaultCommands & typeof CUSTOM_COMMANDS>;
-  blocks: Blocks;
+  commands: DefaultCommands & typeof CUSTOM_COMMANDS;
 };
 
 // Simulates a caller without types, such as plain JavaScript, to reach the runtime guard.

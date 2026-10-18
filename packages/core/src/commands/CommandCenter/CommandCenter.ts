@@ -8,17 +8,18 @@ import type {
   EditorEventBus,
 } from "../../events/editor-event-bus/editorEvent.models";
 import type {
-  CommandArgsMap,
-  CommandsFor,
+  CommandArgsOf,
+  CommandContext,
+  Commands,
 } from "../executors/commandExecutors.models";
 import { executeAction } from "../executors/executeAction";
 import { UnknownCommandError } from "../errors/unknown-command/UnknownCommandError";
 
-interface CommandCenterConfig<TArgsMap extends CommandArgsMap> {
+interface CommandCenterConfig<TCommands extends Commands> {
   document: EditorDocument;
   eventBus: EditorEventBus;
   history: DocumentHistory;
-  commands: CommandsFor<TArgsMap>;
+  commands: TCommands;
 }
 
 /**
@@ -28,19 +29,19 @@ interface CommandCenterConfig<TArgsMap extends CommandArgsMap> {
  * - It emits the editor change event after every action and history operation.
  * - This is the only part of the system allowed to mutate the document and history.
  */
-export class CommandCenter<TArgsMap extends CommandArgsMap> {
+export class CommandCenter<TCommands extends Commands> {
   private document: EditorDocument;
   private readonly history: DocumentHistory;
   private readonly historyManager: HistoryManager;
   private readonly eventBus: EditorEventBus;
-  private readonly commands: CommandsFor<TArgsMap>;
+  private readonly commands: TCommands;
 
   constructor({
     document,
     history,
     eventBus,
     commands,
-  }: CommandCenterConfig<TArgsMap>) {
+  }: CommandCenterConfig<TCommands>) {
     this.document = document;
     this.eventBus = eventBus;
     this.history = history;
@@ -53,9 +54,9 @@ export class CommandCenter<TArgsMap extends CommandArgsMap> {
 
    * Throws an `UnknownCommandError` if no command is registered for the type.
    */
-  public execute<TType extends keyof TArgsMap & string>(
+  public execute<TType extends keyof TCommands & string>(
     type: TType,
-    ...args: TArgsMap[TType]
+    ...args: CommandArgsOf<TCommands[TType]>
   ): void {
     const command = this.getCommand(type);
     const event = command({ payload: args[0], document: this.document });
@@ -63,14 +64,14 @@ export class CommandCenter<TArgsMap extends CommandArgsMap> {
     this.commit(type, event);
   }
 
-  private getCommand<TType extends keyof TArgsMap & string>(
-    type: TType,
-  ): CommandsFor<TArgsMap>[TType] {
+  private getCommand(
+    type: string,
+  ): (context: CommandContext<unknown>) => CommandEvent {
     if (!Object.hasOwn(this.commands, type)) {
       throw new UnknownCommandError(type);
     }
 
-    return this.commands[type];
+    return this.commands[type] as (context: CommandContext<unknown>) => CommandEvent;
   }
 
   // TODO: Remove together with the action creators once every caller uses `execute`.

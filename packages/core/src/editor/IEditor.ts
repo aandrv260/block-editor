@@ -1,4 +1,5 @@
 import type { DeepReadonly } from "@/common/types/object.types";
+import type { CommandArgsOf } from "@/commands/executors/commandExecutors.models";
 import type { EditorAction } from "@/actions/actions.models";
 import type { Block, DocumentNode } from "@/blocks/models/block.models";
 import type { DocumentRoot } from "@/document/DocumentRoot/DocumentRoot";
@@ -55,7 +56,7 @@ export interface IEditor<TSchema extends EditorSchema = DefaultEditorSchema> {
    */
   execute<TType extends CommandType<TSchema>>(
     type: TType,
-    ...args: TSchema["commands"][TType]
+    ...args: CommandArgsOf<TSchema["commands"][TType]>
   ): void;
 
   /**
