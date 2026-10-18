@@ -1,9 +1,12 @@
+import { EditorDocument } from "../../document/EditorDocument";
 import {
   assertTreeIntegrity,
   TOGGLE_LIST1_BLOCK,
 } from "../../document/utils/document-test.utils";
 import { createCommandCenter } from "./CommandCenter-test.utils";
 import { deleteBlock } from "../../actions/actions";
+import { assertEngineError } from "../../errors/test-utils/error-test.utils";
+import { BlockToDeleteNotFoundError } from "../errors/delete-block/BlockToDeleteNotFoundError";
 
 describe("CommandCenter delete block", () => {
   it("executes the delete block command based on the delete block action input", () => {
@@ -64,6 +67,7 @@ describe("CommandCenter delete block", () => {
     ]);
 
     assertTreeIntegrity(document);
+    expect(EditorDocument.fromJSON(document.toJSON())).toStrictEqual(document);
   });
 
   it("records no history and emits no events when the command throws", () => {
@@ -78,9 +82,16 @@ describe("CommandCenter delete block", () => {
     eventBus.on("editor:change", onEditorChange);
 
     // Act and assert
-    expect(() =>
-      commandCenter.processAction(deleteBlock({ blockId: "not_existing_block" })),
-    ).toThrowError("The block you're trying to delete does not exist!");
+    assertEngineError(
+      () =>
+        commandCenter.processAction(deleteBlock({ blockId: "not_existing_block" })),
+      {
+        ExpectedErrorClass: BlockToDeleteNotFoundError,
+        expectedCode: "COMMAND:BLOCK_TO_DELETE_NOT_FOUND",
+        expectedMessage: "The block you're trying to delete does not exist!",
+        expectedContext: { blockId: "not_existing_block" },
+      },
+    );
 
     expect(onDelete).not.toHaveBeenCalled();
     expect(onEditorChange).not.toHaveBeenCalled();

@@ -5,7 +5,7 @@ import type { HistoryOperationType } from "../../history/models/history-operatio
 import { EditorDocument } from "../../document/EditorDocument";
 import { createEditorChangeEvent } from "../../events/editor-event-bus/editorEvent.emits";
 import type { EditorEventBus } from "../../events/editor-event-bus/editorEvent.models";
-import { getEditorCommand } from "../executors/commandsMap";
+import { executeCommand } from "../executors/commandsMap";
 
 interface CommandCenterConfig {
   document: EditorDocument;
@@ -36,13 +36,11 @@ export class CommandCenter {
   }
 
   public processAction(action: EditorAction) {
-    const command = getEditorCommand({
+    const event = executeCommand({
       type: action.type,
       payload: action.payload,
       document: this.document,
     });
-
-    const event = command.execute();
 
     this.recordHistory(action);
     this.eventBus.emit(event.type, event);

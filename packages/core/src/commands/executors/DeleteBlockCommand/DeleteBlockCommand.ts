@@ -1,24 +1,32 @@
 import type { Block } from "../../../blocks/models/block.models";
+import type { DeleteBlockActionPayload } from "../../../actions/action-types/delete-block-action.models";
 import { createDeleteBlockEvent } from "../../../events/editor-event-bus/editorEvent.emits";
 import type { DeleteBlockEvent } from "../../../events/editor-event-bus/event-types/delete-block-event.models";
 import { BlockToDeleteNotFoundError } from "../../errors/delete-block/BlockToDeleteNotFoundError";
-import { Command } from "../Command";
+import type { CommandContext } from "../commandExecutors.models";
 
-export class DeleteBlockCommand extends Command<"block:delete"> {
-  public execute(): DeleteBlockEvent {
-    this.validateBlockToDeleteExists();
-    this.document.remove(this.payload.blockId);
+type DeleteBlockCommandContext = CommandContext<DeleteBlockActionPayload>;
 
-    return createDeleteBlockEvent({ blockId: this.payload.blockId });
+export const deleteBlockCommand = (
+  context: DeleteBlockCommandContext,
+): DeleteBlockEvent => {
+  const { payload, document } = context;
+
+  validateBlockToDeleteExists(context);
+  document.remove(payload.blockId);
+
+  return createDeleteBlockEvent({ blockId: payload.blockId });
+};
+
+const validateBlockToDeleteExists = ({
+  payload,
+  document,
+}: DeleteBlockCommandContext): Block => {
+  const blockToDelete = document.getBlock(payload.blockId);
+
+  if (!blockToDelete) {
+    throw new BlockToDeleteNotFoundError(payload.blockId);
   }
 
-  private validateBlockToDeleteExists(): Block {
-    const blockToDelete = this.document.getBlock(this.payload.blockId);
-
-    if (!blockToDelete) {
-      throw new BlockToDeleteNotFoundError(this.payload.blockId);
-    }
-
-    return blockToDelete;
-  }
-}
+  return blockToDelete;
+};

@@ -1,28 +1,28 @@
 import type { EditorActionType } from "../../actions/actions.models";
-import { Command } from "./Command";
-import { InsertBlockCommand } from "./InsertBlockCommand";
-import { DeleteBlockCommand } from "./DeleteBlockCommand";
-import { MoveBlockCommand } from "./MoveBlockCommand";
-import { UpdateBlockCommand } from "./UpdateBlockCommand";
+import type { EditorEventsMap } from "../../events/editor-event-bus/editorEvent.models";
+import { insertBlockCommand } from "./InsertBlockCommand";
+import { deleteBlockCommand } from "./DeleteBlockCommand";
+import { moveBlockCommand } from "./MoveBlockCommand";
+import { updateBlockCommand } from "./UpdateBlockCommand";
 import type {
   CommandsRecord,
-  GeEditorCommandConfig,
+  ExecuteCommandConfig,
 } from "./commandExecutors.models";
-import { SwapDocumentCommand } from "./SwapDocumentCommand/SwapDocumentCommand";
+import { swapDocumentCommand } from "./SwapDocumentCommand/SwapDocumentCommand";
 
 const commandsMap: CommandsRecord = {
-  "block:insert": InsertBlockCommand,
-  "block:delete": DeleteBlockCommand,
-  "block:move": MoveBlockCommand,
-  "block:update": UpdateBlockCommand,
-  "document:swap": SwapDocumentCommand,
+  "block:insert": insertBlockCommand,
+  "block:delete": deleteBlockCommand,
+  "block:move": moveBlockCommand,
+  "block:update": updateBlockCommand,
+  "document:swap": swapDocumentCommand,
 };
 
-export const getEditorCommand = <T extends EditorActionType>({
+export const executeCommand = <T extends EditorActionType>({
   type,
   payload,
   document,
-}: GeEditorCommandConfig<T>): Command<T> => {
-  const CommandClass = commandsMap[type];
-  return new CommandClass(payload, document);
+}: ExecuteCommandConfig<T>): EditorEventsMap[T] => {
+  const command = commandsMap[type];
+  return command({ payload, document });
 };
