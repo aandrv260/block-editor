@@ -53,7 +53,7 @@ export class Editor<
 > implements IEditor<TSchema> {
   private document: EditorDocument;
   private readonly history: DocumentHistory;
-  private readonly eventBus: EventBus<EditorEventsMap<TSchema>>;
+  private readonly eventBus: EventBus<EditorEventsMap>;
   private readonly commandCenter: CommandCenter<TSchema["commands"]>;
   public readonly ROOT_ID: string;
 
@@ -151,41 +151,27 @@ export class Editor<
     this.eventBus.cleanup();
   }
 
-  public on<TEvent extends EditorEventType<TSchema>>(
+  public on<TEvent extends EditorEventType>(
     event: TEvent,
-  ): IEventStream<EditorEventsMap<TSchema>[TEvent]> {
+  ): IEventStream<EditorEventsMap[TEvent]> {
     return new EventStream(handler => this.eventBus.on(event, handler));
   }
 
-  /**
-   * Subscribe directly to events without any streams in between.
-   *
-   * Use in cases where you know you won't have to filter or map the event payload and just want to directly react to it.
-   */
-  public subscribe<T extends EditorEventType<TSchema>>(
+  public subscribe<T extends EditorEventType>(
     event: T,
-    handler: EditorEventHandler<TSchema, T>,
+    handler: EditorEventHandler<T>,
   ): VoidFunction {
     const unsubscribe = this.eventBus.on(event, handler);
     return unsubscribe;
   }
 
-  /**
-   * Unsubscribe from an event.
-   *
-   * Use in cases where you want to unsubscribe from an event that you subscribed to directly with subscribe() or through an event stream.
-   */
-  public unsubscribe<T extends EditorEventType<TSchema>>(
+  public unsubscribe<T extends EditorEventType>(
     event: T,
-    handler: EditorEventHandler<TSchema, T>,
+    handler: EditorEventHandler<T>,
   ): void {
     this.eventBus.off(event, handler);
   }
 
-  /**
-   * Most often used when after you load the document from a server, IndexedDB, etc and you want to sync it with the editor state.
-   * @param element - The new document element to swap with.
-   */
   public swapDocument(payload: SwapDocumentPayload): void {
     const commandCenter = this.commandCenter as CommandCenter<DefaultCommands>;
     commandCenter.execute("swapDocument", payload);

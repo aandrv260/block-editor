@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import type { Editor } from "@block-editor/core";
+import type { IEditor } from "@block-editor/core";
 import type { DeepReadonly } from "@block-editor/core";
 import type { DocumentRoot } from "@block-editor/core";
 import type { BlockRendererMap } from "../models/block-ui.models";
@@ -30,8 +30,7 @@ export interface EditorKeymap {
 }
 
 export interface EditorContextValue {
-  // TODO: This is typed `Editor` for debugging and dev purposes. Use the IEditor interface to decouple before publishing alpha version.
-  editor: Editor;
+  editor: IEditor;
   editorDocument: EditorDocumentValue;
   history: EditorHistoryValue;
   blockRendererMap: BlockRendererMap;
