@@ -48,7 +48,7 @@ describe("CommandCenter swap command", () => {
       eventBus.on("document:swap", onSwap);
       eventBus.on("editor:change", onEditorChange);
 
-      commandCenter.execute("block:insert", {
+      commandCenter.execute("insertBlock", {
         targetId: TOGGLE_LIST2_BLOCK.id,
         newBlock: SAMPLE_BLOCK3,
         strategy: "append",
@@ -63,7 +63,7 @@ describe("CommandCenter swap command", () => {
         history: history.getHistory(),
         currentPositionInHistory: 1,
         root: document.getRoot(),
-        triggerAction: "block:insert",
+        trigger: "insertBlock",
       });
 
       expect(history.getHistory()).toEqual([
@@ -76,7 +76,7 @@ describe("CommandCenter swap command", () => {
 
       // Act
       vi.clearAllMocks();
-      commandCenter.execute("document:swap", {
+      commandCenter.execute("swapDocument", {
         element: json,
         clearHistory,
       });
@@ -90,7 +90,7 @@ describe("CommandCenter swap command", () => {
         history: history.getHistory(),
         currentPositionInHistory: 2,
         root: document.getRoot(),
-        triggerAction: "document:swap",
+        trigger: "swapDocument",
       });
 
       expect(history.getHistory()).toEqual([
@@ -145,7 +145,7 @@ describe("CommandCenter swap command", () => {
     eventBus.on("document:swap", onSwap);
     eventBus.on("editor:change", onEditorChange);
 
-    commandCenter.execute("block:insert", {
+    commandCenter.execute("insertBlock", {
       targetId: TOGGLE_LIST2_BLOCK.id,
       newBlock: SAMPLE_BLOCK3,
       strategy: "append",
@@ -160,7 +160,7 @@ describe("CommandCenter swap command", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     expect(history.getHistory()).toEqual([
@@ -173,7 +173,7 @@ describe("CommandCenter swap command", () => {
 
     // Act
     vi.clearAllMocks();
-    commandCenter.execute("document:swap", {
+    commandCenter.execute("swapDocument", {
       element: json,
       clearHistory: true,
     });
@@ -187,7 +187,7 @@ describe("CommandCenter swap command", () => {
       history: history.getHistory(),
       currentPositionInHistory: 0,
       root: document.getRoot(),
-      triggerAction: "document:swap",
+      trigger: "swapDocument",
     });
 
     expect(history.getHistory()).toEqual([DOCUMENT_JSON_AFTER_SWAP]);
@@ -249,7 +249,7 @@ describe("CommandCenter swap command", () => {
       eventBus.on("document:swap", onSwap);
       eventBus.on("editor:change", onEditorChange);
 
-      commandCenter.execute("block:insert", {
+      commandCenter.execute("insertBlock", {
         targetId: TOGGLE_LIST2_BLOCK.id,
         newBlock: SAMPLE_BLOCK3,
         strategy: "append",
@@ -264,7 +264,7 @@ describe("CommandCenter swap command", () => {
         history: history.getHistory(),
         currentPositionInHistory: 1,
         root: document.getRoot(),
-        triggerAction: "block:insert",
+        trigger: "insertBlock",
       });
 
       expect(history.getHistory()).toEqual([
@@ -277,7 +277,7 @@ describe("CommandCenter swap command", () => {
 
       // Act
       vi.clearAllMocks();
-      commandCenter.execute("document:swap", {
+      commandCenter.execute("swapDocument", {
         element: documentRootToSwapWith,
         clearHistory,
       });
@@ -289,7 +289,7 @@ describe("CommandCenter swap command", () => {
         history: history.getHistory(),
         currentPositionInHistory: 2,
         root: document.getRoot(),
-        triggerAction: "document:swap",
+        trigger: "swapDocument",
       });
 
       expect(document.getRoot()).toStrictEqual(
@@ -340,7 +340,7 @@ describe("CommandCenter swap command", () => {
     eventBus.on("document:swap", onSwap);
     eventBus.on("editor:change", onEditorChange);
 
-    commandCenter.execute("block:insert", {
+    commandCenter.execute("insertBlock", {
       targetId: TOGGLE_LIST2_BLOCK.id,
       newBlock: SAMPLE_BLOCK3,
       strategy: "append",
@@ -355,7 +355,7 @@ describe("CommandCenter swap command", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     expect(history.getHistory()).toEqual([
@@ -368,7 +368,7 @@ describe("CommandCenter swap command", () => {
 
     // Act
     vi.clearAllMocks();
-    commandCenter.execute("document:swap", {
+    commandCenter.execute("swapDocument", {
       element: documentRootToSwapWith,
       clearHistory: true,
     });
@@ -380,7 +380,7 @@ describe("CommandCenter swap command", () => {
       history: history.getHistory(),
       currentPositionInHistory: 0,
       root: document.getRoot(),
-      triggerAction: "document:swap",
+      trigger: "swapDocument",
     });
 
     expect(document.getRoot()).toStrictEqual(
@@ -423,7 +423,7 @@ describe("CommandCenter swap command", () => {
 
     const documentToSwapWith = EditorDocument.fromJSON(json);
 
-    commandCenter.execute("block:insert", {
+    commandCenter.execute("insertBlock", {
       targetId: TOGGLE_LIST2_BLOCK.id,
       newBlock: SAMPLE_BLOCK3,
       strategy: "append",
@@ -438,7 +438,7 @@ describe("CommandCenter swap command", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     expect(history.getHistory()).toEqual([
@@ -451,7 +451,7 @@ describe("CommandCenter swap command", () => {
 
     // Act
     vi.clearAllMocks();
-    commandCenter.execute("document:swap", {
+    commandCenter.execute("swapDocument", {
       element: documentToSwapWith,
       clearHistory: true,
     });
@@ -463,7 +463,7 @@ describe("CommandCenter swap command", () => {
       history: history.getHistory(),
       currentPositionInHistory: 0,
       root: document.getRoot(),
-      triggerAction: "document:swap",
+      trigger: "swapDocument",
     });
 
     expect(document.getRoot()).toStrictEqual(

@@ -1,6 +1,5 @@
 import type { ConstructableDocumentElement } from "../../../document/models/document.models";
-import { createDocumentSwapEvent } from "../../../events/editor-event-bus/editorEvent.emits";
-import type { DocumentSwapEvent } from "../../../events/editor-event-bus/event-types/document-swap-event.models";
+import { createEvent } from "../../../events/editor-event-bus/createEvent";
 import type { CommandContext } from "../commandExecutors.models";
 
 export interface SwapDocumentPayload {
@@ -14,10 +13,10 @@ export interface SwapDocumentPayload {
 export const swapDocumentCommand = ({
   payload,
   document,
-}: CommandContext<SwapDocumentPayload>): DocumentSwapEvent => {
+}: CommandContext<SwapDocumentPayload>) => {
   document.swap(payload.element);
 
-  return createDocumentSwapEvent({
+  return createEvent("document:swap", {
     element: payload.element,
     historyCleared: payload.clearHistory ?? false,
   });

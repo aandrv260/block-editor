@@ -14,7 +14,7 @@ describe("Editor cleanup", () => {
     editor.subscribe("block:delete", deleteEventCallback);
 
     // Assert
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: editor.ROOT_ID,
       strategy: "append",
       newBlock: SAMPLE_BLOCK1,
@@ -31,7 +31,7 @@ describe("Editor cleanup", () => {
 
     // Act - delete the block1
     vi.clearAllMocks();
-    editor.execute("block:delete", { blockId: SAMPLE_BLOCK1.id });
+    editor.execute("deleteBlock", { blockId: SAMPLE_BLOCK1.id });
 
     // Assert
     expect(deleteEventCallback).toHaveBeenCalledExactlyOnceWith({
@@ -46,13 +46,13 @@ describe("Editor cleanup", () => {
     editor.cleanup();
 
     // Act - insert a new block
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: editor.ROOT_ID,
       strategy: "append",
       newBlock: SAMPLE_BLOCK2,
     });
 
-    editor.execute("block:delete", { blockId: SAMPLE_BLOCK2.id });
+    editor.execute("deleteBlock", { blockId: SAMPLE_BLOCK2.id });
 
     // Assert
     expect(insertEventCallback).not.toHaveBeenCalled();

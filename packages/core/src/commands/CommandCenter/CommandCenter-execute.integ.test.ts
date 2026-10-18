@@ -6,7 +6,7 @@ import {
   TOGGLE_LIST2_BLOCK,
 } from "../../document/utils/document-test.utils";
 import type { EditorEventBus } from "../../events/editor-event-bus/editorEvent.models";
-import { createDeleteBlockEvent } from "../../events/editor-event-bus/editorEvent.emits";
+import { createEvent } from "../../events/editor-event-bus/createEvent";
 import { EventBus } from "../../events/event-bus/EventBus";
 import { DocumentHistory } from "../../history/DocumentHistory";
 import { assertEngineError } from "../../errors/test-utils/error-test.utils";
@@ -25,12 +25,12 @@ const deleteFirstBlockCommand = ({ document }: CommandContext<void>) => {
 
   document.remove(firstBlockId);
 
-  return createDeleteBlockEvent({ blockId: firstBlockId });
+  return createEvent("block:delete", { blockId: firstBlockId });
 };
 
 const COMMANDS_WITH_CUSTOM_COMMAND = {
   ...DEFAULT_COMMANDS,
-  "test:delete-first-block": deleteFirstBlockCommand,
+  deleteFirstBlock: deleteFirstBlockCommand,
 };
 
 const createCommandCenterWithCustomCommand = () => {
@@ -79,7 +79,7 @@ describe("CommandCenter execute", () => {
     assertInitialDefaultDocumentStructure();
 
     // Act
-    commandCenter.execute("block:insert", {
+    commandCenter.execute("insertBlock", {
       targetId: TOGGLE_LIST2_BLOCK.id,
       strategy: "after",
       newBlock: SAMPLE_BLOCK3,
@@ -103,7 +103,7 @@ describe("CommandCenter execute", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     expect(history.getHistory()).toStrictEqual([
@@ -126,7 +126,7 @@ describe("CommandCenter execute", () => {
     eventBus.on("editor:change", onEditorChange);
 
     // Act
-    commandCenter.execute("test:delete-first-block");
+    commandCenter.execute("deleteFirstBlock");
 
     // Assert
     expect(document.getBlock(TOGGLE_LIST1_BLOCK.id)).toBeNull();
@@ -138,7 +138,7 @@ describe("CommandCenter execute", () => {
     });
 
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({ triggerAction: "test:delete-first-block" }),
+      expect.objectContaining({ trigger: "deleteFirstBlock" }),
     );
 
     expect(history.getHistory()).toStrictEqual([
@@ -157,7 +157,7 @@ describe("CommandCenter execute", () => {
 
     eventBus.on("document:swap", onSwap);
 
-    commandCenter.execute("block:insert", {
+    commandCenter.execute("insertBlock", {
       targetId: TOGGLE_LIST2_BLOCK.id,
       strategy: "after",
       newBlock: SAMPLE_BLOCK3,
@@ -167,7 +167,7 @@ describe("CommandCenter execute", () => {
     expect(history.getSize()).toBe(2);
 
     // Act
-    commandCenter.execute("document:swap", {
+    commandCenter.execute("swapDocument", {
       element: documentToSwapWith.toJSON(),
       clearHistory: true,
     });
@@ -199,7 +199,7 @@ describe("CommandCenter execute", () => {
 
     // Act and assert
     assertEngineError(
-      () => commandCenter.execute("block:delete", { blockId: "not_existing_block" }),
+      () => commandCenter.execute("deleteBlock", { blockId: "not_existing_block" }),
       {
         ExpectedErrorClass: BlockToDeleteNotFoundError,
         expectedCode: "COMMAND:BLOCK_TO_DELETE_NOT_FOUND",

@@ -27,7 +27,7 @@ describe("CommandCenter insert block", () => {
     assertInitialDefaultDocumentStructure();
 
     // Act
-    commandCenter.execute("block:insert", {
+    commandCenter.execute("insertBlock", {
       targetId: TOGGLE_LIST2_BLOCK.id,
       strategy: "before",
       newBlock: SAMPLE_BLOCK4,
@@ -42,7 +42,7 @@ describe("CommandCenter insert block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     expect(document.getRoot()).toStrictEqual(
@@ -104,7 +104,7 @@ describe("CommandCenter insert block", () => {
     assertInitialDefaultDocumentStructure();
 
     // Act
-    commandCenter.execute("block:insert", {
+    commandCenter.execute("insertBlock", {
       targetId: TOGGLE_LIST1_BLOCK.id,
       strategy: "after",
       newBlock: SAMPLE_BLOCK4,
@@ -117,7 +117,7 @@ describe("CommandCenter insert block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     expect(document.getRoot()).toStrictEqual(

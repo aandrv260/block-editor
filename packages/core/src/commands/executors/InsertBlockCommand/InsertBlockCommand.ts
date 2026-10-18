@@ -1,6 +1,5 @@
 import type { BlockPayload } from "../../../document/models/document-payload.models";
-import { createInsertBlockEvent } from "../../../events/editor-event-bus/editorEvent.emits";
-import type { InsertBlockEvent } from "../../../events/editor-event-bus/event-types/insert-block-event.models";
+import { createEvent } from "../../../events/editor-event-bus/createEvent";
 import type { CommandContext } from "../commandExecutors.models";
 
 export type InsertBlockStrategy = "after" | "before" | "append";
@@ -13,14 +12,12 @@ export interface InsertBlockPayload {
 
 type InsertBlockCommandContext = CommandContext<InsertBlockPayload>;
 
-export const insertBlockCommand = (
-  context: InsertBlockCommandContext,
-): InsertBlockEvent => {
+export const insertBlockCommand = (context: InsertBlockCommandContext) => {
   const { payload } = context;
 
   payload.strategy === "append" ? appendNewBlock(context) : insertNewBlock(context);
 
-  return createInsertBlockEvent({
+  return createEvent("block:insert", {
     blockId: payload.newBlock.id,
     targetId: payload.targetId,
     strategy: payload.strategy,

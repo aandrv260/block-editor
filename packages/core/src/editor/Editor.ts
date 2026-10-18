@@ -188,6 +188,6 @@ export class Editor<
    */
   public swapDocument(payload: SwapDocumentPayload): void {
     const commandCenter = this.commandCenter as CommandCenter<DefaultCommands>;
-    commandCenter.execute("document:swap", payload);
+    commandCenter.execute("swapDocument", payload);
   }
 }

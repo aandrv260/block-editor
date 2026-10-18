@@ -1,7 +1,7 @@
 import type { DocumentHistory } from "../../history/DocumentHistory";
 import { HistoryManager } from "../../history/HistoryManager";
 import { EditorDocument } from "../../document/EditorDocument";
-import { createEditorChangeEvent } from "../../events/editor-event-bus/editorEvent.emits";
+import { createEvent } from "../../events/editor-event-bus/createEvent";
 import type {
   CommandEvent,
   EditorEventBus,
@@ -76,22 +76,22 @@ export class CommandCenter<TCommands extends Commands> {
 
   public undo(): void {
     this.historyManager.undo();
-    this.emitChangeEvent("history:undo");
+    this.emitChangeEvent("undo");
   }
 
   public redo(): void {
     this.historyManager.redo();
-    this.emitChangeEvent("history:redo");
+    this.emitChangeEvent("redo");
   }
 
   public jumpTo(index: number): void {
     this.historyManager.jumpTo(index);
-    this.emitChangeEvent("history:jump");
+    this.emitChangeEvent("jumpTo");
   }
 
   public setHistory(newHistory: readonly string[]): void {
     this.historyManager.setHistory(newHistory);
-    this.emitChangeEvent("history:set");
+    this.emitChangeEvent("setHistory");
   }
 
   // TODO: Maybe put in the history manager.
@@ -109,12 +109,12 @@ export class CommandCenter<TCommands extends Commands> {
   private emitChangeEvent(trigger: string) {
     this.eventBus.emit(
       "editor:change",
-      createEditorChangeEvent({
+      createEvent("editor:change", {
         documentJSON: this.document.toJSON(),
         history: this.history.getHistory(),
         currentPositionInHistory: this.history.getCurrentPosition(),
         root: this.document.getRoot(),
-        triggerAction: trigger,
+        trigger,
       }),
     );
   }

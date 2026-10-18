@@ -50,7 +50,7 @@ describe("CommandCenter update block", () => {
     });
 
     // Act
-    commandCenter.execute("block:update", {
+    commandCenter.execute("updateBlock", {
       blockId: TOGGLE_LIST2_BLOCK.id,
       newBlock: SAMPLE_BLOCK4,
       childrenStrategy: "drop",
@@ -63,7 +63,7 @@ describe("CommandCenter update block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:update",
+      trigger: "updateBlock",
     });
 
     expect(document.getRoot()).toStrictEqual(
@@ -136,7 +136,7 @@ describe("CommandCenter update block", () => {
     });
 
     // Act
-    commandCenter.execute("block:update", {
+    commandCenter.execute("updateBlock", {
       blockId: TOGGLE_LIST1_BLOCK.id,
       newBlock: TOGGLE_LIST4_BLOCK,
       childrenStrategy: "preserve",
@@ -166,7 +166,7 @@ describe("CommandCenter update block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:update",
+      trigger: "updateBlock",
     });
 
     expect(onEditorChange).toHaveBeenCalledWith({
@@ -175,7 +175,7 @@ describe("CommandCenter update block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:update",
+      trigger: "updateBlock",
     });
 
     const CURRENT_DOCUMENT_JSON = document.toJSON();
@@ -229,7 +229,7 @@ describe("CommandCenter update block", () => {
     });
 
     // Act
-    commandCenter.execute("block:update", {
+    commandCenter.execute("updateBlock", {
       blockId: TOGGLE_LIST1_BLOCK.id,
       newBlock: {
         ...TOGGLE_LIST4_BLOCK,
@@ -259,7 +259,7 @@ describe("CommandCenter update block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:update",
+      trigger: "updateBlock",
     });
 
     expect(updateBlockEventCallback).toHaveBeenCalledWith({
@@ -329,7 +329,7 @@ describe("CommandCenter update block", () => {
     expect(history.getSize()).toBe(1);
 
     // Act 1 - Update with "preserve" strategy
-    commandCenter.execute("block:update", {
+    commandCenter.execute("updateBlock", {
       blockId: TOGGLE_LIST1_BLOCK.id,
       newBlock: TOGGLE_LIST4_BLOCK,
       childrenStrategy: "preserve",
@@ -361,7 +361,7 @@ describe("CommandCenter update block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:update",
+      trigger: "updateBlock",
     });
 
     expect(updateBlockEventCallback).toHaveBeenNthCalledWith(1, {
@@ -382,7 +382,7 @@ describe("CommandCenter update block", () => {
     assertTreeIntegrity(document);
 
     // Act 2 - Update with "drop" strategy
-    commandCenter.execute("block:update", {
+    commandCenter.execute("updateBlock", {
       blockId: TOGGLE_LIST2_BLOCK.id,
       newBlock: SAMPLE_BLOCK4,
       childrenStrategy: "drop",
@@ -413,7 +413,7 @@ describe("CommandCenter update block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 2,
       root: document.getRoot(),
-      triggerAction: "block:update",
+      trigger: "updateBlock",
     });
 
     expect(updateBlockEventCallback).toHaveBeenNthCalledWith(2, {
@@ -435,7 +435,7 @@ describe("CommandCenter update block", () => {
     assertTreeIntegrity(document);
 
     // Act - Insert block with append strategy (non-update command between 2nd and 3rd update)
-    commandCenter.execute("block:insert", {
+    commandCenter.execute("insertBlock", {
       targetId: TOGGLE_LIST4_BLOCK.id,
       newBlock: SAMPLE_BLOCK5,
       strategy: "append",
@@ -467,7 +467,7 @@ describe("CommandCenter update block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 3,
       root: document.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     expect(insertBlockEventCallback).toHaveBeenCalledExactlyOnceWith({
@@ -490,7 +490,7 @@ describe("CommandCenter update block", () => {
     assertTreeIntegrity(document);
 
     // Act 3 - Update with "replace" strategy
-    commandCenter.execute("block:update", {
+    commandCenter.execute("updateBlock", {
       blockId: TOGGLE_LIST4_BLOCK.id,
       newBlock: {
         ...TOGGLE_LIST5_BLOCK,
@@ -522,7 +522,7 @@ describe("CommandCenter update block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 4,
       root: document.getRoot(),
-      triggerAction: "block:update",
+      trigger: "updateBlock",
     });
 
     expect(updateBlockEventCallback).toHaveBeenNthCalledWith(3, {

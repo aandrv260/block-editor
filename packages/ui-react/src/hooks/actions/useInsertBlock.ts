@@ -7,7 +7,7 @@ export const useInsertBlock = () => {
 
   return useCallback(
     (payload: InsertBlockPayload) => {
-      editor.execute("block:insert", payload);
+      editor.execute("insertBlock", payload);
     },
     [editor],
   );

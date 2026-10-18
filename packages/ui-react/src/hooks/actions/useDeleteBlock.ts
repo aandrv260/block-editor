@@ -7,7 +7,7 @@ export const useDeleteBlock = () => {
 
   return useCallback(
     (payload: DeleteBlockPayload) => {
-      editor.execute("block:delete", payload);
+      editor.execute("deleteBlock", payload);
     },
     [editor],
   );

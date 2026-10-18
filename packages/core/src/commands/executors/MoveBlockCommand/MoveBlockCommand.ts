@@ -1,6 +1,5 @@
 import type { MoveBlockStrategy } from "../../../document/models/document.models";
-import { createMoveBlockEvent } from "../../../events/editor-event-bus/editorEvent.emits";
-import type { MoveBlockEvent } from "../../../events/editor-event-bus/event-types/move-block-event.models";
+import { createEvent } from "../../../events/editor-event-bus/createEvent";
 import type { CommandContext } from "../commandExecutors.models";
 
 export interface MoveBlockPayload {
@@ -12,14 +11,14 @@ export interface MoveBlockPayload {
 export const moveBlockCommand = ({
   payload,
   document,
-}: CommandContext<MoveBlockPayload>): MoveBlockEvent => {
+}: CommandContext<MoveBlockPayload>) => {
   document.moveBlock({
     blockId: payload.blockId,
     strategy: payload.strategy,
     targetId: payload.targetId,
   });
 
-  return createMoveBlockEvent({
+  return createEvent("block:move", {
     blockId: payload.blockId,
     targetId: payload.targetId,
     strategy: payload.strategy,

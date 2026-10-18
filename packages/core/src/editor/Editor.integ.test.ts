@@ -27,12 +27,12 @@ describe("Editor full integration", () => {
 
     editor
       .on("editor:change")
-      .filter(event => event.triggerAction === "block:insert")
+      .filter(event => event.trigger === "insertBlock")
       .subscribe(onChangeInsert);
 
     editor
       .on("editor:change")
-      .filter(event => event.triggerAction === "block:delete")
+      .filter(event => event.trigger === "deleteBlock")
       .subscribe(onChangeDelete);
 
     // Assert
@@ -45,7 +45,7 @@ describe("Editor full integration", () => {
     expect(editor.getDocumentSize()).toBe(1);
 
     // Act - Add a block
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: editor.getRoot().id,
       strategy: "append",
       newBlock: { ...TOGGLE_LIST1_BLOCK, children: [SAMPLE_BLOCK2] },
@@ -62,7 +62,7 @@ describe("Editor full integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: 1,
       root: editor.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     expect(onChangeDelete).not.toHaveBeenCalled();
@@ -73,7 +73,7 @@ describe("Editor full integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: editor.getCurrentPositionInHistory(),
       root: editor.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     expect(editor.getDocumentSize()).toBe(3);
@@ -122,7 +122,7 @@ describe("Editor full integration", () => {
     const insertAfterEventCallback = vi.fn();
     editor.subscribe("block:insert", insertAfterEventCallback);
 
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: SAMPLE_BLOCK2.id,
       strategy: "after",
       newBlock: SAMPLE_BLOCK3,
@@ -143,7 +143,7 @@ describe("Editor full integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: 2,
       root: editor.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     expect(onChangeDelete).not.toHaveBeenCalled();
@@ -154,7 +154,7 @@ describe("Editor full integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: editor.getCurrentPositionInHistory(),
       root: editor.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     expect(insertAfterEventCallback).toHaveBeenCalledExactlyOnceWith({
@@ -191,7 +191,7 @@ describe("Editor full integration", () => {
     const insertBeforeEventCallback = vi.fn();
     editor.subscribe("block:insert", insertBeforeEventCallback);
 
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: TOGGLE_LIST1_BLOCK.id,
       strategy: "before",
       newBlock: SAMPLE_BLOCK4,
@@ -213,7 +213,7 @@ describe("Editor full integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: 3,
       root: editor.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     expect(onChangeDelete).not.toHaveBeenCalled();
@@ -224,7 +224,7 @@ describe("Editor full integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: editor.getCurrentPositionInHistory(),
       root: editor.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     expect(insertBeforeEventCallback).toHaveBeenCalledExactlyOnceWith({
@@ -281,7 +281,7 @@ describe("Editor full integration", () => {
     const deleteEventCallback = vi.fn();
     editor.subscribe("block:delete", deleteEventCallback);
 
-    editor.execute("block:delete", {
+    editor.execute("deleteBlock", {
       blockId: TOGGLE_LIST1_BLOCK.id,
     });
 
@@ -297,7 +297,7 @@ describe("Editor full integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: 4,
       root: editor.getRoot(),
-      triggerAction: "block:delete",
+      trigger: "deleteBlock",
     });
 
     expect(onChangeInsert).not.toHaveBeenCalled();
@@ -308,7 +308,7 @@ describe("Editor full integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: editor.getCurrentPositionInHistory(),
       root: editor.getRoot(),
-      triggerAction: "block:delete",
+      trigger: "deleteBlock",
     });
 
     expect(deleteEventCallback).toHaveBeenCalledExactlyOnceWith({
@@ -339,7 +339,7 @@ describe("Editor full integration", () => {
     const updateEventCallback = vi.fn();
     editor.subscribe("block:update", updateEventCallback);
 
-    editor.execute("block:update", {
+    editor.execute("updateBlock", {
       blockId: SAMPLE_BLOCK4.id,
       newBlock: TOGGLE_LIST5_BLOCK,
       childrenStrategy: "drop",
@@ -354,7 +354,7 @@ describe("Editor full integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: 5,
       root: editor.getRoot(),
-      triggerAction: "block:update",
+      trigger: "updateBlock",
     });
 
     expect(onChangeDelete).not.toHaveBeenCalled();
@@ -391,7 +391,7 @@ describe("Editor full integration", () => {
     const appendToBlock5EventCallback = vi.fn();
     editor.subscribe("block:insert", appendToBlock5EventCallback);
 
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: TOGGLE_LIST5_BLOCK.id,
       strategy: "append",
       newBlock: SAMPLE_BLOCK6,
@@ -406,7 +406,7 @@ describe("Editor full integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: 6,
       root: editor.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     expect(onChangeDelete).not.toHaveBeenCalled();
@@ -417,7 +417,7 @@ describe("Editor full integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: editor.getCurrentPositionInHistory(),
       root: editor.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     expect(appendToBlock5EventCallback).toHaveBeenCalledExactlyOnceWith({
@@ -453,7 +453,7 @@ describe("Editor full integration", () => {
     const updateBlock5DroppingChildrenEventCallback = vi.fn();
     editor.subscribe("block:update", updateBlock5DroppingChildrenEventCallback);
 
-    editor.execute("block:update", {
+    editor.execute("updateBlock", {
       blockId: TOGGLE_LIST5_BLOCK.id,
       newBlock: SAMPLE_BLOCK7,
       childrenStrategy: "drop",
@@ -468,7 +468,7 @@ describe("Editor full integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: 7,
       root: editor.getRoot(),
-      triggerAction: "block:update",
+      trigger: "updateBlock",
     });
 
     expect(onChangeDelete).not.toHaveBeenCalled();
@@ -505,7 +505,7 @@ describe("Editor full integration", () => {
     const addBlockAfterBlock7EventCallback = vi.fn();
     editor.subscribe("block:insert", addBlockAfterBlock7EventCallback);
 
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: SAMPLE_BLOCK7.id,
       strategy: "after",
       newBlock: SAMPLE_BLOCK8,
@@ -520,7 +520,7 @@ describe("Editor full integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: 8,
       root: editor.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     expect(onChangeDelete).not.toHaveBeenCalled();
@@ -530,7 +530,7 @@ describe("Editor full integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: editor.getCurrentPositionInHistory(),
       root: editor.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     expect(addBlockAfterBlock7EventCallback).toHaveBeenCalledExactlyOnceWith({
@@ -565,7 +565,7 @@ describe("Editor full integration", () => {
     const moveBlock7AfterBlock8EventCallback = vi.fn();
     editor.subscribe("block:move", moveBlock7AfterBlock8EventCallback);
 
-    editor.execute("block:move", {
+    editor.execute("moveBlock", {
       blockId: SAMPLE_BLOCK7.id,
       targetId: SAMPLE_BLOCK8.id,
       strategy: "after",
@@ -580,7 +580,7 @@ describe("Editor full integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: 9,
       root: editor.getRoot(),
-      triggerAction: "block:move",
+      trigger: "moveBlock",
     });
 
     expect(onChangeDelete).not.toHaveBeenCalled();
@@ -619,7 +619,7 @@ describe("Editor full integration", () => {
     const moveBlock7BeforeBlock8EventCallback = vi.fn();
     editor.subscribe("block:move", moveBlock7BeforeBlock8EventCallback);
 
-    editor.execute("block:move", {
+    editor.execute("moveBlock", {
       blockId: SAMPLE_BLOCK7.id,
       targetId: SAMPLE_BLOCK8.id,
       strategy: "before",
@@ -634,7 +634,7 @@ describe("Editor full integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: 10,
       root: editor.getRoot(),
-      triggerAction: "block:move",
+      trigger: "moveBlock",
     });
 
     expect(onChangeDelete).not.toHaveBeenCalled();
@@ -686,7 +686,7 @@ describe("Editor full integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: 11,
       root: editor.getRoot(),
-      triggerAction: "document:swap",
+      trigger: "swapDocument",
     });
 
     expect(onChangeDelete).not.toHaveBeenCalled();
