@@ -13,11 +13,8 @@ import { parseDocumentJSON } from "../utils/json-utils";
 import { blockCanHaveChildren, getChildren } from "../utils/block-children.utils";
 import { blockPayloadToDocumentBlock } from "../utils/block-mapping.utils";
 import {
-  validateBlockStructure,
   validateBlockParentLink,
-  validateBlockType,
-  validateBlockVariant,
-  validateDocumentRootStructure,
+  validateDocumentStructure,
 } from "../utils/block-validation.utils";
 import { getUpdatedBlockParentChildren } from "../utils/block-children.utils";
 import { buildMapFromRoot } from "../utils/block-mapping.utils";
@@ -94,36 +91,25 @@ export class EditorDocument implements DocumentTree {
   public static fromJSON(json: string): EditorDocument {
     const parsedJSON = parseDocumentJSON(json);
 
-    validateDocumentRootStructure(parsedJSON);
+    validateDocumentStructure(parsedJSON);
 
-    const root = parsedJSON as DocumentNode;
     const newDocument = new EditorDocument();
-
-    newDocument.root = new DocumentRoot(root.id, root.children);
+    newDocument.root = new DocumentRoot(parsedJSON.id, parsedJSON.children);
 
     newDocument.traverse(current => {
-      validateBlockStructure(current);
-
       const isDuplicateOrCircularDep = newDocument.blocksMap.has(current.id);
 
       if (isDuplicateOrCircularDep) {
         throw new DuplicateOrCircularBlockError(current.id);
       }
 
-      const parentNotFound = !newDocument.getBlockOrRoot(current.parentId);
+      const parent = newDocument.getBlockOrRoot(current.parentId);
 
-      if (parentNotFound) {
+      if (!parent) {
         throw new ParentBlockNotFoundError(current.parentId, current.id);
       }
 
-      validateBlockType(current);
-
-      validateBlockParentLink(
-        newDocument.getBlockOrRoot(current.parentId as string),
-        current.id,
-      );
-
-      validateBlockVariant(current);
+      validateBlockParentLink(parent, current.id);
       newDocument.addBlockToMap(current);
     });
 

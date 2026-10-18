@@ -1,3 +1,4 @@
+import * as v from "valibot";
 import { BulletListBlockSchema } from "./bullet-list/bullet-list-block.schema";
 import { CalloutBlockSchema } from "./callout/callout-block.schema";
 import { HeadingBlockSchema } from "./heading/heading-block.schema";
@@ -15,3 +16,12 @@ export const BLOCK_SCHEMAS = {
 };
 
 export type BlockSchemas = typeof BLOCK_SCHEMAS;
+
+export const BlockSchema = v.variant("type", [
+  HeadingBlockSchema,
+  TextBlockSchema,
+  ToggleListBlockSchema,
+  QuoteBlockSchema,
+  CalloutBlockSchema,
+  BulletListBlockSchema,
+]);

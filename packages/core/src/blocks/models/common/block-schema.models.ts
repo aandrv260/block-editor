@@ -1,5 +1,6 @@
 import * as v from "valibot";
 import type { Block } from "../block.models";
+import { BlockSchema } from "../block.schemas";
 
 export const BlockBaseSchema = v.strictObject({
   id: v.string(),
@@ -7,5 +8,5 @@ export const BlockBaseSchema = v.strictObject({
 });
 
 export const BlockChildrenSchema: v.GenericSchema<Block[]> = v.array(
-  v.custom<Block>(() => true),
+  v.lazy(() => BlockSchema),
 );
