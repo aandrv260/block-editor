@@ -1,19 +1,14 @@
-import {
-  type MoveBlockActionPayload,
-  moveBlock as moveBlockAction,
-} from "@block-editor/core";
-import { useDispatcher } from "./useDispatcher";
 import { useCallback } from "react";
+import type { MoveBlockPayload } from "@block-editor/core";
+import { useEditorContext } from "../../context/hooks/useEditorContext";
 
 export const useMoveBlock = () => {
-  const dispatch = useDispatcher();
+  const { editor } = useEditorContext();
 
-  const moveBlock = useCallback(
-    (payload: MoveBlockActionPayload) => {
-      dispatch(moveBlockAction(payload));
+  return useCallback(
+    (payload: MoveBlockPayload) => {
+      editor.execute("block:move", payload);
     },
-    [dispatch],
+    [editor],
   );
-
-  return moveBlock;
 };

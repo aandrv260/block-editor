@@ -1,6 +1,5 @@
 import { Editor } from "./Editor";
 import { createEditor } from "./Editor-test.utils";
-import { insertBlock } from "@/actions/actions";
 import {
   TOGGLE_LIST1_BLOCK,
   SAMPLE_BLOCK2,
@@ -15,8 +14,6 @@ import {
   SAMPLE_BLOCK9,
   TOGGLE_LIST5_BLOCK,
 } from "@/document/utils/document-test.utils";
-import { updateBlock, deleteBlock } from "@/actions/actions";
-import { moveBlock } from "@/actions/actions";
 import { assertTreeIntegrity } from "@/document/utils/document-test.utils";
 import { DocumentRoot } from "@/document/DocumentRoot/DocumentRoot";
 import { EditorDocument } from "@/document/EditorDocument";
@@ -38,13 +35,11 @@ describe("Editor document integration", () => {
     );
 
     // Act - insert a block
-    editor.dispatchAction(
-      insertBlock({
-        targetId: editor.ROOT_ID,
-        strategy: "append",
-        newBlock: TOGGLE_LIST1_BLOCK,
-      }),
-    );
+    editor.execute("block:insert", {
+      targetId: editor.ROOT_ID,
+      strategy: "append",
+      newBlock: TOGGLE_LIST1_BLOCK,
+    });
 
     // Assert
     assertCorrectRootStructure();
@@ -54,13 +49,11 @@ describe("Editor document integration", () => {
     );
 
     // Act - insert block2
-    editor.dispatchAction(
-      insertBlock({
-        targetId: TOGGLE_LIST1_BLOCK.id,
-        strategy: "append",
-        newBlock: SAMPLE_BLOCK2,
-      }),
-    );
+    editor.execute("block:insert", {
+      targetId: TOGGLE_LIST1_BLOCK.id,
+      strategy: "append",
+      newBlock: SAMPLE_BLOCK2,
+    });
 
     // Assert
     assertCorrectRootStructure();
@@ -74,13 +67,11 @@ describe("Editor document integration", () => {
     );
 
     // Act - insert block3
-    editor.dispatchAction(
-      insertBlock({
-        targetId: SAMPLE_BLOCK2.id,
-        strategy: "after",
-        newBlock: SAMPLE_BLOCK3,
-      }),
-    );
+    editor.execute("block:insert", {
+      targetId: SAMPLE_BLOCK2.id,
+      strategy: "after",
+      newBlock: SAMPLE_BLOCK3,
+    });
 
     // Assert
     assertCorrectRootStructure();
@@ -98,13 +89,11 @@ describe("Editor document integration", () => {
     );
 
     // Act - update block 1
-    editor.dispatchAction(
-      updateBlock({
-        blockId: TOGGLE_LIST1_BLOCK.id,
-        newBlock: SAMPLE_BLOCK4,
-        childrenStrategy: "drop",
-      }),
-    );
+    editor.execute("block:update", {
+      blockId: TOGGLE_LIST1_BLOCK.id,
+      newBlock: SAMPLE_BLOCK4,
+      childrenStrategy: "drop",
+    });
 
     // Assert
     assertCorrectRootStructure();
@@ -182,7 +171,7 @@ describe("Editor document integration", () => {
     );
 
     // Act - Delete block 4
-    editor.dispatchAction(deleteBlock({ blockId: SAMPLE_BLOCK4.id }));
+    editor.execute("block:delete", { blockId: SAMPLE_BLOCK4.id });
 
     // Assert
     expect(editor.getRoot()).toStrictEqual(
@@ -235,13 +224,11 @@ describe("Editor document integration", () => {
     );
 
     // Act - move block 3 before 1
-    editor.dispatchAction(
-      moveBlock({
-        blockId: SAMPLE_BLOCK3.id,
-        targetId: TOGGLE_LIST1_BLOCK.id,
-        strategy: "before",
-      }),
-    );
+    editor.execute("block:move", {
+      blockId: SAMPLE_BLOCK3.id,
+      targetId: TOGGLE_LIST1_BLOCK.id,
+      strategy: "before",
+    });
 
     // Assert
     expect(editor.getBlock(SAMPLE_BLOCK4.id)).toBeNull();
@@ -274,7 +261,7 @@ describe("Editor document integration", () => {
     );
 
     // Act - delete
-    editor.dispatchAction(deleteBlock({ blockId: TOGGLE_LIST1_BLOCK.id }));
+    editor.execute("block:delete", { blockId: TOGGLE_LIST1_BLOCK.id });
 
     // Assert
     expect(editor.getBlock(TOGGLE_LIST1_BLOCK.id)).toBeNull();
@@ -479,7 +466,7 @@ describe("Editor document integration", () => {
     const onEditorChange = vi.fn();
     editor.on("editor:change").subscribe(onEditorChange);
 
-    // Assert - Initial state before any action
+    // Assert - Initial state before any command
     expect(updateBlockEventCallback).not.toHaveBeenCalled();
     expect(insertBlockEventCallback).not.toHaveBeenCalled();
     expect(onEditorChange).not.toHaveBeenCalled();
@@ -509,17 +496,15 @@ describe("Editor document integration", () => {
     assertTreeIntegrity(editor["document"]);
 
     // Act 1 - Update with "preserve" strategy
-    editor.dispatchAction(
-      updateBlock({
-        blockId: TOGGLE_LIST1_BLOCK.id,
-        newBlock: TOGGLE_LIST4_BLOCK,
-        childrenStrategy: "preserve",
-      }),
-    );
+    editor.execute("block:update", {
+      blockId: TOGGLE_LIST1_BLOCK.id,
+      newBlock: TOGGLE_LIST4_BLOCK,
+      childrenStrategy: "preserve",
+    });
 
     const DOCUMENT_JSON_AFTER_PRESERVE = editor.getDocumentJSON();
 
-    // Assert - State after preserve action
+    // Assert - State after preserve command
     expect(editor.getRoot()).toEqual({
       id: editor.ROOT_ID,
       children: [
@@ -578,17 +563,15 @@ describe("Editor document integration", () => {
     assertTreeIntegrity(editor["document"]);
 
     // Act 2 - Update with "drop" strategy
-    editor.dispatchAction(
-      updateBlock({
-        blockId: TOGGLE_LIST2_BLOCK.id,
-        newBlock: SAMPLE_BLOCK4,
-        childrenStrategy: "drop",
-      }),
-    );
+    editor.execute("block:update", {
+      blockId: TOGGLE_LIST2_BLOCK.id,
+      newBlock: SAMPLE_BLOCK4,
+      childrenStrategy: "drop",
+    });
 
     const DOCUMENT_JSON_AFTER_DROP = editor.getDocumentJSON();
 
-    // Assert - State after drop action
+    // Assert - State after drop command
     expect(editor.getRoot()).toEqual({
       id: editor.ROOT_ID,
       children: [
@@ -634,18 +617,16 @@ describe("Editor document integration", () => {
 
     assertTreeIntegrity(editor["document"]);
 
-    // Act - Insert block with append strategy (non-update action between 2nd and 3rd update)
-    editor.dispatchAction(
-      insertBlock({
-        targetId: TOGGLE_LIST4_BLOCK.id,
-        newBlock: SAMPLE_BLOCK5,
-        strategy: "append",
-      }),
-    );
+    // Act - Insert block with append strategy (non-update command between 2nd and 3rd update)
+    editor.execute("block:insert", {
+      targetId: TOGGLE_LIST4_BLOCK.id,
+      newBlock: SAMPLE_BLOCK5,
+      strategy: "append",
+    });
 
     const DOCUMENT_JSON_AFTER_APPEND = editor.getDocumentJSON();
 
-    // Assert - State after append action
+    // Assert - State after append command
     expect(editor.getRoot()).toEqual({
       id: editor.ROOT_ID,
       children: [
@@ -694,20 +675,18 @@ describe("Editor document integration", () => {
     assertTreeIntegrity(editor["document"]);
 
     // Act 3 - Update with "replace" strategy
-    editor.dispatchAction(
-      updateBlock({
-        blockId: TOGGLE_LIST4_BLOCK.id,
-        newBlock: {
-          ...TOGGLE_LIST5_BLOCK,
-          children: [SAMPLE_BLOCK6, SAMPLE_BLOCK9],
-        },
-        childrenStrategy: "replace",
-      }),
-    );
+    editor.execute("block:update", {
+      blockId: TOGGLE_LIST4_BLOCK.id,
+      newBlock: {
+        ...TOGGLE_LIST5_BLOCK,
+        children: [SAMPLE_BLOCK6, SAMPLE_BLOCK9],
+      },
+      childrenStrategy: "replace",
+    });
 
     const DOCUMENT_JSON_AFTER_REPLACE = editor.getDocumentJSON();
 
-    // Assert - State after replace action
+    // Assert - State after replace command
     expect(editor.getRoot()).toEqual({
       id: editor.ROOT_ID,
       children: [

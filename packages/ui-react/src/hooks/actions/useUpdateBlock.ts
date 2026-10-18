@@ -1,26 +1,14 @@
 import { useCallback } from "react";
-import { useDispatcher } from "./useDispatcher";
-import {
-  type BlockPayload,
-  type UpdateBlockChildrenStrategy,
-  updateBlock as updateBlockAction,
-} from "@block-editor/core";
-
-interface UpdatePayload {
-  blockId: string;
-  newBlock: BlockPayload;
-  childrenStrategy: UpdateBlockChildrenStrategy;
-}
+import type { UpdateBlockPayload } from "@block-editor/core";
+import { useEditorContext } from "../../context/hooks/useEditorContext";
 
 export const useUpdateBlock = () => {
-  const dispatch = useDispatcher();
+  const { editor } = useEditorContext();
 
-  const updateBlock = useCallback(
-    (payload: UpdatePayload) => {
-      dispatch(updateBlockAction({ ...payload }));
+  return useCallback(
+    (payload: UpdateBlockPayload) => {
+      editor.execute("block:update", payload);
     },
-    [dispatch],
+    [editor],
   );
-
-  return updateBlock;
 };

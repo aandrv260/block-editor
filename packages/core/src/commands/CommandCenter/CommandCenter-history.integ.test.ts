@@ -1,5 +1,4 @@
 import { createCommandCenter } from "./CommandCenter-test.utils";
-import { insertBlock } from "../../actions/actions";
 import {
   SAMPLE_BLOCK3,
   TOGGLE_LIST1_BLOCK,
@@ -42,13 +41,11 @@ describe("CommandCenter history", () => {
     assertInitialDefaultDocumentStructure();
 
     // Act
-    commandCenter.processAction(
-      insertBlock({
-        targetId: TOGGLE_LIST2_BLOCK.id,
-        newBlock: SAMPLE_BLOCK3,
-        strategy: "after",
-      }),
-    );
+    commandCenter.execute("block:insert", {
+      targetId: TOGGLE_LIST2_BLOCK.id,
+      newBlock: SAMPLE_BLOCK3,
+      strategy: "after",
+    });
 
     const documentJSONfterInsert = document.toJSON();
 
@@ -142,13 +139,11 @@ describe("CommandCenter history", () => {
     expect(history.getHistory()).toStrictEqual([INITIAL_HISTORY_DOC_JSON]);
 
     // Act
-    commandCenter.processAction(
-      insertBlock({
-        targetId: TOGGLE_LIST2_BLOCK.id,
-        newBlock: SAMPLE_BLOCK3,
-        strategy: "after",
-      }),
-    );
+    commandCenter.execute("block:insert", {
+      targetId: TOGGLE_LIST2_BLOCK.id,
+      newBlock: SAMPLE_BLOCK3,
+      strategy: "after",
+    });
 
     const documentJSONAfterInsert = document.toJSON();
 
@@ -267,13 +262,11 @@ describe("CommandCenter history", () => {
     expect(history.getHistory()).toStrictEqual([INITIAL_HISTORY_DOC_JSON]);
 
     // Act
-    commandCenter.processAction(
-      insertBlock({
-        targetId: TOGGLE_LIST2_BLOCK.id,
-        newBlock: TOGGLE_LIST3_BLOCK,
-        strategy: "after",
-      }),
-    );
+    commandCenter.execute("block:insert", {
+      targetId: TOGGLE_LIST2_BLOCK.id,
+      newBlock: TOGGLE_LIST3_BLOCK,
+      strategy: "after",
+    });
 
     const documentJSONAfterInsert1 = document.toJSON();
 
@@ -289,13 +282,11 @@ describe("CommandCenter history", () => {
 
     // Act
     vi.clearAllMocks();
-    commandCenter.processAction(
-      insertBlock({
-        targetId: TOGGLE_LIST3_BLOCK.id,
-        newBlock: SAMPLE_BLOCK4,
-        strategy: "append",
-      }),
-    );
+    commandCenter.execute("block:insert", {
+      targetId: TOGGLE_LIST3_BLOCK.id,
+      newBlock: SAMPLE_BLOCK4,
+      strategy: "append",
+    });
 
     const documentJSONAfterInsert2 = document.toJSON();
 
@@ -437,13 +428,11 @@ describe("CommandCenter history", () => {
 
     // Act -insert block1
     vi.clearAllMocks();
-    commandCenter.processAction(
-      insertBlock({
-        targetId: "root",
-        newBlock: SAMPLE_BLOCK9,
-        strategy: "append",
-      }),
-    );
+    commandCenter.execute("block:insert", {
+      targetId: "root",
+      newBlock: SAMPLE_BLOCK9,
+      strategy: "append",
+    });
 
     const DOCUMENT_JSON_AFTER_INSERT1 = document.toJSON();
 
@@ -582,13 +571,11 @@ describe("CommandCenter history", () => {
       // Arrange
       const { commandCenter, document, history, eventBus } = createCommandCenter();
 
-      commandCenter.processAction(
-        insertBlock({
-          targetId: TOGGLE_LIST2_BLOCK.id,
-          newBlock: SAMPLE_BLOCK3,
-          strategy: "after",
-        }),
-      );
+      commandCenter.execute("block:insert", {
+        targetId: TOGGLE_LIST2_BLOCK.id,
+        newBlock: SAMPLE_BLOCK3,
+        strategy: "after",
+      });
 
       const documentJSONAfterInsert = document.toJSON();
       const onJump = vi.fn();
@@ -612,23 +599,19 @@ describe("CommandCenter history", () => {
     const { commandCenter, document, history, INITIAL_HISTORY_DOC_JSON } =
       createCommandCenter();
 
-    commandCenter.processAction(
-      insertBlock({
-        targetId: TOGGLE_LIST2_BLOCK.id,
-        newBlock: SAMPLE_BLOCK3,
-        strategy: "after",
-      }),
-    );
+    commandCenter.execute("block:insert", {
+      targetId: TOGGLE_LIST2_BLOCK.id,
+      newBlock: SAMPLE_BLOCK3,
+      strategy: "after",
+    });
 
     const documentJSONAfterInsert1 = document.toJSON();
 
-    commandCenter.processAction(
-      insertBlock({
-        targetId: TOGGLE_LIST2_BLOCK.id,
-        newBlock: SAMPLE_BLOCK4,
-        strategy: "append",
-      }),
-    );
+    commandCenter.execute("block:insert", {
+      targetId: TOGGLE_LIST2_BLOCK.id,
+      newBlock: SAMPLE_BLOCK4,
+      strategy: "append",
+    });
 
     const documentJSONAfterInsert2 = document.toJSON();
 

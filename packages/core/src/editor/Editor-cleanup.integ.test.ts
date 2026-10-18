@@ -1,4 +1,3 @@
-import { deleteBlock, insertBlock } from "@/actions/actions";
 import { SAMPLE_BLOCK1, SAMPLE_BLOCK2 } from "@/document/utils/document-test.utils";
 import { createEditor } from "./Editor-test.utils";
 
@@ -15,13 +14,11 @@ describe("Editor cleanup", () => {
     editor.subscribe("block:delete", deleteEventCallback);
 
     // Assert
-    editor.dispatchAction(
-      insertBlock({
-        targetId: editor.ROOT_ID,
-        strategy: "append",
-        newBlock: SAMPLE_BLOCK1,
-      }),
-    );
+    editor.execute("block:insert", {
+      targetId: editor.ROOT_ID,
+      strategy: "append",
+      newBlock: SAMPLE_BLOCK1,
+    });
 
     expect(insertEventCallback).toHaveBeenCalledExactlyOnceWith({
       type: "block:insert",
@@ -34,7 +31,7 @@ describe("Editor cleanup", () => {
 
     // Act - delete the block1
     vi.clearAllMocks();
-    editor.dispatchAction(deleteBlock({ blockId: SAMPLE_BLOCK1.id }));
+    editor.execute("block:delete", { blockId: SAMPLE_BLOCK1.id });
 
     // Assert
     expect(deleteEventCallback).toHaveBeenCalledExactlyOnceWith({
@@ -49,15 +46,13 @@ describe("Editor cleanup", () => {
     editor.cleanup();
 
     // Act - insert a new block
-    editor.dispatchAction(
-      insertBlock({
-        targetId: editor.ROOT_ID,
-        strategy: "append",
-        newBlock: SAMPLE_BLOCK2,
-      }),
-    );
+    editor.execute("block:insert", {
+      targetId: editor.ROOT_ID,
+      strategy: "append",
+      newBlock: SAMPLE_BLOCK2,
+    });
 
-    editor.dispatchAction(deleteBlock({ blockId: SAMPLE_BLOCK2.id }));
+    editor.execute("block:delete", { blockId: SAMPLE_BLOCK2.id });
 
     // Assert
     expect(insertEventCallback).not.toHaveBeenCalled();

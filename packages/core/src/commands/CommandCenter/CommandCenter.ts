@@ -1,4 +1,3 @@
-import type { EditorAction } from "../../actions/actions.models";
 import type { DocumentHistory } from "../../history/DocumentHistory";
 import { HistoryManager } from "../../history/HistoryManager";
 import { EditorDocument } from "../../document/EditorDocument";
@@ -12,7 +11,6 @@ import type {
   CommandContext,
   Commands,
 } from "../executors/commandExecutors.models";
-import { executeAction } from "../executors/executeAction";
 import { UnknownCommandError } from "../errors/unknown-command/UnknownCommandError";
 
 interface CommandCenterConfig<TCommands extends Commands> {
@@ -25,8 +23,8 @@ interface CommandCenterConfig<TCommands extends Commands> {
 /**
  * Responsibilities:
  * - For a command type and its payload, it will execute the registered command and update the history.
- * - It delegates the history operations (undo, redo, jump and set) to the history manager because they are not actions.
- * - It emits the editor change event after every action and history operation.
+ * - It delegates the history operations (undo, redo, jump and set) to the history manager because they are not commands.
+ * - It emits the editor change event after every command and history operation.
  * - This is the only part of the system allowed to mutate the document and history.
  */
 export class CommandCenter<TCommands extends Commands> {
@@ -61,7 +59,9 @@ export class CommandCenter<TCommands extends Commands> {
     const command = this.getCommand(type);
     const event = command({ payload: args[0], document: this.document });
 
-    this.commit(type, event);
+    this.recordHistory(event);
+    this.eventBus.emit(event.type, event);
+    this.emitChangeEvent(type);
   }
 
   private getCommand(
@@ -72,23 +72,6 @@ export class CommandCenter<TCommands extends Commands> {
     }
 
     return this.commands[type] as (context: CommandContext<unknown>) => CommandEvent;
-  }
-
-  // TODO: Remove together with the action creators once every caller uses `execute`.
-  public processAction(action: EditorAction) {
-    const event = executeAction({
-      type: action.type,
-      payload: action.payload,
-      document: this.document,
-    });
-
-    this.commit(action.type, event);
-  }
-
-  private commit(type: string, event: CommandEvent) {
-    this.recordHistory(event);
-    this.eventBus.emit(event.type, event);
-    this.emitChangeEvent(type);
   }
 
   public undo(): void {

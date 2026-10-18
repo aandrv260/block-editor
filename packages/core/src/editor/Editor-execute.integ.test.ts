@@ -1,6 +1,5 @@
 import { createEditor } from "./Editor-test.utils";
 import { Editor } from "./Editor";
-import { insertBlock } from "@/actions/actions";
 import {
   assertTreeIntegrity,
   SAMPLE_BLOCK1,
@@ -71,31 +70,6 @@ describe("Editor execute", () => {
     ]);
 
     assertTreeIntegrity(editor["document"]);
-  });
-
-  it("gives the same result as dispatching the equivalent action", () => {
-    // Arrange
-    const payload = {
-      targetId: "root",
-      strategy: "append",
-      newBlock: SAMPLE_BLOCK1,
-    } as const;
-
-    const { editor: executingEditor } = createEditor();
-    const { editor: dispatchingEditor } = createEditor();
-
-    // Act
-    executingEditor.execute("block:insert", payload);
-    dispatchingEditor.dispatchAction(insertBlock(payload));
-
-    // Assert
-    expect(executingEditor.getDocumentJSON()).toBe(
-      dispatchingEditor.getDocumentJSON(),
-    );
-
-    expect(executingEditor.getHistory()).toStrictEqual(
-      dispatchingEditor.getHistory(),
-    );
   });
 
   it("executes a command without a payload and emits the event it returns", () => {

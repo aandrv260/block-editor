@@ -24,25 +24,23 @@ This architecture enables:
 
 ## Key highlights:
 
-### Unidirectional data flow with action-based data mutation
+### Unidirectional data flow with command-based data mutation
 
 ```md
-dispatchAction -> CommandCenter -> mutation -> event
+execute -> CommandCenter -> mutation -> event
 ```
 
 Example:
 
 ```TS
-editor.dispatchAction(
-  moveBlock({
-    blockId: 'block1',
-    targetId: 'root',
-    strategy: 'append',
-  }),
-);
+editor.execute("block:move", {
+  blockId: "block1",
+  targetId: "root",
+  strategy: "append",
+});
 ```
 
-`moveBlock` is one of the helper utils that makes the generation of the action payload in a cleaner and more semantic way. Other such utils are `insertBlock`, `deleteBlock`, `updateBlock`, `moveBlock`, etc.
+The command type picks the command, and its payload is fully typed. The built-in commands are `block:insert`, `block:delete`, `block:update`, `block:move` and `document:swap`.
 
 This is simple, synchronous, predictable and easy to debug.
 
@@ -149,7 +147,7 @@ The core engine is responsible for all state ownership and mutations.
 
 - The document state can only be mutated through commands
 
-- Commands are triggered exclusively via dispatched actions
+- Commands are triggered exclusively through `editor.execute`
 
 - The CommandCenter is the single authority allowed to mutate state
 
@@ -160,7 +158,7 @@ The core engine is responsible for all state ownership and mutations.
 ### Command-driven state mutation
 
 ```MD
-Action → Command → State Mutation → Event
+Execute → Command → State Mutation → Event
 ```
 
 This unidirectional flow guarantees:
@@ -183,7 +181,7 @@ The presentation layer is a pure consumer of editor state and events.
 **Its responsibilities are limited to:**
 
 - Rendering editor state
-- Dispatching actions
+- Executing commands
 - Reacting to emitted events
 
 ## Package Structure
@@ -191,7 +189,6 @@ The presentation layer is a pure consumer of editor state and events.
 ```
 packages/
 ├── core/                   # Framework-agnostic engine
-│   ├── actions/            # Type-safe actions
 │   ├── blocks/             # Block models and validation
 │   ├── commands/           # Commands for mutating the state
 │   ├── document/           # Document tree
@@ -201,7 +198,7 @@ packages/
 └── ui-react/               # React integration layer
     ├── components/         # Block renderers
     ├── context/            # EditorProvider
-    └── hooks/              # Action dispatcher hooks
+    └── hooks/              # Editor, history and block hooks
 ```
 
 ## Quick start

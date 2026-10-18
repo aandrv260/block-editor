@@ -1,10 +1,10 @@
 import type { DeepReadonly } from "@/common/types/object.types";
-import type { EditorActionType } from "../../../actions/actions.models";
+import type { DefaultCommands } from "../../../commands/executors/defaultCommands";
 import type { DocumentRoot } from "../../../document/DocumentRoot/DocumentRoot";
 import type { HistoryOperationType } from "../../../history/models/history-operation.models";
 
 export interface EditorChangeEvent<
-  TTrigger extends string = EditorActionType | HistoryOperationType,
+  TTrigger extends string = keyof DefaultCommands | HistoryOperationType,
 > {
   type: "editor:change";
   documentJSON: string;
