@@ -1,8 +1,18 @@
+import { createEditor } from "@block-editor/core";
 import { EditorProvider } from "@block-editor/react";
 import Playground from "./components/Playground";
-import { createEditor } from "./createEditor";
 
 const editor = createEditor();
+
+editor.execute("block:insert", {
+  targetId: editor.ROOT_ID,
+  strategy: "append",
+  newBlock: {
+    id: crypto.randomUUID(),
+    type: "heading",
+    data: { text: "", level: 1 },
+  },
+});
 
 export default function App() {
   return (

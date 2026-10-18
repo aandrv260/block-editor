@@ -1,38 +1,28 @@
 import type {
-  CommandArgsMap,
-  CommandArgsMapOf,
-  CommandsFor,
+  Command,
+  CommandContext,
+  Commands,
 } from "@/commands/executors/commandExecutors.models";
 import type { DefaultCommands } from "@/commands/executors/defaultCommands";
-
-export type Blocks = Record<string, never>;
+import type { CommandEvent } from "@/events/editor-event-bus/editorEvent.models";
 
 export interface EditorSchema {
-  commands: CommandArgsMap;
-  blocks: Blocks;
+  commands: Commands;
 }
 
 export interface DefaultEditorSchema {
-  commands: CommandArgsMapOf<DefaultCommands>;
-  blocks: Blocks;
+  commands: DefaultCommands;
 }
 
 export type CommandType<TSchema extends EditorSchema> = keyof TSchema["commands"] &
   string;
 
-export type CustomCommandsFor<TSchema extends EditorSchema> = Omit<
-  CommandsFor<TSchema["commands"]>,
-  keyof DefaultCommands
->;
+type InlineCommand = (context: CommandContext<undefined>) => CommandEvent;
 
-export type CommandPayloadOf<
-  TSchema extends EditorSchema,
-  TType extends CommandType<TSchema>,
-> = TSchema["commands"][TType][0];
-
-export type EditorActionOf<TSchema extends EditorSchema> = {
-  [TType in CommandType<TSchema>]: {
-    type: TType;
-    payload: CommandPayloadOf<TSchema, TType>;
-  };
-}[CommandType<TSchema>];
+export type CustomCommands<TCommands> = {
+  [TType in keyof TCommands]: TType extends keyof DefaultCommands
+    ? never
+    : TCommands[TType] extends Command
+      ? TCommands[TType]
+      : InlineCommand;
+};

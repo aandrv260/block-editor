@@ -11,10 +11,7 @@ import { EventBus } from "../../events/event-bus/EventBus";
 import { DocumentHistory } from "../../history/DocumentHistory";
 import { assertEngineError } from "../../errors/test-utils/error-test.utils";
 import { BlockToDeleteNotFoundError } from "../errors/delete-block/BlockToDeleteNotFoundError";
-import type {
-  CommandArgsMapOf,
-  CommandContext,
-} from "../executors/commandExecutors.models";
+import type { CommandContext } from "../executors/commandExecutors.models";
 import { DEFAULT_COMMANDS } from "../executors/defaultCommands";
 import { createTestDocument } from "../executors/utils/commandExecutors-test.utils";
 import { CommandCenter } from "./CommandCenter";
@@ -44,9 +41,7 @@ const createCommandCenterWithCustomCommand = () => {
     initialDocumentJSON: document.toJSON(),
   });
 
-  const commandCenter = new CommandCenter<
-    CommandArgsMapOf<typeof COMMANDS_WITH_CUSTOM_COMMAND>
-  >({
+  const commandCenter = new CommandCenter({
     document,
     eventBus,
     history,
