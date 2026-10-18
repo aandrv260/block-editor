@@ -7,7 +7,7 @@ export const useUpdateBlock = () => {
 
   return useCallback(
     (payload: UpdateBlockPayload) => {
-      editor.execute("block:update", payload);
+      editor.execute("updateBlock", payload);
     },
     [editor],
   );

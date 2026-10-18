@@ -4,7 +4,7 @@ import Playground from "./components/Playground";
 
 const editor = createEditor();
 
-editor.execute("block:insert", {
+editor.execute("insertBlock", {
   targetId: editor.ROOT_ID,
   strategy: "append",
   newBlock: {

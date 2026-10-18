@@ -40,7 +40,7 @@ describe("Editor history", () => {
     });
 
     // Act
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: editor.getRoot().id,
       strategy: "append",
       newBlock: SAMPLE_BLOCK1,
@@ -65,7 +65,7 @@ describe("Editor history", () => {
     // Act
     vi.clearAllMocks();
 
-    editor.execute("block:delete", { blockId: SAMPLE_BLOCK1.id });
+    editor.execute("deleteBlock", { blockId: SAMPLE_BLOCK1.id });
     const documentJSONAfterFirstDelete = editor.getDocumentJSON();
 
     // Assert
@@ -147,7 +147,7 @@ describe("Editor history", () => {
     const documentToSwapWith = createDocumentToSwapWith();
 
     // Act
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: editor["document"].ROOT_ID,
       newBlock: SAMPLE_BLOCK1,
       strategy: "append",
@@ -183,7 +183,7 @@ describe("Editor history", () => {
     const documentToSwapWith = createDocumentToSwapWith();
 
     // Act
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: editor["document"].ROOT_ID,
       newBlock: SAMPLE_BLOCK1,
       strategy: "append",
@@ -200,7 +200,7 @@ describe("Editor history", () => {
     expect(editor.getCurrentPositionInHistory()).toBe(1);
 
     // Act
-    editor.execute("document:swap", {
+    editor.execute("swapDocument", {
       element: documentToSwapWith,
       clearHistory: false,
     });
@@ -279,7 +279,7 @@ describe("Editor history", () => {
     expect(editor.getCurrentPositionInHistory()).toBe(0);
 
     // Act - insert a record
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: "root",
       newBlock: SAMPLE_BLOCK4,
       strategy: "append",
@@ -329,7 +329,7 @@ describe("Editor history", () => {
     });
 
     // Act - move block4 to be a descendant of 2
-    editor.execute("block:move", {
+    editor.execute("moveBlock", {
       blockId: SAMPLE_BLOCK4.id,
       targetId: TOGGLE_LIST2_BLOCK.id,
       strategy: "append",

@@ -29,7 +29,7 @@ describe("CommandCenter delete block", () => {
     assertInitialDefaultDocumentStructure();
 
     // Act
-    commandCenter.execute("block:delete", {
+    commandCenter.execute("deleteBlock", {
       blockId: TOGGLE_LIST1_BLOCK.id,
     });
 
@@ -40,7 +40,7 @@ describe("CommandCenter delete block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:delete",
+      trigger: "deleteBlock",
     });
 
     expect(document.getRoot()).toStrictEqual(
@@ -80,7 +80,7 @@ describe("CommandCenter delete block", () => {
 
     // Act and assert
     assertEngineError(
-      () => commandCenter.execute("block:delete", { blockId: "not_existing_block" }),
+      () => commandCenter.execute("deleteBlock", { blockId: "not_existing_block" }),
       {
         ExpectedErrorClass: BlockToDeleteNotFoundError,
         expectedCode: "COMMAND:BLOCK_TO_DELETE_NOT_FOUND",
@@ -107,7 +107,7 @@ describe("CommandCenter delete block", () => {
     });
 
     // Act
-    commandCenter.execute("block:delete", { blockId: TOGGLE_LIST1_BLOCK.id });
+    commandCenter.execute("deleteBlock", { blockId: TOGGLE_LIST1_BLOCK.id });
 
     // Assert
     expect(currentRecordWhenEmitted).toBe(document.toJSON());

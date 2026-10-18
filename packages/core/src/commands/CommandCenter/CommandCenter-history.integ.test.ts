@@ -41,7 +41,7 @@ describe("CommandCenter history", () => {
     assertInitialDefaultDocumentStructure();
 
     // Act
-    commandCenter.execute("block:insert", {
+    commandCenter.execute("insertBlock", {
       targetId: TOGGLE_LIST2_BLOCK.id,
       newBlock: SAMPLE_BLOCK3,
       strategy: "after",
@@ -56,7 +56,7 @@ describe("CommandCenter history", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     expect(history.getHistory()).toStrictEqual([
@@ -98,7 +98,7 @@ describe("CommandCenter history", () => {
       history: history.getHistory(),
       currentPositionInHistory: 0,
       root: document.getRoot(),
-      triggerAction: "history:undo",
+      trigger: "undo",
     });
 
     expect(history.getHistory()).toStrictEqual([
@@ -139,7 +139,7 @@ describe("CommandCenter history", () => {
     expect(history.getHistory()).toStrictEqual([INITIAL_HISTORY_DOC_JSON]);
 
     // Act
-    commandCenter.execute("block:insert", {
+    commandCenter.execute("insertBlock", {
       targetId: TOGGLE_LIST2_BLOCK.id,
       newBlock: SAMPLE_BLOCK3,
       strategy: "after",
@@ -154,7 +154,7 @@ describe("CommandCenter history", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     // Act
@@ -168,7 +168,7 @@ describe("CommandCenter history", () => {
       history: history.getHistory(),
       currentPositionInHistory: 0,
       root: document.getRoot(),
-      triggerAction: "history:undo",
+      trigger: "undo",
     });
 
     expect(history.getHistory()).toStrictEqual([
@@ -189,7 +189,7 @@ describe("CommandCenter history", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "history:redo",
+      trigger: "redo",
     });
 
     expect(document.toJSON()).toBe(documentJSONAfterInsert);
@@ -262,7 +262,7 @@ describe("CommandCenter history", () => {
     expect(history.getHistory()).toStrictEqual([INITIAL_HISTORY_DOC_JSON]);
 
     // Act
-    commandCenter.execute("block:insert", {
+    commandCenter.execute("insertBlock", {
       targetId: TOGGLE_LIST2_BLOCK.id,
       newBlock: TOGGLE_LIST3_BLOCK,
       strategy: "after",
@@ -277,12 +277,12 @@ describe("CommandCenter history", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     // Act
     vi.clearAllMocks();
-    commandCenter.execute("block:insert", {
+    commandCenter.execute("insertBlock", {
       targetId: TOGGLE_LIST3_BLOCK.id,
       newBlock: SAMPLE_BLOCK4,
       strategy: "append",
@@ -297,7 +297,7 @@ describe("CommandCenter history", () => {
       history: history.getHistory(),
       currentPositionInHistory: 2,
       root: document.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     expect(document.getRoot()).toStrictEqual(
@@ -346,7 +346,7 @@ describe("CommandCenter history", () => {
       history: history.getHistory(),
       currentPositionInHistory: 0,
       root: document.getRoot(),
-      triggerAction: "history:jump",
+      trigger: "jumpTo",
     });
     assertInitialDefaultDocumentStructure();
 
@@ -414,7 +414,7 @@ describe("CommandCenter history", () => {
       history: history.getHistory(),
       currentPositionInHistory: 2,
       root: document.getRoot(),
-      triggerAction: "history:set",
+      trigger: "setHistory",
     });
 
     expect(history.getHistory()).toEqual([
@@ -428,7 +428,7 @@ describe("CommandCenter history", () => {
 
     // Act -insert block1
     vi.clearAllMocks();
-    commandCenter.execute("block:insert", {
+    commandCenter.execute("insertBlock", {
       targetId: "root",
       newBlock: SAMPLE_BLOCK9,
       strategy: "append",
@@ -490,7 +490,7 @@ describe("CommandCenter history", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "history:set",
+      trigger: "setHistory",
     });
 
     expect(history.getHistory()).toEqual([
@@ -571,7 +571,7 @@ describe("CommandCenter history", () => {
       // Arrange
       const { commandCenter, document, history, eventBus } = createCommandCenter();
 
-      commandCenter.execute("block:insert", {
+      commandCenter.execute("insertBlock", {
         targetId: TOGGLE_LIST2_BLOCK.id,
         newBlock: SAMPLE_BLOCK3,
         strategy: "after",
@@ -599,7 +599,7 @@ describe("CommandCenter history", () => {
     const { commandCenter, document, history, INITIAL_HISTORY_DOC_JSON } =
       createCommandCenter();
 
-    commandCenter.execute("block:insert", {
+    commandCenter.execute("insertBlock", {
       targetId: TOGGLE_LIST2_BLOCK.id,
       newBlock: SAMPLE_BLOCK3,
       strategy: "after",
@@ -607,7 +607,7 @@ describe("CommandCenter history", () => {
 
     const documentJSONAfterInsert1 = document.toJSON();
 
-    commandCenter.execute("block:insert", {
+    commandCenter.execute("insertBlock", {
       targetId: TOGGLE_LIST2_BLOCK.id,
       newBlock: SAMPLE_BLOCK4,
       strategy: "append",

@@ -5,14 +5,14 @@ import type {
   CommandContext,
   Commands,
 } from "@/commands/executors/commandExecutors.models";
-import { createDeleteBlockEvent } from "@/events/editor-event-bus/editorEvent.emits";
+import { createEvent } from "@/events/editor-event-bus/createEvent";
 
 const deleteFirstBlockCommand = ({ document }: CommandContext<void>) => {
   const firstBlockId = document.getRoot().children[0].id;
 
   document.remove(firstBlockId);
 
-  return createDeleteBlockEvent({ blockId: firstBlockId });
+  return createEvent("block:delete", { blockId: firstBlockId });
 };
 
 const deleteBlockByIdCommand = ({
@@ -21,7 +21,7 @@ const deleteBlockByIdCommand = ({
 }: CommandContext<{ id: string }>) => {
   document.remove(payload.id);
 
-  return createDeleteBlockEvent({ blockId: payload.id });
+  return createEvent("block:delete", { blockId: payload.id });
 };
 
 describe("createEditor", () => {
@@ -33,7 +33,7 @@ describe("createEditor", () => {
     editor.subscribe("block:insert", onInsert);
 
     // Act
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: editor.ROOT_ID,
       strategy: "append",
       newBlock: SAMPLE_BLOCK1,
@@ -51,7 +51,7 @@ describe("createEditor", () => {
     // Act
     const editor = createEditor({ initialDocument, historyLimit: 1 });
 
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: editor.ROOT_ID,
       strategy: "append",
       newBlock: SAMPLE_BLOCK2,
@@ -66,8 +66,8 @@ describe("createEditor", () => {
     // Arrange
     const editor = createEditor({
       commands: {
-        "test:delete-first-block": deleteFirstBlockCommand,
-        "test:delete-block-by-id": deleteBlockByIdCommand,
+        deleteFirstBlock: deleteFirstBlockCommand,
+        deleteBlockById: deleteBlockByIdCommand,
       },
     });
 
@@ -75,21 +75,21 @@ describe("createEditor", () => {
 
     editor.subscribe("block:delete", onDelete);
 
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: editor.ROOT_ID,
       strategy: "append",
       newBlock: SAMPLE_BLOCK1,
     });
 
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: editor.ROOT_ID,
       strategy: "append",
       newBlock: SAMPLE_BLOCK2,
     });
 
     // Act
-    editor.execute("test:delete-first-block");
-    editor.execute("test:delete-block-by-id", { id: SAMPLE_BLOCK2.id });
+    editor.execute("deleteFirstBlock");
+    editor.execute("deleteBlockById", { id: SAMPLE_BLOCK2.id });
 
     // Assert
     expect(onDelete).toHaveBeenNthCalledWith(1, {
@@ -110,24 +110,24 @@ describe("createEditor", () => {
     // Arrange
     const editor = createEditor({
       commands: {
-        "test:delete-first-block": ctx => {
+        deleteFirstBlock: ctx => {
           const firstBlockId = ctx.document.getRoot().children[0].id;
 
           ctx.document.remove(firstBlockId);
 
-          return createDeleteBlockEvent({ blockId: firstBlockId });
+          return createEvent("block:delete", { blockId: firstBlockId });
         },
       },
     });
 
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: editor.ROOT_ID,
       strategy: "append",
       newBlock: SAMPLE_BLOCK1,
     });
 
     // Act
-    editor.execute("test:delete-first-block");
+    editor.execute("deleteFirstBlock");
 
     // Assert
     expect(editor.getRoot().children).toStrictEqual([]);
@@ -136,33 +136,33 @@ describe("createEditor", () => {
   it("executes the custom commands from an object declared apart from the editor", () => {
     // Arrange
     const commands = {
-      "test:delete-first-block": ctx => {
+      deleteFirstBlock: ctx => {
         const firstBlockId = ctx.document.getRoot().children[0].id;
 
         ctx.document.remove(firstBlockId);
 
-        return createDeleteBlockEvent({ blockId: firstBlockId });
+        return createEvent("block:delete", { blockId: firstBlockId });
       },
-      "test:delete-block-by-id": deleteBlockByIdCommand,
+      deleteBlockById: deleteBlockByIdCommand,
     } satisfies Commands;
 
     const editor = createEditor({ commands });
 
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: editor.ROOT_ID,
       strategy: "append",
       newBlock: SAMPLE_BLOCK1,
     });
 
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: editor.ROOT_ID,
       strategy: "append",
       newBlock: SAMPLE_BLOCK2,
     });
 
     // Act
-    editor.execute("test:delete-first-block");
-    editor.execute("test:delete-block-by-id", { id: SAMPLE_BLOCK2.id });
+    editor.execute("deleteFirstBlock");
+    editor.execute("deleteBlockById", { id: SAMPLE_BLOCK2.id });
 
     // Assert
     expect(editor.getRoot().children).toStrictEqual([]);

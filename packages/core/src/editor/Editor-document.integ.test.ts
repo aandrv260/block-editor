@@ -35,7 +35,7 @@ describe("Editor document integration", () => {
     );
 
     // Act - insert a block
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: editor.ROOT_ID,
       strategy: "append",
       newBlock: TOGGLE_LIST1_BLOCK,
@@ -49,7 +49,7 @@ describe("Editor document integration", () => {
     );
 
     // Act - insert block2
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: TOGGLE_LIST1_BLOCK.id,
       strategy: "append",
       newBlock: SAMPLE_BLOCK2,
@@ -67,7 +67,7 @@ describe("Editor document integration", () => {
     );
 
     // Act - insert block3
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: SAMPLE_BLOCK2.id,
       strategy: "after",
       newBlock: SAMPLE_BLOCK3,
@@ -89,7 +89,7 @@ describe("Editor document integration", () => {
     );
 
     // Act - update block 1
-    editor.execute("block:update", {
+    editor.execute("updateBlock", {
       blockId: TOGGLE_LIST1_BLOCK.id,
       newBlock: SAMPLE_BLOCK4,
       childrenStrategy: "drop",
@@ -171,7 +171,7 @@ describe("Editor document integration", () => {
     );
 
     // Act - Delete block 4
-    editor.execute("block:delete", { blockId: SAMPLE_BLOCK4.id });
+    editor.execute("deleteBlock", { blockId: SAMPLE_BLOCK4.id });
 
     // Assert
     expect(editor.getRoot()).toStrictEqual(
@@ -224,7 +224,7 @@ describe("Editor document integration", () => {
     );
 
     // Act - move block 3 before 1
-    editor.execute("block:move", {
+    editor.execute("moveBlock", {
       blockId: SAMPLE_BLOCK3.id,
       targetId: TOGGLE_LIST1_BLOCK.id,
       strategy: "before",
@@ -261,7 +261,7 @@ describe("Editor document integration", () => {
     );
 
     // Act - delete
-    editor.execute("block:delete", { blockId: TOGGLE_LIST1_BLOCK.id });
+    editor.execute("deleteBlock", { blockId: TOGGLE_LIST1_BLOCK.id });
 
     // Assert
     expect(editor.getBlock(TOGGLE_LIST1_BLOCK.id)).toBeNull();
@@ -496,7 +496,7 @@ describe("Editor document integration", () => {
     assertTreeIntegrity(editor["document"]);
 
     // Act 1 - Update with "preserve" strategy
-    editor.execute("block:update", {
+    editor.execute("updateBlock", {
       blockId: TOGGLE_LIST1_BLOCK.id,
       newBlock: TOGGLE_LIST4_BLOCK,
       childrenStrategy: "preserve",
@@ -528,7 +528,7 @@ describe("Editor document integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: 1,
       root: editor.getRoot(),
-      triggerAction: "block:update",
+      trigger: "updateBlock",
     });
 
     expect(updateBlockEventCallback).toHaveBeenNthCalledWith(1, {
@@ -563,7 +563,7 @@ describe("Editor document integration", () => {
     assertTreeIntegrity(editor["document"]);
 
     // Act 2 - Update with "drop" strategy
-    editor.execute("block:update", {
+    editor.execute("updateBlock", {
       blockId: TOGGLE_LIST2_BLOCK.id,
       newBlock: SAMPLE_BLOCK4,
       childrenStrategy: "drop",
@@ -589,7 +589,7 @@ describe("Editor document integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: 2,
       root: editor.getRoot(),
-      triggerAction: "block:update",
+      trigger: "updateBlock",
     });
 
     expect(updateBlockEventCallback).toHaveBeenNthCalledWith(2, {
@@ -618,7 +618,7 @@ describe("Editor document integration", () => {
     assertTreeIntegrity(editor["document"]);
 
     // Act - Insert block with append strategy (non-update command between 2nd and 3rd update)
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: TOGGLE_LIST4_BLOCK.id,
       newBlock: SAMPLE_BLOCK5,
       strategy: "append",
@@ -647,7 +647,7 @@ describe("Editor document integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: 3,
       root: editor.getRoot(),
-      triggerAction: "block:insert",
+      trigger: "insertBlock",
     });
 
     expect(insertBlockEventCallback).toHaveBeenCalledExactlyOnceWith({
@@ -675,7 +675,7 @@ describe("Editor document integration", () => {
     assertTreeIntegrity(editor["document"]);
 
     // Act 3 - Update with "replace" strategy
-    editor.execute("block:update", {
+    editor.execute("updateBlock", {
       blockId: TOGGLE_LIST4_BLOCK.id,
       newBlock: {
         ...TOGGLE_LIST5_BLOCK,
@@ -707,7 +707,7 @@ describe("Editor document integration", () => {
       history: editor.getHistory(),
       currentPositionInHistory: 4,
       root: editor.getRoot(),
-      triggerAction: "block:update",
+      trigger: "updateBlock",
     });
 
     expect(updateBlockEventCallback).toHaveBeenNthCalledWith(3, {

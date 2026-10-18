@@ -1,10 +1,5 @@
 import type { EditorDocument } from "../../document/EditorDocument";
-import {
-  createHistoryJumpEvent,
-  createHistoryRedoEvent,
-  createHistorySetEvent,
-  createHistoryUndoEvent,
-} from "../../events/editor-event-bus/editorEvent.emits";
+import { createEvent } from "../../events/editor-event-bus/createEvent";
 import type { EditorEventBus } from "../../events/editor-event-bus/editorEvent.models";
 import { HistoryRecordMismatchError } from "../../commands/errors/history-set/HistoryRecordMismatchError";
 import type { DocumentHistory } from "../DocumentHistory";
@@ -50,7 +45,7 @@ export class HistoryManager {
     }
 
     this.document.swap(previousDocumentJSON);
-    this.eventBus.emit("history:undo", createHistoryUndoEvent());
+    this.eventBus.emit("history:undo", createEvent("history:undo", {}));
   }
 
   public redo(): void {
@@ -61,7 +56,7 @@ export class HistoryManager {
     }
 
     this.document.swap(nextDocumentJSON);
-    this.eventBus.emit("history:redo", createHistoryRedoEvent());
+    this.eventBus.emit("history:redo", createEvent("history:redo", {}));
   }
 
   /**
@@ -75,7 +70,7 @@ export class HistoryManager {
     }
 
     this.document.swap(documentJSON);
-    this.eventBus.emit("history:jump", createHistoryJumpEvent({ index }));
+    this.eventBus.emit("history:jump", createEvent("history:jump", { index }));
   }
 
   /**
@@ -92,7 +87,7 @@ export class HistoryManager {
 
     this.eventBus.emit(
       "history:set",
-      createHistorySetEvent({
+      createEvent("history:set", {
         history: this.history.getHistory(),
         currentPosition: this.history.getCurrentPosition(),
         currentRecord: this.history.getCurrent(),

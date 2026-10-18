@@ -7,7 +7,7 @@ export const useMoveBlock = () => {
 
   return useCallback(
     (payload: MoveBlockPayload) => {
-      editor.execute("block:move", payload);
+      editor.execute("moveBlock", payload);
     },
     [editor],
   );

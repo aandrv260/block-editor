@@ -32,7 +32,7 @@ export interface IEditor<TSchema extends EditorSchema = DefaultEditorSchema> {
    *
    * Example:
    * ```TS
-   * editor.execute("block:move", {
+   * editor.execute("moveBlock", {
         blockId: "1",
         targetId: "2",
         strategy: "before",

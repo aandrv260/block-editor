@@ -27,7 +27,7 @@ describe("CommandCenter move block", () => {
     assertInitialDefaultDocumentStructure();
 
     // Act
-    commandCenter.execute("block:move", {
+    commandCenter.execute("moveBlock", {
       blockId: TOGGLE_LIST2_BLOCK.id,
       targetId: document.ROOT_ID,
       strategy: "append",
@@ -40,7 +40,7 @@ describe("CommandCenter move block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:move",
+      trigger: "moveBlock",
     });
 
     expect(document.getRoot()).toStrictEqual(
@@ -99,7 +99,7 @@ describe("CommandCenter move block", () => {
     assertInitialDefaultDocumentStructure();
 
     // Act
-    commandCenter.execute("block:move", {
+    commandCenter.execute("moveBlock", {
       blockId: TOGGLE_LIST2_BLOCK.id,
       targetId: TOGGLE_LIST1_BLOCK.id,
       strategy: "before",
@@ -112,7 +112,7 @@ describe("CommandCenter move block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:move",
+      trigger: "moveBlock",
     });
 
     expect(document.getRoot()).toStrictEqual(
@@ -171,7 +171,7 @@ describe("CommandCenter move block", () => {
     assertInitialDefaultDocumentStructure();
 
     // Act
-    commandCenter.execute("block:move", {
+    commandCenter.execute("moveBlock", {
       blockId: TOGGLE_LIST2_BLOCK.id,
       targetId: TOGGLE_LIST1_BLOCK.id,
       strategy: "after",
@@ -184,7 +184,7 @@ describe("CommandCenter move block", () => {
       history: history.getHistory(),
       currentPositionInHistory: 1,
       root: document.getRoot(),
-      triggerAction: "block:move",
+      trigger: "moveBlock",
     });
 
     expect(document.getRoot()).toStrictEqual(

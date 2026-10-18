@@ -1,6 +1,5 @@
 import type { Block } from "../../../blocks/models/block.models";
-import { createDeleteBlockEvent } from "../../../events/editor-event-bus/editorEvent.emits";
-import type { DeleteBlockEvent } from "../../../events/editor-event-bus/event-types/delete-block-event.models";
+import { createEvent } from "../../../events/editor-event-bus/createEvent";
 import { BlockToDeleteNotFoundError } from "../../errors/delete-block/BlockToDeleteNotFoundError";
 import type { CommandContext } from "../commandExecutors.models";
 
@@ -10,15 +9,13 @@ export interface DeleteBlockPayload {
 
 type DeleteBlockCommandContext = CommandContext<DeleteBlockPayload>;
 
-export const deleteBlockCommand = (
-  context: DeleteBlockCommandContext,
-): DeleteBlockEvent => {
+export const deleteBlockCommand = (context: DeleteBlockCommandContext) => {
   const { payload, document } = context;
 
   validateBlockToDeleteExists(context);
   document.remove(payload.blockId);
 
-  return createDeleteBlockEvent({ blockId: payload.blockId });
+  return createEvent("block:delete", { blockId: payload.blockId });
 };
 
 const validateBlockToDeleteExists = ({

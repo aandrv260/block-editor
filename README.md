@@ -33,14 +33,14 @@ execute -> CommandCenter -> mutation -> event
 Example:
 
 ```TS
-editor.execute("block:move", {
+editor.execute("moveBlock", {
   blockId: "block1",
   targetId: "root",
   strategy: "append",
 });
 ```
 
-The command type picks the command, and its payload is fully typed. The built-in commands are `block:insert`, `block:delete`, `block:update`, `block:move` and `document:swap`.
+The command type picks the command, and its payload is fully typed. The built-in commands are `insertBlock`, `deleteBlock`, `updateBlock`, `moveBlock` and `swapDocument`.
 
 This is simple, synchronous, predictable and easy to debug.
 
@@ -76,7 +76,7 @@ The engine exposes a minimal, lazy, Rx-inspired event stream system tailored for
 
 ```TS
 const editor = new Editor();
-const logDeletion = (event: DeleteBlockEvent) => { ... }
+const logDeletion = (event: EditorEventsMap["block:delete"]) => { ... }
 
 // It is recommended you prepend or append dollar sign to the variable name to indicate it is a stream.
 const deleteBlockWithLogging$ = editor

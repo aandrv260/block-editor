@@ -8,18 +8,18 @@ import { assertEngineError } from "@/errors/test-utils/error-test.utils";
 import { UnknownCommandError } from "@/commands/errors/unknown-command/UnknownCommandError";
 import type { DefaultCommands } from "@/commands/executors/defaultCommands";
 import type { CommandContext } from "@/commands/executors/commandExecutors.models";
-import { createDeleteBlockEvent } from "@/events/editor-event-bus/editorEvent.emits";
+import { createEvent } from "@/events/editor-event-bus/createEvent";
 
 const deleteFirstBlockCommand = ({ document }: CommandContext<void>) => {
   const firstBlockId = document.getRoot().children[0].id;
 
   document.remove(firstBlockId);
 
-  return createDeleteBlockEvent({ blockId: firstBlockId });
+  return createEvent("block:delete", { blockId: firstBlockId });
 };
 
 const CUSTOM_COMMANDS = {
-  "test:delete-first-block": deleteFirstBlockCommand,
+  deleteFirstBlock: deleteFirstBlockCommand,
 };
 
 type SchemaWithCustomCommand = {
@@ -44,7 +44,7 @@ describe("Editor execute", () => {
     editor.subscribe("editor:change", onEditorChange);
 
     // Act
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: editor.ROOT_ID,
       strategy: "append",
       newBlock: SAMPLE_BLOCK1,
@@ -61,7 +61,7 @@ describe("Editor execute", () => {
     });
 
     expect(onEditorChange).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({ triggerAction: "block:insert" }),
+      expect.objectContaining({ trigger: "insertBlock" }),
     );
 
     expect(editor.getHistory()).toStrictEqual([
@@ -77,7 +77,7 @@ describe("Editor execute", () => {
     const editor = createEditorWithCustomCommand();
     const onDelete = vi.fn();
 
-    editor.execute("block:insert", {
+    editor.execute("insertBlock", {
       targetId: editor.ROOT_ID,
       strategy: "append",
       newBlock: SAMPLE_BLOCK1,
@@ -86,7 +86,7 @@ describe("Editor execute", () => {
     editor.subscribe("block:delete", onDelete);
 
     // Act
-    editor.execute("test:delete-first-block");
+    editor.execute("deleteFirstBlock");
 
     // Assert
     expect(onDelete).toHaveBeenCalledExactlyOnceWith({
@@ -106,11 +106,12 @@ describe("Editor execute", () => {
     editor.subscribe("editor:change", onEditorChange);
 
     // Act and assert
-    assertEngineError(() => executeWithoutTypes(editor, "test:unknown"), {
+    assertEngineError(() => executeWithoutTypes(editor, "unknownCommand"), {
       ExpectedErrorClass: UnknownCommandError,
       expectedCode: "COMMAND:UNKNOWN_COMMAND",
-      expectedMessage: 'There is no command registered for the type "test:unknown"!',
-      expectedContext: { type: "test:unknown" },
+      expectedMessage:
+        'There is no command registered for the type "unknownCommand"!',
+      expectedContext: { type: "unknownCommand" },
     });
 
     expect(onEditorChange).not.toHaveBeenCalled();
