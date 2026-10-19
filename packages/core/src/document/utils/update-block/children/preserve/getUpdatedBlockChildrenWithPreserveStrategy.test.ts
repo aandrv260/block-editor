@@ -5,6 +5,7 @@ import {
   TOGGLE_LIST1_BLOCK,
   TOGGLE_LIST2_BLOCK,
   TOGGLE_LIST3_BLOCK,
+  testBlockToBlock,
 } from "../../../document-test.utils";
 import { assertEngineError } from "../../../../../errors/test-utils/error-test.utils";
 import { DocumentErrorCode } from "../../../../errors/DocumentErrorCode";
@@ -56,7 +57,15 @@ describe("getUpdatedBlockChildrenWithPreserveStrategy()", () => {
 
   test.each([
     ["empty", []],
-    ["not empty", [{ ...TOGGLE_LIST3_BLOCK, children: [SAMPLE_BLOCK2] }]],
+    [
+      "not empty",
+      [
+        testBlockToBlock(
+          { ...TOGGLE_LIST3_BLOCK, children: [SAMPLE_BLOCK2] },
+          TOGGLE_LIST1_BLOCK.id,
+        ),
+      ],
+    ],
   ])(
     "returns the old block's children if the validation passes and the old block's children are %s",
     (_, oldBlockChildren) => {

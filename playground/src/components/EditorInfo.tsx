@@ -33,7 +33,10 @@ const Button = ({
 const SAMPLE_BLOCK1 = {
   id: "node1",
   type: "heading",
-  data: { text: "some_text", level: 1 },
+  data: {
+    content: [{ text: "some_text", marks: [] }],
+    level: 1,
+  },
 } as const satisfies BlockPayload;
 
 export default function EditorInfo() {
@@ -45,7 +48,10 @@ export default function EditorInfo() {
       newBlock: {
         ...SAMPLE_BLOCK1,
         id: crypto.randomUUID(),
-        data: { ...SAMPLE_BLOCK1.data, text: "Test" },
+        data: {
+          ...SAMPLE_BLOCK1.data,
+          content: [{ text: "Test", marks: [] }],
+        },
       },
       targetId: DEFAULT_DOCUMENT_ROOT_ID,
       strategy: "append",

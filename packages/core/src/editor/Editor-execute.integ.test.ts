@@ -122,7 +122,10 @@ describe("Editor execute", () => {
   it("throws an InvalidBlockError and changes nothing when inserting an invalid block", () => {
     // Arrange
     const { editor, INITIAL_DOCUMENT_JSON } = createEditor();
-    const data = { text: "some_text", color: "red" };
+    const data = {
+      content: [{ text: "some_text", marks: [] }],
+      color: "red",
+    };
     const onInsert = vi.fn();
     const onEditorChange = vi.fn();
 
@@ -148,7 +151,10 @@ describe("Editor execute", () => {
   it("throws an InvalidBlockError and changes nothing when updating a block to an invalid one", () => {
     // Arrange
     const { editor, INITIAL_DOCUMENT_JSON } = createEditor();
-    const data = { text: "some_text", color: "red" };
+    const data = {
+      content: [{ text: "some_text", marks: [] }],
+      color: "red",
+    };
     const onUpdate = vi.fn();
     const onEditorChange = vi.fn();
 

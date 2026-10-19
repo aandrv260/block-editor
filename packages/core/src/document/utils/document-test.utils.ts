@@ -9,131 +9,154 @@ export const testBlockToBlock = (block: BlockPayload, parentId: string): Block =
 export const TOGGLE_LIST1_BLOCK = {
   id: "toggle-list-1",
   type: "toggle-list",
-  data: { open: true },
+  data: { open: true, content: [] },
   children: [],
 } as const satisfies BlockPayload;
 
 export const TOGGLE_LIST2_BLOCK = {
   id: "toggle-list-2",
   type: "toggle-list",
-  data: { open: false },
+  data: { open: false, content: [] },
   children: [],
 } as const satisfies BlockPayload;
 
 export const TOGGLE_LIST3_BLOCK = {
   id: "toggle-list-3",
   type: "toggle-list",
-  data: { open: true },
+  data: { open: true, content: [] },
   children: [],
 } as const satisfies BlockPayload;
 
 export const TOGGLE_LIST4_BLOCK = {
   id: "toggle-list-4",
   type: "toggle-list",
-  data: { open: false },
+  data: { open: false, content: [] },
   children: [],
 } as const satisfies BlockPayload;
 
 export const TOGGLE_LIST5_BLOCK = {
   id: "toggle-list-5",
   type: "toggle-list",
-  data: { open: true },
+  data: { open: true, content: [] },
   children: [],
 } as const satisfies BlockPayload;
 
 export const TOGGLE_LIST6_BLOCK = {
   id: "toggle-list-6",
   type: "toggle-list",
-  data: { open: false },
+  data: { open: false, content: [] },
   children: [],
 } as const satisfies BlockPayload;
 
 export const TOGGLE_LIST7_BLOCK = {
   id: "toggle-list-7",
   type: "toggle-list",
-  data: { open: true },
+  data: { open: true, content: [] },
   children: [],
 } as const satisfies BlockPayload;
 
 export const TOGGLE_LIST8_BLOCK = {
   id: "toggle-list-8",
   type: "toggle-list",
-  data: { open: false },
+  data: { open: false, content: [] },
   children: [],
 } as const satisfies BlockPayload;
 
 export const TOGGLE_LIST9_BLOCK = {
   id: "toggle-list-9",
   type: "toggle-list",
-  data: { open: true },
+  data: { open: true, content: [] },
   children: [],
 } as const satisfies BlockPayload;
 
 export const TOGGLE_LIST10_BLOCK = {
   id: "toggle-list-10",
   type: "toggle-list",
-  data: { open: false },
+  data: { open: false, content: [] },
   children: [],
 } as const satisfies BlockPayload;
 
 export const SAMPLE_BLOCK1 = {
   id: "node1",
   type: "heading",
-  data: { text: "some_text", level: 1 },
+  data: {
+    content: [{ text: "some_text", marks: [] }],
+    level: 1,
+  },
 } as const satisfies BlockPayload;
 
 export const SAMPLE_BLOCK2 = {
   id: "node2",
   type: "text",
-  data: { text: "some_teeeeext" },
+  data: {
+    content: [{ text: "some_teeeeext", marks: [] }],
+  },
 } as const satisfies BlockPayload;
 
 export const SAMPLE_BLOCK3 = {
   id: "node3",
   type: "heading",
-  data: { text: "134314", level: 3 },
+  data: {
+    content: [{ text: "134314", marks: [] }],
+    level: 3,
+  },
 } as const satisfies BlockPayload;
 
 export const SAMPLE_BLOCK4 = {
   id: "node4",
   type: "text",
-  data: { text: "some_teeeeext" },
+  data: {
+    content: [{ text: "some_teeeeext", marks: [] }],
+  },
 } as const satisfies BlockPayload;
 
 export const SAMPLE_BLOCK5 = {
   id: "node5",
   type: "heading",
-  data: { text: "some_teeeeext", level: 3 },
+  data: {
+    content: [{ text: "some_teeeeext", marks: [] }],
+    level: 3,
+  },
 } as const satisfies BlockPayload;
 
 export const SAMPLE_BLOCK6 = {
   id: "node6",
   type: "text",
-  data: { text: "some_teeeeext_6" },
+  data: {
+    content: [{ text: "some_teeeeext_6", marks: [] }],
+  },
 } as const satisfies BlockPayload;
 
 export const SAMPLE_BLOCK7 = {
   id: "node7",
   type: "text",
-  data: { text: "some_text7" },
+  data: {
+    content: [{ text: "some_text7", marks: [] }],
+  },
 } as const satisfies BlockPayload;
 
 export const SAMPLE_BLOCK8 = {
   id: "node8",
   type: "text",
-  data: { text: "some_text8" },
+  data: {
+    content: [{ text: "some_text8", marks: [] }],
+  },
 } as const satisfies BlockPayload;
 
 export const SAMPLE_BLOCK9 = {
   id: "node9",
   type: "text",
-  data: { text: "some_text9" },
+  data: {
+    content: [{ text: "some_text9", marks: [] }],
+  },
 } as const satisfies BlockPayload;
 
 export const SAMPLE_BLOCK10 = {
   id: "node10",
   type: "text",
-  data: { text: "some_text10" },
+  data: {
+    content: [{ text: "some_text10", marks: [] }],
+  },
 } as const satisfies BlockPayload;
 
 /**

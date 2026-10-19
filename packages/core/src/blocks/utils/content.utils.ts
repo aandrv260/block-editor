@@ -1,3 +1,4 @@
+import type { DeepReadonly } from "@/common/types/object.types";
 import type { TextRun } from "../models/content/content.schema";
 import type { Mark } from "../models/content/marks/mark.models";
 import type { MarkType } from "../models/content/marks/mark-type.models";
@@ -23,6 +24,10 @@ export const normalizeContent = (content: TextRun[]): TextRun[] => {
   }
 
   return normalizedContent;
+};
+
+export const getPlainText = (content: DeepReadonly<TextRun[]>): string => {
+  return content.map(run => run.text).join("");
 };
 
 export const splitContent = (

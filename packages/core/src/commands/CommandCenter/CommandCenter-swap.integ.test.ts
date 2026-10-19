@@ -15,14 +15,14 @@ const json = `
         "id": "toggle-list1",
         "parentId": "root",
         "type": "toggle-list",
-        "data": { "open": false },
+        "data": { "open": false, "content": [] },
         "children": []
       },
       {
         "id": "toggle-list2",
         "parentId": "root",
         "type": "toggle-list",
-        "data": { "open": true },
+        "data": { "open": true, "content": [] },
         "children": []
       }
     ]
@@ -112,14 +112,14 @@ describe("CommandCenter swap command", () => {
             expect.objectContaining({
               id: "toggle-list1",
               type: "toggle-list",
-              data: { open: false },
+              data: { open: false, content: [] },
               children: [],
             }),
 
             expect.objectContaining({
               id: "toggle-list2",
               type: "toggle-list",
-              data: { open: true },
+              data: { open: true, content: [] },
               children: [],
             }),
           ],
@@ -205,14 +205,14 @@ describe("CommandCenter swap command", () => {
           expect.objectContaining({
             id: "toggle-list1",
             type: "toggle-list",
-            data: { open: false },
+            data: { open: false, content: [] },
             children: [],
           }),
 
           expect.objectContaining({
             id: "toggle-list2",
             type: "toggle-list",
-            data: { open: true },
+            data: { open: true, content: [] },
             children: [],
           }),
         ],
@@ -472,13 +472,13 @@ describe("CommandCenter swap command", () => {
         children: [
           expect.objectContaining({
             id: "toggle-list1",
-            data: { open: false },
+            data: { open: false, content: [] },
             children: [],
           }),
 
           expect.objectContaining({
             id: "toggle-list2",
-            data: { open: true },
+            data: { open: true, content: [] },
             children: [],
           }),
         ],

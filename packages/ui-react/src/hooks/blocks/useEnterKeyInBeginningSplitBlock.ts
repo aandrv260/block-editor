@@ -1,6 +1,11 @@
 import { useInsertBlock } from "../actions/useInsertBlock";
 import { useUpdateBlock } from "../actions/useUpdateBlock";
-import type { Block, DeepReadonly, HeadingBlock } from "@block-editor/core";
+import {
+  normalizeContent,
+  type Block,
+  type DeepReadonly,
+  type HeadingBlock,
+} from "@block-editor/core";
 import { useNewBlockFocus } from "./useNewBlockFocus";
 
 export const useEnterKeyInBeginningSplitBlock = (
@@ -22,7 +27,12 @@ export const useEnterKeyInBeginningSplitBlock = (
       newBlock: {
         id: newBlockId,
         type: "heading",
-        data: { text: headingRef.current.innerText, level: block.data.level },
+        data: {
+          content: normalizeContent([
+            { text: headingRef.current.innerText, marks: [] },
+          ]),
+          level: block.data.level,
+        },
       },
       targetId: block.id,
     });
@@ -31,7 +41,7 @@ export const useEnterKeyInBeginningSplitBlock = (
       blockId: block.id,
       newBlock: {
         ...block,
-        data: { ...block.data, text: "" },
+        data: { ...block.data, content: [] },
       } as Block,
       childrenStrategy: "drop",
     });

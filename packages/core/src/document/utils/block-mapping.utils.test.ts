@@ -15,34 +15,42 @@ describe("buildMapFromRoot()", () => {
     editorDocument.appendChild(editorDocument.ROOT_ID, {
       id: "block-1",
       type: "text",
-      data: { text: "some_text" },
+      data: {
+        content: [{ text: "some_text", marks: [] }],
+      },
     });
 
     editorDocument.appendChild(editorDocument.ROOT_ID, {
       id: "block-2",
       type: "text",
-      data: { text: "some_text" },
+      data: {
+        content: [{ text: "some_text", marks: [] }],
+      },
     });
 
     editorDocument.appendChild(editorDocument.ROOT_ID, {
       id: "toggle-list-1",
       type: "toggle-list",
-      data: { open: true },
+      data: { open: true, content: [] },
       children: [
         {
           id: "toggle-list-1-child-1",
           type: "text",
-          data: { text: "some_text" },
+          data: {
+            content: [{ text: "some_text", marks: [] }],
+          },
         },
         {
           id: "toggle-list-1-child-2",
           type: "toggle-list",
-          data: { open: true },
+          data: { open: true, content: [] },
           children: [
             {
               id: "toggle-list-1-child-2-child-1",
               type: "text",
-              data: { text: "some_text" },
+              data: {
+                content: [{ text: "some_text", marks: [] }],
+              },
             },
           ],
         },
@@ -89,22 +97,26 @@ describe("blockPayloadToDocumentBlock()", () => {
     const blockPayload: BlockPayload = {
       id: "block-payload-1",
       type: "toggle-list",
-      data: { open: true },
+      data: { open: true, content: [] },
       children: [
         {
           id: "child-block-1",
           type: "toggle-list",
-          data: { open: true },
+          data: { open: true, content: [] },
           children: [
             {
               id: "child-block-1-1",
               type: "text",
-              data: { text: "some_text" },
+              data: {
+                content: [{ text: "some_text", marks: [] }],
+              },
               children: [
                 {
                   id: "child-block-1-1-1",
                   type: "text",
-                  data: { text: "some_text" },
+                  data: {
+                    content: [{ text: "some_text", marks: [] }],
+                  },
                 },
               ],
             },
@@ -129,7 +141,9 @@ describe("blockPayloadToDocumentBlock()", () => {
     const blockPayload: BlockPayload = {
       id: "block-payload-1",
       type: "text",
-      data: { text: "some_text" },
+      data: {
+        content: [{ text: "some_text", marks: [] }],
+      },
     };
 
     // Act
@@ -139,7 +153,9 @@ describe("blockPayloadToDocumentBlock()", () => {
     expect(documentBlock).toEqual({
       id: "block-payload-1",
       type: "text",
-      data: { text: "some_text" },
+      data: {
+        content: [{ text: "some_text", marks: [] }],
+      },
       parentId: "root",
     });
   });
@@ -150,17 +166,29 @@ describe("blockPayloadToDocumentBlock()", () => {
     const blockPayload: BlockPayload = {
       id: "block-payload-1",
       type: "toggle-list",
-      data: { open: true },
+      data: { open: true, content: [] },
       children: [
         {
           id: "child-block-1",
           type: "toggle-list",
-          data: { open: true },
+          data: { open: true, content: [] },
           children: [
-            { id: "child-block-1-1", type: "text", data: { text: "some_text" } },
+            {
+              id: "child-block-1-1",
+              type: "text",
+              data: {
+                content: [{ text: "some_text", marks: [] }],
+              },
+            },
           ],
         },
-        { id: "child-block-2", type: "text", data: { text: "some_text" } },
+        {
+          id: "child-block-2",
+          type: "text",
+          data: {
+            content: [{ text: "some_text", marks: [] }],
+          },
+        },
       ],
     };
 
@@ -171,19 +199,21 @@ describe("blockPayloadToDocumentBlock()", () => {
     expect(documentBlock).toEqual({
       id: "block-payload-1",
       type: "toggle-list",
-      data: { open: true },
+      data: { open: true, content: [] },
       parentId: PARENT_ID,
       children: [
         {
           id: "child-block-1",
           type: "toggle-list",
-          data: { open: true },
+          data: { open: true, content: [] },
           parentId: "block-payload-1",
           children: [
             {
               id: "child-block-1-1",
               type: "text",
-              data: { text: "some_text" },
+              data: {
+                content: [{ text: "some_text", marks: [] }],
+              },
               parentId: "child-block-1",
             },
           ],
@@ -191,7 +221,9 @@ describe("blockPayloadToDocumentBlock()", () => {
         {
           id: "child-block-2",
           type: "text",
-          data: { text: "some_text" },
+          data: {
+            content: [{ text: "some_text", marks: [] }],
+          },
           parentId: "block-payload-1",
         },
       ],
@@ -234,7 +266,7 @@ describe("blockPayloadToDocumentBlock()", () => {
     const blockPayload: BlockPayload = {
       id: "block-payload-1",
       type: "toggle-list",
-      data: { open: true },
+      data: { open: true, content: [] },
     };
 
     // Act
@@ -244,7 +276,7 @@ describe("blockPayloadToDocumentBlock()", () => {
     expect(documentBlock).toEqual({
       id: "block-payload-1",
       type: "toggle-list",
-      data: { open: true },
+      data: { open: true, content: [] },
       parentId: "root",
       children: [],
     });

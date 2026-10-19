@@ -1,5 +1,9 @@
 import { useEffect } from "react";
-import type { DeepReadonly, HeadingBlock } from "@block-editor/core";
+import {
+  getPlainText,
+  type DeepReadonly,
+  type HeadingBlock,
+} from "@block-editor/core";
 import { useEditor } from "../useEditor";
 
 /**
@@ -18,8 +22,10 @@ export const useTextBlockHistoryHandling = (
     const onHistoryChange = (block: DeepReadonly<HeadingBlock> | null) => {
       if (!headingRef.current || !block) return;
 
-      headingRef.current.innerText = block.data.text;
-      updateIsEmptyText(block.data.text);
+      const text = getPlainText(block.data.content);
+
+      headingRef.current.innerText = text;
+      updateIsEmptyText(text);
     };
 
     const unsubscribeFromUndo = editor

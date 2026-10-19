@@ -1,4 +1,10 @@
-import type { Block, DeepReadonly, HeadingBlock } from "@block-editor/core";
+import {
+  getPlainText,
+  normalizeContent,
+  type Block,
+  type DeepReadonly,
+  type HeadingBlock,
+} from "@block-editor/core";
 import { useUpdateBlock } from "../actions/useUpdateBlock";
 import { useEffect } from "react";
 import { updateContentWithCaretPreservation } from "@/utils/caret/update-caret.utils";
@@ -13,16 +19,17 @@ export const useBlockTextInput = (
   updateIsEmptyText: (newValue: string) => void,
 ) => {
   const updateBlock = useUpdateBlock();
+  const text = getPlainText(block.data.content);
 
   useEffect(() => {
     if (!headingRef.current) return;
 
-    if (shouldSkipContentUpdate(headingRef.current, block.data.text)) {
+    if (shouldSkipContentUpdate(headingRef.current, text)) {
       return;
     }
 
-    updateContentWithCaretPreservation(headingRef.current, block.data.text);
-  }, [block.data.text, headingRef]);
+    updateContentWithCaretPreservation(headingRef.current, text);
+  }, [text, headingRef]);
 
   const onInput = (event: React.FormEvent<HTMLElement>) => {
     if (!headingRef.current) return;
@@ -43,7 +50,10 @@ export const useBlockTextInput = (
       newBlock: {
         ...currentBlock,
         type: "heading",
-        data: { ...block.data, text: newValue },
+        data: {
+          ...block.data,
+          content: normalizeContent([{ text: newValue, marks: [] }]),
+        },
       },
       childrenStrategy: "drop",
     });

@@ -1,4 +1,9 @@
-import type { Block, DeepReadonly, HeadingBlock } from "@block-editor/core";
+import {
+  normalizeContent,
+  type Block,
+  type DeepReadonly,
+  type HeadingBlock,
+} from "@block-editor/core";
 import { useInsertBlock } from "../actions/useInsertBlock";
 import { useUpdateBlock } from "../actions/useUpdateBlock";
 import { useNewBlockFocus } from "./useNewBlockFocus";
@@ -29,7 +34,10 @@ export const useEnterKeyInMiddleSplitBlock = (
       newBlock: {
         id: newBlockId,
         type: "heading",
-        data: { text: textFromCaretToEnd, level: block.data.level },
+        data: {
+          content: normalizeContent([{ text: textFromCaretToEnd, marks: [] }]),
+          level: block.data.level,
+        },
       },
       targetId: block.id,
     });
@@ -38,7 +46,10 @@ export const useEnterKeyInMiddleSplitBlock = (
       blockId: block.id,
       newBlock: {
         ...block,
-        data: { ...block.data, text: textFromStartToCaret },
+        data: {
+          ...block.data,
+          content: normalizeContent([{ text: textFromStartToCaret, marks: [] }]),
+        },
       } as Block,
       childrenStrategy: "drop",
     });

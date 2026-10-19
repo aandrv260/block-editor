@@ -71,7 +71,9 @@ describe("appendChild()", () => {
       document.appendChild(document.ROOT_ID, {
         id: SAMPLE_BLOCK3.id,
         type: "text",
-        data: { text: "fdaadfad" },
+        data: {
+          content: [{ text: "fdaadfad", marks: [] }],
+        },
       });
 
     // Assert
@@ -116,7 +118,7 @@ describe("appendChild()", () => {
       document.appendChild(TOGGLE_LIST1_BLOCK.id, {
         id: "some_child",
         type: "toggle-list",
-        data: { open: false },
+        data: { open: false, content: [] },
         children: [
           {
             ...TOGGLE_LIST3_BLOCK,
@@ -245,7 +247,7 @@ describe("appendChild()", () => {
     document.appendChild(TOGGLE_LIST1_BLOCK.id, {
       id: "some_child",
       type: "toggle-list",
-      data: { open: false },
+      data: { open: false, content: [] },
     });
 
     // Assert
@@ -260,7 +262,7 @@ describe("appendChild()", () => {
               id: "some_child",
               type: "toggle-list",
               parentId: "toggle-list-1",
-              data: { open: false },
+              data: { open: false, content: [] },
               children: [],
             },
           ],
@@ -281,7 +283,9 @@ describe("appendChild()", () => {
       document.appendChild(TOGGLE_LIST1_BLOCK.id, {
         id: "some_child",
         type: "text",
-        data: { text: "some_text" },
+        data: {
+          content: [{ text: "some_text", marks: [] }],
+        },
         children: [TOGGLE_LIST3_BLOCK],
       });
     };
@@ -307,7 +311,9 @@ describe("appendChild()", () => {
     document.appendChild(TOGGLE_LIST1_BLOCK.id, {
       id: "some_child",
       type: "text",
-      data: { text: "some_text" },
+      data: {
+        content: [{ text: "some_text", marks: [] }],
+      },
     });
 
     // Assert
@@ -322,7 +328,9 @@ describe("appendChild()", () => {
               id: "some_child",
               type: "text",
               parentId: "toggle-list-1",
-              data: { text: "some_text" },
+              data: {
+                content: [{ text: "some_text", marks: [] }],
+              },
             },
           ],
         },
@@ -673,7 +681,10 @@ describe("appendChild()", () => {
   it("throws an error and leaves the document unchanged if the new block is invalid", () => {
     // Arrange
     const document = new EditorDocument();
-    const data = { text: "some_text", color: "red" };
+    const data = {
+      content: [{ text: "some_text", marks: [] }],
+      color: "red",
+    };
     const initialDocumentJSON = document.toJSON();
 
     const append = () =>
@@ -702,7 +713,10 @@ describe("appendChild()", () => {
   it("throws an error and leaves the document unchanged if a nested child of the new block is invalid", () => {
     // Arrange
     const document = new EditorDocument();
-    const data = { text: "some_text", color: "red" };
+    const data = {
+      content: [{ text: "some_text", marks: [] }],
+      color: "red",
+    };
     const initialDocumentJSON = document.toJSON();
 
     const append = () =>
