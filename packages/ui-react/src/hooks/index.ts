@@ -4,6 +4,8 @@ export * from "./actions/useDeleteBlock";
 export * from "./actions/useMoveBlock";
 export * from "./actions/useHistoryActions";
 export * from "./actions/useUpdateBlock";
+export * from "./actions/useSplitBlock";
+export * from "./actions/useMergeBlocks";
 export * from "./keymap/useEditorKeymap";
 export * from "./history/useHistory/useHistory";
 

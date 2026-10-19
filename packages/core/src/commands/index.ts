@@ -15,3 +15,5 @@ export type { SwapDocumentPayload } from "./executors/SwapDocumentCommand/SwapDo
 export type { InsertTextPayload } from "./executors/InsertTextCommand";
 export type { DeleteTextPayload } from "./executors/DeleteTextCommand";
 export type { ToggleMarkPayload } from "./executors/ToggleMarkCommand";
+export type { SplitBlockPayload } from "./executors/SplitBlockCommand";
+export type { MergeBlocksPayload } from "./executors/MergeBlocksCommand";

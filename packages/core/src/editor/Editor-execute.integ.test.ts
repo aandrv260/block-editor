@@ -337,4 +337,132 @@ describe("Editor execute", () => {
       editor.getDocumentJSON(),
     ]);
   });
+
+  it("splits a block and emits the insert and update events", () => {
+    // Arrange
+    const { editor, INITIAL_DOCUMENT_JSON } = createEditor();
+    const onBlockEvent = vi.fn();
+
+    editor.execute("insertBlock", {
+      targetId: editor.ROOT_ID,
+      strategy: "append",
+      newBlock: MARKED_TEXT_BLOCK,
+    });
+
+    const documentJSONBeforeSplit = editor.getDocumentJSON();
+
+    editor.subscribe("block:insert", onBlockEvent);
+    editor.subscribe("block:update", onBlockEvent);
+
+    // Act
+    editor.execute("splitBlock", {
+      blockId: MARKED_TEXT_BLOCK.id,
+      offset: 6,
+      newBlockId: "new-block",
+    });
+
+    // Assert
+    expect(editor.getRoot().children).toStrictEqual([
+      {
+        ...MARKED_TEXT_BLOCK,
+        parentId: editor.ROOT_ID,
+        data: {
+          content: [{ text: "Hello ", marks: [] }],
+        },
+      },
+      {
+        id: "new-block",
+        parentId: editor.ROOT_ID,
+        type: "text",
+        data: {
+          content: [{ text: "world", marks: [{ type: "bold" }] }],
+        },
+      },
+    ]);
+
+    expect(onBlockEvent.mock.calls).toStrictEqual([
+      [
+        {
+          type: "block:insert",
+          blockId: "new-block",
+          targetId: MARKED_TEXT_BLOCK.id,
+          strategy: "after",
+        },
+      ],
+      [
+        {
+          type: "block:update",
+          blockId: MARKED_TEXT_BLOCK.id,
+          newBlock: editor.getBlock(MARKED_TEXT_BLOCK.id),
+          childrenStrategy: "preserve",
+        },
+      ],
+    ]);
+
+    expect(editor.getHistory()).toStrictEqual([
+      INITIAL_DOCUMENT_JSON,
+      documentJSONBeforeSplit,
+      editor.getDocumentJSON(),
+    ]);
+  });
+
+  it("merges a block into the block before it and emits the update and delete events", () => {
+    // Arrange
+    const { editor, INITIAL_DOCUMENT_JSON } = createEditor();
+    const onBlockEvent = vi.fn();
+
+    editor.execute("insertBlock", {
+      targetId: editor.ROOT_ID,
+      strategy: "append",
+      newBlock: SAMPLE_BLOCK1,
+    });
+
+    editor.execute("insertBlock", {
+      targetId: editor.ROOT_ID,
+      strategy: "append",
+      newBlock: MARKED_TEXT_BLOCK,
+    });
+
+    const documentJSONBeforeMerge = editor.getDocumentJSON();
+
+    editor.subscribe("block:update", onBlockEvent);
+    editor.subscribe("block:delete", onBlockEvent);
+
+    // Act
+    editor.execute("mergeBlocks", { blockId: MARKED_TEXT_BLOCK.id });
+
+    // Assert
+    expect(editor.getRoot().children).toStrictEqual([
+      {
+        ...SAMPLE_BLOCK1,
+        parentId: editor.ROOT_ID,
+        data: {
+          content: [
+            { text: "some_textHello ", marks: [] },
+            { text: "world", marks: [{ type: "bold" }] },
+          ],
+          level: 1,
+        },
+      },
+    ]);
+
+    expect(onBlockEvent.mock.calls).toStrictEqual([
+      [
+        {
+          type: "block:update",
+          blockId: SAMPLE_BLOCK1.id,
+          newBlock: editor.getBlock(SAMPLE_BLOCK1.id),
+          childrenStrategy: "preserve",
+        },
+      ],
+      [{ type: "block:delete", blockId: MARKED_TEXT_BLOCK.id }],
+    ]);
+
+    expect(editor.getHistory()).toStrictEqual([
+      INITIAL_DOCUMENT_JSON,
+      expect.any(String),
+      documentJSONBeforeMerge,
+      editor.getDocumentJSON(),
+    ]);
+  });
 });

@@ -2,6 +2,7 @@ import type { TextRun } from "../models/content/content.schema";
 import type { Mark } from "../models/content/marks/mark.models";
 import {
   addMark,
+  areContentsEqual,
   deleteTextInRange,
   getPlainText,
   hasMarkInRange,
@@ -493,5 +494,41 @@ describe("deleteTextInRange()", () => {
 
     // Assert
     expect(deleteTextInRange(content, 2, 2)).toStrictEqual(content);
+  });
+});
+
+describe("areContentsEqual()", () => {
+  it("returns true when the runs have the same text and marks", () => {
+    // Arrange
+    const content: TextRun[] = [
+      { text: "Hello ", marks: [] },
+      { text: "world", marks: [bold, link] },
+    ];
+
+    // Assert
+    expect(areContentsEqual(content, structuredClone(content))).toBe(true);
+  });
+
+  it("returns false when a run has different marks", () => {
+    // Assert
+    expect(
+      areContentsEqual(
+        [{ text: "Hello", marks: [bold] }],
+        [{ text: "Hello", marks: [italic] }],
+      ),
+    ).toBe(false);
+  });
+
+  it("returns false when the same text is split into different runs", () => {
+    // Assert
+    expect(
+      areContentsEqual(
+        [{ text: "Hello", marks: [] }],
+        [
+          { text: "Hel", marks: [] },
+          { text: "lo", marks: [] },
+        ],
+      ),
+    ).toBe(false);
   });
 });

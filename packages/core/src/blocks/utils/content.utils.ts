@@ -26,6 +26,20 @@ export const normalizeContent = (content: TextRun[]): TextRun[] => {
   return normalizedContent;
 };
 
+export const areContentsEqual = (
+  content: TextRun[],
+  otherContent: TextRun[],
+): boolean => {
+  return (
+    content.length === otherContent.length &&
+    content.every(
+      (run, index) =>
+        run.text === otherContent[index].text &&
+        areMarksEqual(run.marks, otherContent[index].marks),
+    )
+  );
+};
+
 export const getPlainText = (content: DeepReadonly<TextRun[]>): string => {
   return content.map(run => run.text).join("");
 };
