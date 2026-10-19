@@ -1,5 +1,6 @@
 import { CommandCenter } from "@/commands/CommandCenter/CommandCenter";
 import { DocumentHistory } from "@/history/DocumentHistory";
+import { DEFAULT_HISTORY_GROUP_DELAY } from "@/history/HistoryManager/HistoryManager.utils";
 import type { DocumentRoot } from "@/document/DocumentRoot/DocumentRoot";
 import { EditorDocument } from "@/document/EditorDocument";
 import type {
@@ -43,6 +44,13 @@ export interface EditorConfig<TSchema extends EditorSchema = DefaultEditorSchema
   historyLimit?: number;
 
   /**
+   * How many milliseconds can pass between two text edits for one undo to revert both.
+   * Text edits that continue each other within this time are saved as one history record.
+   * The default is 500.
+   */
+  historyGroupDelay?: number;
+
+  /**
    * Add custom commands to the editor.
    */
   commands?: Partial<TSchema["commands"]>;
@@ -61,6 +69,7 @@ export class Editor<
   constructor({
     initialDocument,
     historyLimit,
+    historyGroupDelay = DEFAULT_HISTORY_GROUP_DELAY,
     commands,
   }: EditorConfig<TSchema> = {}) {
     this.document = EditorDocument.from(initialDocument);
@@ -77,6 +86,7 @@ export class Editor<
       history: this.history,
       document: this.document,
       commands: { ...DEFAULT_COMMANDS, ...commands },
+      historyGroupDelay,
     });
   }
 

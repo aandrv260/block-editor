@@ -10,6 +10,7 @@ import {
 } from "../executors/utils/commandExecutors-test.utils";
 import { CommandCenter } from "./CommandCenter";
 import { DocumentHistory } from "../../history/DocumentHistory";
+import { DEFAULT_HISTORY_GROUP_DELAY } from "../../history/HistoryManager/HistoryManager.utils";
 import { DEFAULT_COMMANDS } from "../executors/defaultCommands";
 import type { DefaultEditorSchema } from "../../editor/editor-schema.models";
 
@@ -40,6 +41,7 @@ export const createCommandCenter = (
     eventBus,
     history,
     commands: DEFAULT_COMMANDS,
+    historyGroupDelay: DEFAULT_HISTORY_GROUP_DELAY,
   });
 
   const assertInitialDefaultDocumentStructure = () => {

@@ -2,10 +2,7 @@ import type { DocumentHistory } from "../../history/DocumentHistory";
 import { HistoryManager } from "../../history/HistoryManager";
 import { EditorDocument } from "../../document/EditorDocument";
 import { createEvent } from "../../events/editor-event-bus/createEvent";
-import type {
-  CommandEvent,
-  EditorEventBus,
-} from "../../events/editor-event-bus/editorEvent.models";
+import type { EditorEventBus } from "../../events/editor-event-bus/editorEvent.models";
 import type { CommandArgsOf, Commands } from "../executors/commandExecutors.models";
 import { TransactionManager } from "../transaction/TransactionManager";
 import type { TransactionCallback } from "../transaction/transaction.models";
@@ -15,6 +12,7 @@ interface CommandCenterConfig<TCommands extends Commands> {
   eventBus: EditorEventBus;
   history: DocumentHistory;
   commands: TCommands;
+  historyGroupDelay: number;
 }
 
 /**
@@ -36,11 +34,17 @@ export class CommandCenter<TCommands extends Commands> {
     history,
     eventBus,
     commands,
+    historyGroupDelay,
   }: CommandCenterConfig<TCommands>) {
     this.document = document;
     this.eventBus = eventBus;
     this.history = history;
-    this.historyManager = new HistoryManager({ document, history, eventBus });
+    this.historyManager = new HistoryManager({
+      document,
+      history,
+      eventBus,
+      groupDelay: historyGroupDelay,
+    });
     this.transactionManager = new TransactionManager({
       document,
       history,
@@ -81,7 +85,7 @@ export class CommandCenter<TCommands extends Commands> {
     }
 
     if (result.status === "committed" && result.events.length > 0) {
-      this.recordHistory(result.events);
+      this.historyManager.record(result.events);
       result.events.forEach(event => this.eventBus.emit(event.type, event));
       this.emitChangeEvent(trigger);
     }
@@ -111,26 +115,12 @@ export class CommandCenter<TCommands extends Commands> {
     this.emitChangeEvent("setHistory");
   }
 
-  // TODO: Maybe put in the history manager.
-  private recordHistory(events: CommandEvent[]) {
-    // TODO: We need to make this generic and come through extension instead of hardcodding specific event type and parts of its payloads here.
-    const shouldClearHistory = events.some(
-      event => event.type === "document:swap" && event.historyCleared,
-    );
-
-    if (shouldClearHistory) {
-      this.historyManager.clear();
-    }
-
-    this.historyManager.record();
-  }
-
   // TODO: This should be done through hook/extension because it gets triggerred always when there is a change to the editor.
   private emitChangeEvent(trigger: string) {
     this.eventBus.emit(
       "editor:change",
       createEvent("editor:change", {
-        documentJSON: this.document.toJSON(),
+        documentJSON: this.history.getCurrent() ?? this.document.toJSON(),
         history: this.history.getHistory(),
         currentPositionInHistory: this.history.getCurrentPosition(),
         root: this.document.getRoot(),

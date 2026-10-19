@@ -208,6 +208,53 @@ describe("add()", () => {
   });
 });
 
+describe("replaceCurrent()", () => {
+  it("replaces the current record and keeps the current position", () => {
+    // Arrange
+    const history = new DocumentHistory({ initialDocumentJSON: "first" });
+
+    history.add("second");
+
+    // Act
+    history.replaceCurrent("third");
+
+    // Assert
+    expect(history.getHistory()).toStrictEqual(["first", "third"]);
+    expect(history.getCurrentPosition()).toBe(1);
+  });
+
+  it("drops the records after the current one", () => {
+    // Arrange
+    const history = new DocumentHistory({ initialDocumentJSON: "first" });
+
+    history.add("second");
+    history.add("third");
+    history.undo();
+    history.undo();
+
+    // Act
+    history.replaceCurrent("new-first");
+
+    // Assert
+    expect(history.getHistory()).toStrictEqual(["new-first"]);
+    expect(history.getCurrentPosition()).toBe(0);
+  });
+
+  it("adds the record when the history is empty", () => {
+    // Arrange
+    const history = new DocumentHistory({ initialDocumentJSON: "first" });
+
+    history.clear();
+
+    // Act
+    history.replaceCurrent("second");
+
+    // Assert
+    expect(history.getHistory()).toStrictEqual(["second"]);
+    expect(history.getCurrentPosition()).toBe(0);
+  });
+});
+
 describe("redo()", () => {
   const setupRedoEnvironment = () => {
     const { document, history } = createHistory();

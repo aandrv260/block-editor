@@ -67,6 +67,15 @@ export class DocumentHistory {
     this.currentIndex = this.history.length - 1;
   }
 
+  public replaceCurrent(documentJSON: string): void {
+    if (this.currentIndex === -1) {
+      this.add(documentJSON);
+      return;
+    }
+
+    this.history = [...this.history.slice(0, this.currentIndex), documentJSON];
+  }
+
   public redo(): string | null {
     if (!this.hasItemsInHistoryAhead()) {
       return null;

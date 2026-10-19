@@ -1,13 +1,19 @@
 import type { EditorDocument } from "../../document/EditorDocument";
 import { createEvent } from "../../events/editor-event-bus/createEvent";
-import type { EditorEventBus } from "../../events/editor-event-bus/editorEvent.models";
+import type {
+  CommandEvent,
+  EditorEventBus,
+} from "../../events/editor-event-bus/editorEvent.models";
 import { HistoryRecordMismatchError } from "../../commands/errors/history-set/HistoryRecordMismatchError";
 import type { DocumentHistory } from "../DocumentHistory";
+import type { RecordedChange } from "../models/recorded-change.models";
+import { canMergeWithLastChange } from "./HistoryManager.utils";
 
 interface HistoryManagerConfig {
   document: EditorDocument;
   eventBus: EditorEventBus;
   history: DocumentHistory;
+  groupDelay: number;
 }
 
 /**
@@ -19,25 +25,43 @@ export class HistoryManager {
   private readonly document: EditorDocument;
   private readonly history: DocumentHistory;
   private readonly eventBus: EditorEventBus;
+  private readonly groupDelay: number;
+  private lastChange: RecordedChange | null = null;
 
-  constructor({ document, history, eventBus }: HistoryManagerConfig) {
+  constructor({ document, history, eventBus, groupDelay }: HistoryManagerConfig) {
     this.document = document;
     this.eventBus = eventBus;
     this.history = history;
+    this.groupDelay = groupDelay;
   }
 
   /**
-   * Adds the current document as a new record in the history.
+   * Records the current document in the history.
+   *
+   * It replaces the last record when the change continues the last text edit, so typing is undone in one step.
    */
-  public record(): void {
-    this.history.add(this.document.toJSON());
-  }
+  public record(events: CommandEvent[]): void {
+    const change: RecordedChange = { events, time: Date.now() };
 
-  public clear(): void {
-    this.history.clear();
+    // TODO: We need to make this generic and come through extension instead of hardcodding specific event type and parts of its payloads here.
+    const shouldClearHistory = events.some(
+      event => event.type === "document:swap" && event.historyCleared,
+    );
+
+    if (shouldClearHistory) {
+      this.history.clear();
+      this.lastChange = null;
+    }
+
+    canMergeWithLastChange(this.lastChange, change, this.groupDelay)
+      ? this.history.replaceCurrent(this.document.toJSON())
+      : this.history.add(this.document.toJSON());
+
+    this.lastChange = change;
   }
 
   public undo(): void {
+    this.lastChange = null;
     const previousDocumentJSON = this.history.undo();
 
     if (!previousDocumentJSON) {
@@ -49,6 +73,7 @@ export class HistoryManager {
   }
 
   public redo(): void {
+    this.lastChange = null;
     const nextDocumentJSON = this.history.redo();
 
     if (!nextDocumentJSON) {
@@ -63,6 +88,7 @@ export class HistoryManager {
    * Throws a `HistoryIndexOutOfRangeError` if the index is out of range.
    */
   public jumpTo(index: number): void {
+    this.lastChange = null;
     const documentJSON = this.history.jumpTo(index);
 
     if (!documentJSON) {
@@ -84,6 +110,7 @@ export class HistoryManager {
     }
 
     this.history.setHistory(newHistory);
+    this.lastChange = null;
 
     this.eventBus.emit(
       "history:set",

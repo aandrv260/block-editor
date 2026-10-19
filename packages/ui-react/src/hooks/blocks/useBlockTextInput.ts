@@ -1,14 +1,13 @@
 import {
   getPlainText,
-  normalizeContent,
-  type Block,
   type DeepReadonly,
   type HeadingBlock,
 } from "@block-editor/core";
-import { useUpdateBlock } from "../actions/useUpdateBlock";
+import { useEditor } from "../useEditor";
 import { useEffect } from "react";
 import { updateContentWithCaretPreservation } from "@/utils/caret/update-caret.utils";
 import { shouldSkipContentUpdate } from "@/utils/caret/caret-position-checks.utils";
+import { getTextChange } from "@/utils/text/text-change.utils";
 
 /**
  * Handles inputs and caret normalization during text input.
@@ -18,7 +17,7 @@ export const useBlockTextInput = (
   headingRef: React.RefObject<HTMLHeadingElement | null>,
   updateIsEmptyText: (newValue: string) => void,
 ) => {
-  const updateBlock = useUpdateBlock();
+  const { editor } = useEditor();
   const text = getPlainText(block.data.content);
 
   useEffect(() => {
@@ -43,19 +42,33 @@ export const useBlockTextInput = (
       headingRef.current.innerText = "";
     }
 
-    const currentBlock = block as Block;
+    const currentBlock = editor.getBlock<HeadingBlock>(block.id);
 
-    updateBlock({
-      blockId: block.id,
-      newBlock: {
-        ...currentBlock,
-        type: "heading",
-        data: {
-          ...block.data,
-          content: normalizeContent([{ text: newValue, marks: [] }]),
-        },
-      },
-      childrenStrategy: "drop",
+    if (!currentBlock) return;
+
+    const textChange = getTextChange(
+      getPlainText(currentBlock.data.content),
+      newValue,
+    );
+
+    if (!textChange) {
+      return;
+    }
+
+    const { from, to, insertedText } = textChange;
+
+    editor.transaction(tx => {
+      if (from !== to) {
+        tx.execute("deleteText", { blockId: block.id, from, to });
+      }
+
+      if (insertedText) {
+        tx.execute("insertText", {
+          blockId: block.id,
+          offset: from,
+          text: insertedText,
+        });
+      }
     });
 
     updateIsEmptyText(newValue);
