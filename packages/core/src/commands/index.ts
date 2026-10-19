@@ -1,5 +1,9 @@
 export { createCommand } from "./createCommand";
-export type { CommandContext, Commands } from "./executors/commandExecutors.models";
+export type {
+  CommandContext,
+  CommandResult,
+  Commands,
+} from "./executors/commandExecutors.models";
 export type {
   InsertBlockPayload,
   InsertBlockStrategy,

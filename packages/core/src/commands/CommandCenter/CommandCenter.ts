@@ -9,9 +9,11 @@ import type {
 import type {
   CommandArgsOf,
   CommandContext,
+  CommandResult,
   Commands,
 } from "../executors/commandExecutors.models";
 import { UnknownCommandError } from "../errors/unknown-command/UnknownCommandError";
+import { toCommandEvents } from "./CommandCenter.utils";
 
 interface CommandCenterConfig<TCommands extends Commands> {
   document: EditorDocument;
@@ -57,21 +59,25 @@ export class CommandCenter<TCommands extends Commands> {
     ...args: CommandArgsOf<TCommands[TType]>
   ): void {
     const command = this.getCommand(type);
-    const event = command({ payload: args[0], document: this.document });
+    const events = toCommandEvents(
+      command({ payload: args[0], document: this.document }),
+    );
 
-    this.recordHistory(event);
-    this.eventBus.emit(event.type, event);
+    this.recordHistory(events);
+    events.forEach(event => this.eventBus.emit(event.type, event));
     this.emitChangeEvent(type);
   }
 
   private getCommand(
     type: string,
-  ): (context: CommandContext<unknown>) => CommandEvent {
+  ): (context: CommandContext<unknown>) => CommandResult {
     if (!Object.hasOwn(this.commands, type)) {
       throw new UnknownCommandError(type);
     }
 
-    return this.commands[type] as (context: CommandContext<unknown>) => CommandEvent;
+    return this.commands[type] as (
+      context: CommandContext<unknown>,
+    ) => CommandResult;
   }
 
   public undo(): void {
@@ -95,9 +101,11 @@ export class CommandCenter<TCommands extends Commands> {
   }
 
   // TODO: Maybe put in the history manager.
-  private recordHistory(event: CommandEvent) {
-    const shouldClearHistory =
-      event.type === "document:swap" && event.historyCleared;
+  private recordHistory(events: CommandEvent[]) {
+    // TODO: We need to make this generic and come through extension instead of hardcodding specific event type and parts of its payloads here.
+    const shouldClearHistory = events.some(
+      event => event.type === "document:swap" && event.historyCleared,
+    );
 
     if (shouldClearHistory) {
       this.historyManager.clear();
