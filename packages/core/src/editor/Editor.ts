@@ -4,9 +4,13 @@ import { DEFAULT_HISTORY_GROUP_DELAY } from "@/history/HistoryManager/HistoryMan
 import type { DocumentRoot } from "@/document/DocumentRoot/DocumentRoot";
 import { EditorDocument } from "@/document/EditorDocument";
 import type {
+  AnyCustomEvents,
+  EditorEventBus,
   EditorEventHandler,
   EditorEventsMap,
   EditorEventType,
+  EventsDefinition,
+  NoCustomEvents,
 } from "@/events/editor-event-bus/editorEvent.models";
 import { EventBus } from "@/events/event-bus/EventBus";
 import type { CommandArgsOf } from "@/commands/executors/commandExecutors.models";
@@ -16,10 +20,13 @@ import {
   type DefaultCommands,
 } from "@/commands/executors/defaultCommands";
 import type {
+  CommandBuilder,
   CommandType,
-  DefaultEditorSchema,
-  EditorSchema,
-} from "./editor-schema.models";
+  CustomCommands,
+  EditorCommands,
+  NoCustomCommands,
+  WithoutBuiltInCommandNames,
+} from "./editor-commands.models";
 import type { IEditor } from "./IEditor";
 import type { Block, DocumentNode } from "@/blocks/models/block.models";
 import type { ConstructableDocumentElement } from "@/document/models/document.models";
@@ -28,7 +35,7 @@ import type { DeepReadonly } from "@/common/types/object.types";
 import { EventStream } from "@/events/EventStream/EventStream";
 import type { IEventStream } from "@/events/EventStream/IEventStream";
 
-export interface EditorConfig<TSchema extends EditorSchema = DefaultEditorSchema> {
+export interface EditorConfig<TCustomEvents, TCustomCommands> {
   /**
    * The initial document to use for the editor. The editor can construct a document out of a `JSON` string, a `DocumentRoot` or `EditorDocument`.
    *
@@ -51,19 +58,28 @@ export interface EditorConfig<TSchema extends EditorSchema = DefaultEditorSchema
   historyGroupDelay?: number;
 
   /**
-   * Add custom commands to the editor.
+   * Define custom events that custom commands can return and listeners can subscribe to.
    */
-  commands?: Partial<TSchema["commands"]>;
+  events?: EventsDefinition<TCustomEvents>;
+
+  /**
+   * Add custom commands to the editor.
+   * Create each command with `createCommand`, so its payload and the events it returns are typed.
+   */
+  commands?: (
+    builder: CommandBuilder<TCustomEvents>,
+  ) => WithoutBuiltInCommandNames<TCustomCommands>;
 }
 
 // TODO: Move docs to IEditor interface. Also, define a more clear contract and use cases for the cleanup method or remove it.
 export class Editor<
-  TSchema extends EditorSchema = DefaultEditorSchema,
-> implements IEditor<TSchema> {
+  TCustomEvents extends AnyCustomEvents = NoCustomEvents,
+  TCustomCommands extends CustomCommands<TCustomEvents> = NoCustomCommands,
+> implements IEditor<TCustomEvents, TCustomCommands> {
   private document: EditorDocument;
   private readonly history: DocumentHistory;
-  private readonly eventBus: EventBus<EditorEventsMap>;
-  private readonly commandCenter: CommandCenter<TSchema["commands"]>;
+  private readonly eventBus: EventBus<EditorEventsMap<TCustomEvents>>;
+  private readonly commandCenter: CommandCenter<EditorCommands<TCustomCommands>>;
   public readonly ROOT_ID: string;
 
   constructor({
@@ -71,7 +87,7 @@ export class Editor<
     historyLimit,
     historyGroupDelay = DEFAULT_HISTORY_GROUP_DELAY,
     commands,
-  }: EditorConfig<TSchema> = {}) {
+  }: EditorConfig<TCustomEvents, TCustomCommands> = {}) {
     this.document = EditorDocument.from(initialDocument);
     this.ROOT_ID = this.document.ROOT_ID;
     this.eventBus = new EventBus();
@@ -81,11 +97,14 @@ export class Editor<
       limit: historyLimit,
     });
 
-    this.commandCenter = new CommandCenter({
-      eventBus: this.eventBus,
+    this.commandCenter = new CommandCenter<EditorCommands<TCustomCommands>>({
+      eventBus: this.eventBus as EditorEventBus,
       history: this.history,
       document: this.document,
-      commands: { ...DEFAULT_COMMANDS, ...commands },
+      commands: {
+        ...DEFAULT_COMMANDS,
+        ...commands?.({ createCommand: command => command }),
+      },
       historyGroupDelay,
     });
   }
@@ -110,15 +129,15 @@ export class Editor<
     return this.history.getCurrentPosition();
   }
 
-  public execute<TType extends CommandType<TSchema>>(
+  public execute<TType extends CommandType<TCustomCommands>>(
     type: TType,
-    ...args: CommandArgsOf<TSchema["commands"][TType]>
+    ...args: CommandArgsOf<EditorCommands<TCustomCommands>[TType]>
   ): void {
     this.commandCenter.execute(type, ...args);
   }
 
   public transaction<TReturn>(
-    callback: TransactionCallback<TSchema["commands"], TReturn>,
+    callback: TransactionCallback<EditorCommands<TCustomCommands>, TReturn>,
   ): void {
     this.commandCenter.transaction(callback);
   }
@@ -168,23 +187,23 @@ export class Editor<
     this.eventBus.cleanup();
   }
 
-  public on<TEvent extends EditorEventType>(
+  public on<TEvent extends EditorEventType<TCustomEvents>>(
     event: TEvent,
-  ): IEventStream<EditorEventsMap[TEvent]> {
+  ): IEventStream<EditorEventsMap<TCustomEvents>[TEvent]> {
     return new EventStream(handler => this.eventBus.on(event, handler));
   }
 
-  public subscribe<T extends EditorEventType>(
+  public subscribe<T extends EditorEventType<TCustomEvents>>(
     event: T,
-    handler: EditorEventHandler<T>,
+    handler: EditorEventHandler<T, TCustomEvents>,
   ): VoidFunction {
     const unsubscribe = this.eventBus.on(event, handler);
     return unsubscribe;
   }
 
-  public unsubscribe<T extends EditorEventType>(
+  public unsubscribe<T extends EditorEventType<TCustomEvents>>(
     event: T,
-    handler: EditorEventHandler<T>,
+    handler: EditorEventHandler<T, TCustomEvents>,
   ): void {
     this.eventBus.off(event, handler);
   }

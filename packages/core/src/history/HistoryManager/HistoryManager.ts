@@ -1,9 +1,11 @@
 import type { EditorDocument } from "../../document/EditorDocument";
 import { createEvent } from "../../events/editor-event-bus/createEvent";
 import type {
+  AnyCustomEvents,
   CommandEvent,
   EditorEventBus,
 } from "../../events/editor-event-bus/editorEvent.models";
+import { isEventOfType } from "../../events/editor-event-bus/editorEvent.utils";
 import { HistoryRecordMismatchError } from "../../commands/errors/history-set/HistoryRecordMismatchError";
 import type { DocumentHistory } from "../DocumentHistory";
 import type { RecordedChange } from "../models/recorded-change.models";
@@ -40,12 +42,12 @@ export class HistoryManager {
    *
    * It replaces the last record when the change continues the last text edit, so typing is undone in one step.
    */
-  public record(events: CommandEvent[]): void {
+  public record(events: CommandEvent<AnyCustomEvents>[]): void {
     const change: RecordedChange = { events, time: Date.now() };
 
     // TODO: We need to make this generic and come through extension instead of hardcodding specific event type and parts of its payloads here.
     const shouldClearHistory = events.some(
-      event => event.type === "document:swap" && event.historyCleared,
+      event => isEventOfType(event, "document:swap") && event.historyCleared,
     );
 
     if (shouldClearHistory) {

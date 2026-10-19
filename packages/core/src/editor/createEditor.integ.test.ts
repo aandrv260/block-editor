@@ -1,28 +1,28 @@
 import { createEditor } from "./createEditor";
+import type { CommandBuilder } from "./editor-commands.models";
 import { SAMPLE_BLOCK1, SAMPLE_BLOCK2 } from "@/document/utils/document-test.utils";
 import { createTestDocument } from "@/commands/executors/utils/commandExecutors-test.utils";
-import type {
-  CommandContext,
-  Commands,
-} from "@/commands/executors/commandExecutors.models";
-import { createEvent } from "@/events/editor-event-bus/createEvent";
+import type { NoCustomEvents } from "@/events/editor-event-bus/editorEvent.models";
 
-const deleteFirstBlockCommand = ({ document }: CommandContext<void>) => {
-  const firstBlockId = document.getRoot().children[0].id;
+const createDeleteCommands = ({
+  createCommand,
+}: CommandBuilder<NoCustomEvents>) => ({
+  deleteFirstBlock: createCommand(({ document, createEvent }) => {
+    const firstBlockId = document.getRoot().children[0].id;
 
-  document.remove(firstBlockId);
+    document.remove(firstBlockId);
 
-  return createEvent("block:delete", { blockId: firstBlockId });
-};
+    return createEvent("block:delete", { blockId: firstBlockId });
+  }),
 
-const deleteBlockByIdCommand = ({
-  payload,
-  document,
-}: CommandContext<{ id: string }>) => {
-  document.remove(payload.id);
+  deleteBlockById: createCommand<{ id: string }>(
+    ({ payload, document, createEvent }) => {
+      document.remove(payload.id);
 
-  return createEvent("block:delete", { blockId: payload.id });
-};
+      return createEvent("block:delete", { blockId: payload.id });
+    },
+  ),
+});
 
 describe("createEditor", () => {
   it("executes the built-in commands when no custom commands are passed", () => {
@@ -65,10 +65,23 @@ describe("createEditor", () => {
   it("executes the custom commands next to the built-in ones", () => {
     // Arrange
     const editor = createEditor({
-      commands: {
-        deleteFirstBlock: deleteFirstBlockCommand,
-        deleteBlockById: deleteBlockByIdCommand,
-      },
+      commands: ({ createCommand }) => ({
+        deleteFirstBlock: createCommand(({ document, createEvent }) => {
+          const firstBlockId = document.getRoot().children[0].id;
+
+          document.remove(firstBlockId);
+
+          return createEvent("block:delete", { blockId: firstBlockId });
+        }),
+
+        deleteBlockById: createCommand<{ id: string }>(
+          ({ payload, document, createEvent }) => {
+            document.remove(payload.id);
+
+            return createEvent("block:delete", { blockId: payload.id });
+          },
+        ),
+      }),
     });
 
     const onDelete = vi.fn();
@@ -106,47 +119,9 @@ describe("createEditor", () => {
     expect(editor.getHistory()).toHaveLength(5);
   });
 
-  it("executes an inline custom command", () => {
+  it("executes the custom commands of a builder declared apart from the editor", () => {
     // Arrange
-    const editor = createEditor({
-      commands: {
-        deleteFirstBlock: ctx => {
-          const firstBlockId = ctx.document.getRoot().children[0].id;
-
-          ctx.document.remove(firstBlockId);
-
-          return createEvent("block:delete", { blockId: firstBlockId });
-        },
-      },
-    });
-
-    editor.execute("insertBlock", {
-      targetId: editor.ROOT_ID,
-      strategy: "append",
-      newBlock: SAMPLE_BLOCK1,
-    });
-
-    // Act
-    editor.execute("deleteFirstBlock");
-
-    // Assert
-    expect(editor.getRoot().children).toStrictEqual([]);
-  });
-
-  it("executes the custom commands from an object declared apart from the editor", () => {
-    // Arrange
-    const commands = {
-      deleteFirstBlock: ctx => {
-        const firstBlockId = ctx.document.getRoot().children[0].id;
-
-        ctx.document.remove(firstBlockId);
-
-        return createEvent("block:delete", { blockId: firstBlockId });
-      },
-      deleteBlockById: deleteBlockByIdCommand,
-    } satisfies Commands;
-
-    const editor = createEditor({ commands });
+    const editor = createEditor({ commands: createDeleteCommands });
 
     editor.execute("insertBlock", {
       targetId: editor.ROOT_ID,

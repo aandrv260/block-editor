@@ -3,23 +3,23 @@ import type { DocumentHistory } from "../../history/DocumentHistory";
 import { AsyncTransactionError } from "../errors/transaction/AsyncTransactionError";
 import { isTransactionAbortedError } from "../errors/transaction/TransactionAbortedError";
 import { TransactionInProgressError } from "../errors/transaction/TransactionInProgressError";
-import type { Commands } from "../executors/commandExecutors.models";
+import type { AnyCommands } from "../executors/commandExecutors.models";
 import { EditorTransaction } from "./EditorTransaction";
 import type { TransactionCallback, TransactionResult } from "./transaction.models";
 
-interface TransactionManagerConfig<TCommands extends Commands> {
+interface TransactionManagerConfig {
   document: EditorDocument;
   history: DocumentHistory;
-  commands: TCommands;
+  commands: AnyCommands;
 }
 
-export class TransactionManager<TCommands extends Commands> {
+export class TransactionManager<TCommands extends AnyCommands> {
   private readonly document: EditorDocument;
   private readonly history: DocumentHistory;
-  private readonly commands: TCommands;
+  private readonly commands: AnyCommands;
   private activeTransaction: EditorTransaction<TCommands> | null = null;
 
-  constructor({ document, history, commands }: TransactionManagerConfig<TCommands>) {
+  constructor({ document, history, commands }: TransactionManagerConfig) {
     this.document = document;
     this.history = history;
     this.commands = commands;

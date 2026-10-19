@@ -1,20 +1,30 @@
-import type { CommandEvent } from "@/events/editor-event-bus/editorEvent.models";
+import type {
+  AnyCustomEvents,
+  CommandEvent,
+} from "@/events/editor-event-bus/editorEvent.models";
+import { isEventOfType } from "@/events/editor-event-bus/editorEvent.utils";
 import type { RecordedChange } from "../models/recorded-change.models";
 
 export const DEFAULT_HISTORY_GROUP_DELAY = 500;
 
 const isContinuingTextEdit = (
-  lastEvent: CommandEvent,
-  newEvent: CommandEvent,
+  lastEvent: CommandEvent<AnyCustomEvents>,
+  newEvent: CommandEvent<AnyCustomEvents>,
 ): boolean => {
-  if (lastEvent.type === "text:insert" && newEvent.type === "text:insert") {
+  if (
+    isEventOfType(lastEvent, "text:insert") &&
+    isEventOfType(newEvent, "text:insert")
+  ) {
     return (
       newEvent.blockId === lastEvent.blockId &&
       newEvent.offset === lastEvent.offset + lastEvent.text.length
     );
   }
 
-  if (lastEvent.type === "text:delete" && newEvent.type === "text:delete") {
+  if (
+    isEventOfType(lastEvent, "text:delete") &&
+    isEventOfType(newEvent, "text:delete")
+  ) {
     return (
       newEvent.blockId === lastEvent.blockId &&
       (newEvent.to === lastEvent.from || newEvent.from === lastEvent.from)

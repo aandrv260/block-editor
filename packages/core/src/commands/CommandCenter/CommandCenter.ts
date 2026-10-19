@@ -2,16 +2,23 @@ import type { DocumentHistory } from "../../history/DocumentHistory";
 import { HistoryManager } from "../../history/HistoryManager";
 import { EditorDocument } from "../../document/EditorDocument";
 import { createEvent } from "../../events/editor-event-bus/createEvent";
-import type { EditorEventBus } from "../../events/editor-event-bus/editorEvent.models";
-import type { CommandArgsOf, Commands } from "../executors/commandExecutors.models";
+import type {
+  AnyCustomEvents,
+  CommandEvent,
+  EditorEventBus,
+} from "../../events/editor-event-bus/editorEvent.models";
+import type {
+  CommandArgsOf,
+  AnyCommands,
+} from "../executors/commandExecutors.models";
 import { TransactionManager } from "../transaction/TransactionManager";
 import type { TransactionCallback } from "../transaction/transaction.models";
 
-interface CommandCenterConfig<TCommands extends Commands> {
+interface CommandCenterConfig {
   document: EditorDocument;
   eventBus: EditorEventBus;
   history: DocumentHistory;
-  commands: TCommands;
+  commands: AnyCommands;
   historyGroupDelay: number;
 }
 
@@ -22,7 +29,7 @@ interface CommandCenterConfig<TCommands extends Commands> {
  * - It emits the editor change event after every command and history operation.
  * - This is the only part of the system allowed to mutate the document and history.
  */
-export class CommandCenter<TCommands extends Commands> {
+export class CommandCenter<TCommands extends AnyCommands> {
   private document: EditorDocument;
   private readonly history: DocumentHistory;
   private readonly historyManager: HistoryManager;
@@ -35,7 +42,7 @@ export class CommandCenter<TCommands extends Commands> {
     eventBus,
     commands,
     historyGroupDelay,
-  }: CommandCenterConfig<TCommands>) {
+  }: CommandCenterConfig) {
     this.document = document;
     this.eventBus = eventBus;
     this.history = history;
@@ -86,7 +93,7 @@ export class CommandCenter<TCommands extends Commands> {
 
     if (result.status === "committed" && result.events.length > 0) {
       this.historyManager.record(result.events);
-      result.events.forEach(event => this.eventBus.emit(event.type, event));
+      this.forwardCommandEvents(result.events);
       this.emitChangeEvent(trigger);
     }
   }
@@ -113,6 +120,11 @@ export class CommandCenter<TCommands extends Commands> {
     this.transactionManager.ensureNoOpenTransaction("setHistory");
     this.historyManager.setHistory(newHistory);
     this.emitChangeEvent("setHistory");
+  }
+
+  private forwardCommandEvents(events: CommandEvent<AnyCustomEvents>[]): void {
+    const commandEventBus = this.eventBus as EditorEventBus<AnyCustomEvents>;
+    events.forEach(event => commandEventBus.emit(event.type, event));
   }
 
   // TODO: This should be done through hook/extension because it gets triggerred always when there is a change to the editor.

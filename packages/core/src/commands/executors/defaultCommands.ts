@@ -8,6 +8,7 @@ import { toggleMarkCommand } from "./ToggleMarkCommand";
 import { splitBlockCommand } from "./SplitBlockCommand";
 import { mergeBlocksCommand } from "./MergeBlocksCommand";
 import { swapDocumentCommand } from "./SwapDocumentCommand/SwapDocumentCommand";
+import type { NoCustomEvents } from "../../events/editor-event-bus/editorEvent.models";
 import type { Commands } from "./commandExecutors.models";
 
 export const DEFAULT_COMMANDS = {
@@ -21,6 +22,6 @@ export const DEFAULT_COMMANDS = {
   toggleMark: toggleMarkCommand,
   splitBlock: splitBlockCommand,
   mergeBlocks: mergeBlocksCommand,
-} as const satisfies Commands;
+} as const satisfies Commands<NoCustomEvents>;
 
 export type DefaultCommands = typeof DEFAULT_COMMANDS;

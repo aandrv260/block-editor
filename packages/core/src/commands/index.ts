@@ -1,4 +1,3 @@
-export { createCommand } from "./createCommand";
 export type {
   Transaction,
   TransactionCallback,

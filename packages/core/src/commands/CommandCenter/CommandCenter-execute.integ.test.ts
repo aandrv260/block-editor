@@ -91,7 +91,7 @@ const createCommandCenterWithCustomCommand = () => {
     initialDocumentJSON: document.toJSON(),
   });
 
-  const commandCenter = new CommandCenter({
+  const commandCenter = new CommandCenter<typeof COMMANDS_WITH_CUSTOM_COMMAND>({
     document,
     eventBus,
     history,

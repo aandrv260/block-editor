@@ -8,32 +8,22 @@ import {
 import { assertEngineError } from "@/errors/test-utils/error-test.utils";
 import { UnknownCommandError } from "@/commands/errors/unknown-command/UnknownCommandError";
 import { InvalidBlockError } from "@/document/errors/common";
-import type { DefaultCommands } from "@/commands/executors/defaultCommands";
-import type { CommandContext } from "@/commands/executors/commandExecutors.models";
-import { createEvent } from "@/events/editor-event-bus/createEvent";
-
-const deleteFirstBlockCommand = ({ document }: CommandContext<void>) => {
-  const firstBlockId = document.getRoot().children[0].id;
-
-  document.remove(firstBlockId);
-
-  return createEvent("block:delete", { blockId: firstBlockId });
-};
-
-const CUSTOM_COMMANDS = {
-  deleteFirstBlock: deleteFirstBlockCommand,
-};
-
-type SchemaWithCustomCommand = {
-  commands: DefaultCommands & typeof CUSTOM_COMMANDS;
-};
-
 // Simulates a caller without types, such as plain JavaScript, to reach the runtime guard.
 const executeWithoutTypes = (editor: Editor, type: string) =>
   (editor as unknown as { execute: (type: string) => void }).execute(type);
 
 const createEditorWithCustomCommand = () =>
-  new Editor<SchemaWithCustomCommand>({ commands: CUSTOM_COMMANDS });
+  new Editor({
+    commands: ({ createCommand }) => ({
+      deleteFirstBlock: createCommand(({ document, createEvent }) => {
+        const firstBlockId = document.getRoot().children[0].id;
+
+        document.remove(firstBlockId);
+
+        return createEvent("block:delete", { blockId: firstBlockId });
+      }),
+    }),
+  });
 
 describe("Editor execute", () => {
   it("executes a built-in command, records the history and emits its events", () => {
