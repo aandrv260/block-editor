@@ -1,5 +1,10 @@
 export type ErrorContext = Record<string, unknown> | void;
-export type ErrorNamespace = "document" | "history" | "event" | "command";
+export type ErrorNamespace =
+  | "document"
+  | "history"
+  | "event"
+  | "command"
+  | "extension";
 
 export abstract class EngineError<TContext extends ErrorContext> extends Error {
   public readonly code: string;
@@ -41,7 +46,12 @@ export const isCommandError = (error: unknown): error is EngineError<void> => {
   return error instanceof EngineError && error.namespace === "command";
 };
 
+export const isExtensionError = (error: unknown): error is EngineError<void> => {
+  return error instanceof EngineError && error.namespace === "extension";
+};
+
 export const DOCUMENT_ERROR_NAMESPACE = "document";
 export const HISTORY_ERROR_NAMESPACE = "history";
 export const EVENT_ERROR_NAMESPACE = "event";
 export const COMMAND_ERROR_NAMESPACE = "command";
+export const EXTENSION_ERROR_NAMESPACE = "extension";

@@ -43,6 +43,7 @@ export const createCommandCenter = (
     eventBus,
     history,
     commands: DEFAULT_COMMANDS,
+    extensions: [],
     historyGroupDelay: DEFAULT_HISTORY_GROUP_DELAY,
   });
 

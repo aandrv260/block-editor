@@ -228,3 +228,18 @@ export interface DocumentTree {
    */
   isOnlyBlockInDocument(blockId: string): boolean;
 }
+
+export type ReadonlyEditorDocument = Pick<
+  EditorDocument,
+  | "ROOT_ID"
+  | "size"
+  | "toJSON"
+  | "isOnlyBlockInDocument"
+  | "getPreviousSiblingBlock"
+  | "getNextSiblingBlock"
+> & {
+  getRoot(): DeepReadonly<DocumentRoot>;
+  getBlock(blockId: string): DeepReadonly<Block> | null;
+  getBlockOrRoot(targetId: string): DeepReadonly<Block | DocumentRoot> | null;
+  traverse(callback: (block: DeepReadonly<Block>) => void): void;
+};

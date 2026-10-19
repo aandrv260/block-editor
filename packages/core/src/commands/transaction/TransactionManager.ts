@@ -4,6 +4,7 @@ import { AsyncTransactionError } from "../errors/transaction/AsyncTransactionErr
 import { isTransactionAbortedError } from "../errors/transaction/TransactionAbortedError";
 import { TransactionInProgressError } from "../errors/transaction/TransactionInProgressError";
 import type { AnyCommands } from "../executors/commandExecutors.models";
+import type { ExtensionManager } from "../../extensions/ExtensionManager/ExtensionManager";
 import { EditorTransaction } from "./EditorTransaction";
 import type { TransactionCallback, TransactionResult } from "./transaction.models";
 
@@ -11,18 +12,26 @@ interface TransactionManagerConfig {
   document: EditorDocument;
   history: DocumentHistory;
   commands: AnyCommands;
+  extensionManager: ExtensionManager;
 }
 
 export class TransactionManager<TCommands extends AnyCommands> {
   private readonly document: EditorDocument;
   private readonly history: DocumentHistory;
   private readonly commands: AnyCommands;
+  private readonly extensionManager: ExtensionManager;
   private activeTransaction: EditorTransaction<TCommands> | null = null;
 
-  constructor({ document, history, commands }: TransactionManagerConfig) {
+  constructor({
+    document,
+    history,
+    commands,
+    extensionManager,
+  }: TransactionManagerConfig) {
     this.document = document;
     this.history = history;
     this.commands = commands;
+    this.extensionManager = extensionManager;
   }
 
   public run(
@@ -36,6 +45,7 @@ export class TransactionManager<TCommands extends AnyCommands> {
     const transaction = new EditorTransaction({
       document: this.document,
       commands: this.commands,
+      extensionManager: this.extensionManager,
       getActiveTransaction: () => this.activeTransaction,
     });
 
@@ -46,6 +56,10 @@ export class TransactionManager<TCommands extends AnyCommands> {
 
       if (result instanceof Promise) {
         throw new AsyncTransactionError();
+      }
+
+      if (!transaction.isAborted()) {
+        transaction.runBeforeCommit();
       }
     } catch (error) {
       this.activeTransaction = null;

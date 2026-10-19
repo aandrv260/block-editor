@@ -96,6 +96,7 @@ const createCommandCenterWithCustomCommand = () => {
     eventBus,
     history,
     commands: COMMANDS_WITH_CUSTOM_COMMAND,
+    extensions: [],
     historyGroupDelay: DEFAULT_HISTORY_GROUP_DELAY,
   });
 

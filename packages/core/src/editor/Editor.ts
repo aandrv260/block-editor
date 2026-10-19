@@ -34,6 +34,7 @@ import type { SwapDocumentPayload } from "@/commands/executors/SwapDocumentComma
 import type { DeepReadonly } from "@/common/types/object.types";
 import { EventStream } from "@/events/EventStream/EventStream";
 import type { IEventStream } from "@/events/EventStream/IEventStream";
+import type { Extension } from "@/extensions/models/extension.models";
 
 export interface EditorConfig<TCustomEvents, TCustomCommands> {
   /**
@@ -69,6 +70,13 @@ export interface EditorConfig<TCustomEvents, TCustomCommands> {
   commands?: (
     builder: CommandBuilder<TCustomEvents>,
   ) => WithoutBuiltInCommandNames<TCustomCommands>;
+
+  /**
+   * Extensions hook into every command and transaction of the editor and run in array order.
+   * Two extensions with the same name throw a `DuplicateExtensionError`, and an extension without hooks throws an `ExtensionWithoutHooksError`.
+   * The `beforeCommand`, `afterCommand` and `beforeCommit` hooks must be synchronous.
+   */
+  extensions?: readonly Extension[];
 }
 
 // TODO: Move docs to IEditor interface. Also, define a more clear contract and use cases for the cleanup method or remove it.
@@ -87,6 +95,7 @@ export class Editor<
     historyLimit,
     historyGroupDelay = DEFAULT_HISTORY_GROUP_DELAY,
     commands,
+    extensions = [],
   }: EditorConfig<TCustomEvents, TCustomCommands> = {}) {
     this.document = EditorDocument.from(initialDocument);
     this.ROOT_ID = this.document.ROOT_ID;
@@ -105,6 +114,7 @@ export class Editor<
         ...DEFAULT_COMMANDS,
         ...commands?.({ createCommand: command => command }),
       },
+      extensions,
       historyGroupDelay,
     });
   }
@@ -184,6 +194,7 @@ export class Editor<
   }
 
   public cleanup(): void {
+    this.commandCenter.cleanup();
     this.eventBus.cleanup();
   }
 
