@@ -2,7 +2,9 @@ export * from "./Editor";
 export * from "./createEditor";
 export * from "./IEditor";
 export type {
+  CommandBuilder,
   CommandType,
-  DefaultEditorSchema,
-  EditorSchema,
-} from "./editor-schema.models";
+  CustomCommands,
+  EditorCommands,
+  NoCustomCommands,
+} from "./editor-commands.models";

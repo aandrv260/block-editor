@@ -7,16 +7,20 @@ import type {
   EditorEventHandler,
   EditorEventsMap,
   EditorEventType,
+  NoCustomEvents,
 } from "@/events/editor-event-bus/editorEvent.models";
 import type { IEventStream } from "@/events/EventStream/IEventStream";
 import type { SwapDocumentPayload } from "@/commands/executors/SwapDocumentCommand/SwapDocumentCommand";
 import type {
   CommandType,
-  DefaultEditorSchema,
-  EditorSchema,
-} from "./editor-schema.models";
+  EditorCommands,
+  NoCustomCommands,
+} from "./editor-commands.models";
 
-export interface IEditor<TSchema extends EditorSchema = DefaultEditorSchema> {
+export interface IEditor<
+  TCustomEvents = NoCustomEvents,
+  TCustomCommands = NoCustomCommands,
+> {
   readonly ROOT_ID: string;
 
   /**
@@ -45,9 +49,9 @@ export interface IEditor<TSchema extends EditorSchema = DefaultEditorSchema> {
     });
    * ```
    */
-  execute<TType extends CommandType<TSchema>>(
+  execute<TType extends CommandType<TCustomCommands>>(
     type: TType,
-    ...args: CommandArgsOf<TSchema["commands"][TType]>
+    ...args: CommandArgsOf<EditorCommands<TCustomCommands>[TType]>
   ): void;
 
   /**
@@ -69,7 +73,7 @@ export interface IEditor<TSchema extends EditorSchema = DefaultEditorSchema> {
    * ```
    */
   transaction<TReturn>(
-    callback: TransactionCallback<TSchema["commands"], TReturn>,
+    callback: TransactionCallback<EditorCommands<TCustomCommands>, TReturn>,
   ): void;
 
   /**
@@ -152,9 +156,9 @@ export interface IEditor<TSchema extends EditorSchema = DefaultEditorSchema> {
    *
    * Use in cases where you know you won't have to filter or map the event payload and just want to directly react to it.
    */
-  subscribe<T extends EditorEventType>(
+  subscribe<T extends EditorEventType<TCustomEvents>>(
     event: T,
-    handler: EditorEventHandler<T>,
+    handler: EditorEventHandler<T, TCustomEvents>,
   ): VoidFunction;
 
   /**
@@ -162,14 +166,14 @@ export interface IEditor<TSchema extends EditorSchema = DefaultEditorSchema> {
    *
    * Use in cases where you want to unsubscribe from an event that you subscribed to directly with subscribe() or through an event stream.
    */
-  unsubscribe<T extends EditorEventType>(
+  unsubscribe<T extends EditorEventType<TCustomEvents>>(
     event: T,
-    handler: EditorEventHandler<T>,
+    handler: EditorEventHandler<T, TCustomEvents>,
   ): void;
 
-  on<TEvent extends EditorEventType>(
+  on<TEvent extends EditorEventType<TCustomEvents>>(
     event: TEvent,
-  ): IEventStream<EditorEventsMap[TEvent]>;
+  ): IEventStream<EditorEventsMap<TCustomEvents>[TEvent]>;
 
   getCurrentHistoryRecord(): string | null;
 

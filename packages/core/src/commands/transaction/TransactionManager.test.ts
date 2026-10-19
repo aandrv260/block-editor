@@ -6,7 +6,10 @@ import { DocumentHistory } from "../../history/DocumentHistory";
 import { BlockToDeleteNotFoundError } from "../errors/delete-block/BlockToDeleteNotFoundError";
 import { AsyncTransactionError } from "../errors/transaction/AsyncTransactionError";
 import { TransactionInProgressError } from "../errors/transaction/TransactionInProgressError";
-import { DEFAULT_COMMANDS } from "../executors/defaultCommands";
+import {
+  DEFAULT_COMMANDS,
+  type DefaultCommands,
+} from "../executors/defaultCommands";
 import { createTestDocument } from "../executors/utils/commandExecutors-test.utils";
 import { TransactionManager } from "./TransactionManager";
 
@@ -15,7 +18,7 @@ const createTransactionManager = () => {
   const initialDocumentJSON = document.toJSON();
   const history = new DocumentHistory({ initialDocumentJSON });
 
-  const transactionManager = new TransactionManager({
+  const transactionManager = new TransactionManager<DefaultCommands>({
     document,
     history,
     commands: DEFAULT_COMMANDS,

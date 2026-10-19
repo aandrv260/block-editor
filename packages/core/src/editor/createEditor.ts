@@ -1,26 +1,13 @@
-import type { DefaultCommands } from "@/commands/executors/defaultCommands";
+import type {
+  AnyCustomEvents,
+  NoCustomEvents,
+} from "@/events/editor-event-bus/editorEvent.models";
 import { Editor, type EditorConfig } from "./Editor";
-import type { CustomCommands } from "./editor-schema.models";
-
-interface CreateEditorConfig<TCommands> extends Pick<
-  EditorConfig,
-  "initialDocument" | "historyLimit"
-> {
-  /**
-   * Add custom commands to your editor.
-   */
-  commands?: TCommands & CustomCommands<TCommands>;
-}
+import type { CustomCommands, NoCustomCommands } from "./editor-commands.models";
 
 export const createEditor = <
-  TCommands extends Record<string, unknown> = Record<never, never>,
+  TCustomEvents extends AnyCustomEvents = NoCustomEvents,
+  TCustomCommands extends CustomCommands<TCustomEvents> = NoCustomCommands,
 >(
-  config: CreateEditorConfig<TCommands> = {},
-): Editor<{ commands: DefaultCommands & CustomCommands<TCommands> }> => {
-  type TEditorCommands = DefaultCommands & CustomCommands<TCommands>;
-
-  return new Editor<{ commands: TEditorCommands }>({
-    ...config,
-    commands: config.commands as Partial<TEditorCommands>,
-  });
-};
+  config: EditorConfig<TCustomEvents, TCustomCommands> = {},
+): Editor<TCustomEvents, TCustomCommands> => new Editor(config);

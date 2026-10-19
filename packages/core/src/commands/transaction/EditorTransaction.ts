@@ -1,30 +1,34 @@
 import type { EditorDocument } from "../../document/EditorDocument";
-import type { CommandEvent } from "../../events/editor-event-bus/editorEvent.models";
+import type {
+  AnyCustomEvents,
+  CommandEvent,
+} from "../../events/editor-event-bus/editorEvent.models";
 import { toCommandEvents } from "../CommandCenter/CommandCenter.utils";
 import { TransactionAbortedError } from "../errors/transaction/TransactionAbortedError";
 import { TransactionClosedError } from "../errors/transaction/TransactionClosedError";
 import { UnknownCommandError } from "../errors/unknown-command/UnknownCommandError";
 import type {
+  AnyCommands,
   CommandArgsOf,
   CommandContext,
   CommandResult,
-  Commands,
 } from "../executors/commandExecutors.models";
+import { createCommandEvent } from "../../events/editor-event-bus/createCommandEvent";
 import type { Transaction } from "./transaction.models";
 
-interface EditorTransactionConfig<TCommands extends Commands> {
+interface EditorTransactionConfig<TCommands extends AnyCommands> {
   document: EditorDocument;
-  commands: TCommands;
+  commands: AnyCommands;
   getActiveTransaction: () => EditorTransaction<TCommands> | null;
 }
 
 export class EditorTransaction<
-  TCommands extends Commands,
+  TCommands extends AnyCommands,
 > implements Transaction<TCommands> {
   private readonly document: EditorDocument;
-  private readonly commands: TCommands;
+  private readonly commands: AnyCommands;
   private readonly getActiveTransaction: () => EditorTransaction<TCommands> | null;
-  private readonly events: CommandEvent[] = [];
+  private readonly events: CommandEvent<AnyCustomEvents>[] = [];
   private aborted = false;
 
   constructor({
@@ -46,7 +50,13 @@ export class EditorTransaction<
     const command = this.getCommand(type);
 
     this.events.push(
-      ...toCommandEvents(command({ payload: args[0], document: this.document })),
+      ...toCommandEvents(
+        command({
+          payload: args[0],
+          document: this.document,
+          createEvent: createCommandEvent,
+        }),
+      ),
     );
   }
 
@@ -57,7 +67,7 @@ export class EditorTransaction<
     throw new TransactionAbortedError();
   }
 
-  public getEvents(): CommandEvent[] {
+  public getEvents(): CommandEvent<AnyCustomEvents>[] {
     return this.events;
   }
 
@@ -73,13 +83,15 @@ export class EditorTransaction<
 
   private getCommand(
     type: string,
-  ): (context: CommandContext<unknown>) => CommandResult {
+  ): (
+    context: CommandContext<unknown, AnyCustomEvents>,
+  ) => CommandResult<AnyCustomEvents> {
     if (!Object.hasOwn(this.commands, type)) {
       throw new UnknownCommandError(type);
     }
 
     return this.commands[type] as (
-      context: CommandContext<unknown>,
-    ) => CommandResult;
+      context: CommandContext<unknown, AnyCustomEvents>,
+    ) => CommandResult<AnyCustomEvents>;
   }
 }

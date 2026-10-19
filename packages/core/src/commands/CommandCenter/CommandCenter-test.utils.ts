@@ -11,8 +11,10 @@ import {
 import { CommandCenter } from "./CommandCenter";
 import { DocumentHistory } from "../../history/DocumentHistory";
 import { DEFAULT_HISTORY_GROUP_DELAY } from "../../history/HistoryManager/HistoryManager.utils";
-import { DEFAULT_COMMANDS } from "../executors/defaultCommands";
-import type { DefaultEditorSchema } from "../../editor/editor-schema.models";
+import {
+  DEFAULT_COMMANDS,
+  type DefaultCommands,
+} from "../executors/defaultCommands";
 
 export const DEFAULT_COMMAND_CENTER_DOCUMENT_BLOCKS: DocumentBlocksInitialization[] =
   [
@@ -36,7 +38,7 @@ export const createCommandCenter = (
     limit: historyLimit,
   });
 
-  const commandCenter = new CommandCenter<DefaultEditorSchema["commands"]>({
+  const commandCenter = new CommandCenter<DefaultCommands>({
     document,
     eventBus,
     history,

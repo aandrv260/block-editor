@@ -76,25 +76,63 @@ type SystemEventsData = {
   };
 };
 
-export type EditorEventsData = DocumentEventsData & SystemEventsData;
+type BuiltInEventsData = DocumentEventsData & SystemEventsData;
+
+type BuiltInEventType = keyof BuiltInEventsData;
+
+export type NoCustomEvents = Record<never, never>;
+
+export type AnyCustomEvents = Record<string, object>;
+
+export type CustomEventsData = AnyCustomEvents & {
+  [TType in BuiltInEventType]?: never;
+};
+
+export type EditorEventsData<TCustomEvents = NoCustomEvents> = BuiltInEventsData &
+  TCustomEvents;
 
 type EventsOf<TEventsData> = {
   [TType in keyof TEventsData]: { type: TType } & TEventsData[TType];
 };
 
-export type EditorEventsMap = EventsOf<EditorEventsData>;
+export type EditorEventsMap<TCustomEvents = NoCustomEvents> = EventsOf<
+  EditorEventsData<TCustomEvents>
+>;
 
-export type EditorEventType = keyof EditorEventsMap & string;
+export type EditorEventType<TCustomEvents = NoCustomEvents> =
+  keyof EditorEventsMap<TCustomEvents> & string;
 
-export type EditorEvent = EditorEventsMap[EditorEventType];
+export type EditorEvent<TCustomEvents = NoCustomEvents> =
+  EditorEventsMap<TCustomEvents>[EditorEventType<TCustomEvents>];
 
-export type CommandEvent = EventsOf<DocumentEventsData>[keyof DocumentEventsData];
+export type BuiltInCommandEventsMap = EventsOf<DocumentEventsData>;
 
-export type EditorEventHandler<TEventType extends EditorEventType> = (
-  event: EditorEventsMap[TEventType],
-) => void;
+export type CommandEventsData<TCustomEvents = NoCustomEvents> = DocumentEventsData &
+  TCustomEvents;
 
-/**
- * The event bus the internals use. Its event names are fixed, so every emit is type-checked.
- */
-export type EditorEventBus = EventBus<EditorEventsMap>;
+export type CommandEventType<TCustomEvents = NoCustomEvents> =
+  keyof CommandEventsData<TCustomEvents> & string;
+
+export type CreateCommandEvent<TCustomEvents = NoCustomEvents> = <
+  TType extends CommandEventType<TCustomEvents>,
+>(
+  type: TType,
+  data: CommandEventsData<TCustomEvents>[TType],
+) => { type: TType } & CommandEventsData<TCustomEvents>[TType];
+
+export type EventsDefinition<TCustomEvents> = {
+  readonly events?: TCustomEvents;
+};
+
+export type CommandEvent<TCustomEvents = NoCustomEvents> = EventsOf<
+  CommandEventsData<TCustomEvents>
+>[keyof CommandEventsData<TCustomEvents>];
+
+export type EditorEventHandler<
+  TEventType extends EditorEventType<TCustomEvents>,
+  TCustomEvents = NoCustomEvents,
+> = (event: EditorEventsMap<TCustomEvents>[TEventType]) => void;
+
+export type EditorEventBus<TCustomEvents = NoCustomEvents> = EventBus<
+  EditorEventsMap<TCustomEvents>
+>;

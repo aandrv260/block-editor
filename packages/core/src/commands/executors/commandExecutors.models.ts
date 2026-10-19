@@ -1,20 +1,38 @@
 import type { EditorDocument } from "../../document/EditorDocument";
-import type { CommandEvent } from "../../events/editor-event-bus/editorEvent.models";
+import type {
+  AnyCustomEvents,
+  CommandEvent,
+  CreateCommandEvent,
+  NoCustomEvents,
+} from "../../events/editor-event-bus/editorEvent.models";
 
-export interface CommandContext<TPayload> {
+export interface CommandContext<TPayload, TCustomEvents = NoCustomEvents> {
   payload: TPayload;
   document: EditorDocument;
+  createEvent: CreateCommandEvent<TCustomEvents>;
 }
 
-export type CommandResult = CommandEvent | [CommandEvent, ...CommandEvent[]];
+export type CommandResult<TCustomEvents = NoCustomEvents> =
+  | CommandEvent<TCustomEvents>
+  | [CommandEvent<TCustomEvents>, ...CommandEvent<TCustomEvents>[]];
 
-export type Command = (context: CommandContext<never>) => CommandResult;
-export type Commands = Record<string, Command>;
+export type Command<TCustomEvents = AnyCustomEvents> = (
+  context: CommandContext<never, TCustomEvents>,
+) => CommandResult<TCustomEvents>;
+
+export type Commands<TCustomEvents = AnyCustomEvents> = Record<
+  string,
+  Command<TCustomEvents>
+>;
+
+export type AnyCommands = Record<string, unknown>;
 
 export type CommandArgsOf<TCommand> = TCommand extends (
-  context: CommandContext<infer TPayload>,
-) => CommandResult
-  ? [TPayload] extends [void]
-    ? [payload?: undefined]
-    : [payload: TPayload]
+  context: infer TContext,
+) => unknown
+  ? TContext extends { payload: infer TPayload }
+    ? [TPayload] extends [void]
+      ? [payload?: undefined]
+      : [payload: TPayload]
+    : never
   : never;
