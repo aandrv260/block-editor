@@ -8,3 +8,4 @@ export * from "./events";
 export * from "./editor";
 export * from "./common";
 export * from "./commands";
+export * from "./extensions";

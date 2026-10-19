@@ -13,12 +13,15 @@ import type {
 } from "../executors/commandExecutors.models";
 import { TransactionManager } from "../transaction/TransactionManager";
 import type { TransactionCallback } from "../transaction/transaction.models";
+import { ExtensionManager } from "../../extensions/ExtensionManager/ExtensionManager";
+import type { Extension } from "../../extensions/models/extension.models";
 
 interface CommandCenterConfig {
   document: EditorDocument;
   eventBus: EditorEventBus;
   history: DocumentHistory;
   commands: AnyCommands;
+  extensions: readonly Extension[];
   historyGroupDelay: number;
 }
 
@@ -27,6 +30,7 @@ interface CommandCenterConfig {
  * - For a command type and its payload, it will execute the registered command and update the history.
  * - It delegates the history operations (undo, redo, jump and set) to the history manager because they are not commands.
  * - It emits the editor change event after every command and history operation.
+ * - It delegates the extension hooks, listeners and lifecycle to the extension manager.
  * - This is the only part of the system allowed to mutate the document and history.
  */
 export class CommandCenter<TCommands extends AnyCommands> {
@@ -34,6 +38,7 @@ export class CommandCenter<TCommands extends AnyCommands> {
   private readonly history: DocumentHistory;
   private readonly historyManager: HistoryManager;
   private readonly transactionManager: TransactionManager<TCommands>;
+  private readonly extensionManager: ExtensionManager;
   private readonly eventBus: EditorEventBus;
 
   constructor({
@@ -41,6 +46,7 @@ export class CommandCenter<TCommands extends AnyCommands> {
     history,
     eventBus,
     commands,
+    extensions,
     historyGroupDelay,
   }: CommandCenterConfig) {
     this.document = document;
@@ -52,11 +58,16 @@ export class CommandCenter<TCommands extends AnyCommands> {
       eventBus,
       groupDelay: historyGroupDelay,
     });
+
+    this.extensionManager = new ExtensionManager({ extensions, document, eventBus });
     this.transactionManager = new TransactionManager({
       document,
       history,
       commands,
+      extensionManager: this.extensionManager,
     });
+
+    this.extensionManager.init();
   }
 
   /**
@@ -120,6 +131,10 @@ export class CommandCenter<TCommands extends AnyCommands> {
     this.transactionManager.ensureNoOpenTransaction("setHistory");
     this.historyManager.setHistory(newHistory);
     this.emitChangeEvent("setHistory");
+  }
+
+  public cleanup(): void {
+    this.extensionManager.destroy();
   }
 
   private forwardCommandEvents(events: CommandEvent<AnyCustomEvents>[]): void {
