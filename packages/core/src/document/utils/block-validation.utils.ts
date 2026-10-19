@@ -1,6 +1,7 @@
 import * as v from "valibot";
 import type { Block, DocumentNode } from "../../blocks/models/block.models";
-import { BlockSchema } from "../../blocks/models/block.schemas";
+import { BLOCK_SCHEMAS } from "../../blocks/models/block.schemas";
+import { DocumentRoot } from "../DocumentRoot/DocumentRoot";
 import { getChildren } from "./block-children.utils";
 import {
   InvalidBlockError,
@@ -26,10 +27,23 @@ export const validateDocumentStructure: (
   }
 };
 
+const getChildBlockSchema = (
+  parent: Block | DocumentRoot,
+): v.GenericSchema<Block> => {
+  if (parent instanceof DocumentRoot) {
+    return DocumentSchema.entries.children.item;
+  }
+
+  const { entries } = BLOCK_SCHEMAS[parent.type];
+
+  return "children" in entries ? entries.children.item : v.never();
+};
+
 export const validateBlockStructure: (
   block: unknown,
-) => asserts block is Block = block => {
-  const result = v.safeParse(BlockSchema, block);
+  parent: Block | DocumentRoot,
+) => asserts block is Block = (block, parent) => {
+  const result = v.safeParse(getChildBlockSchema(parent), block);
 
   if (!result.success) {
     throw new InvalidBlockError(toDocumentIssues(result.issues));

@@ -15,6 +15,8 @@ import {
 import type { BlockPayload } from "../models/document-payload.models";
 import {
   SAMPLE_BLOCK1,
+  BULLET_LIST_ITEM1_BLOCK,
+  BULLET_LIST_ITEM2_BLOCK,
   SAMPLE_BLOCK2,
   SAMPLE_BLOCK3,
   SAMPLE_BLOCK4,
@@ -593,5 +595,38 @@ describe("insertAfter()", () => {
 
     expect(document.toJSON()).toBe(documentJSONBeforeInsert);
     expect(document.getBlock("node2")).toBeNull();
+  });
+
+  it("throws an error and leaves the document unchanged when the parent of the target does not allow the block inside it", () => {
+    // Arrange
+    const document = new EditorDocument();
+
+    document.appendChild("root", BULLET_LIST_ITEM1_BLOCK);
+    document.appendChild(BULLET_LIST_ITEM1_BLOCK.id, BULLET_LIST_ITEM2_BLOCK);
+
+    const initialDocumentJSON = document.toJSON();
+
+    // Act and assert
+    assertEngineError(
+      () => document.insertAfter(BULLET_LIST_ITEM2_BLOCK.id, SAMPLE_BLOCK2),
+      {
+        ExpectedErrorClass: InvalidBlockError,
+        expectedCode: "DOCUMENT:INVALID_BLOCK",
+        expectedMessage:
+          'Invalid block. type: Invalid type: Expected "bullet-list-item" but received "text"',
+        expectedContext: {
+          issues: [
+            {
+              path: "type",
+              message:
+                'Invalid type: Expected "bullet-list-item" but received "text"',
+            },
+          ],
+        },
+      },
+    );
+
+    expect(document.toJSON()).toBe(initialDocumentJSON);
+    expect(document.getBlock(SAMPLE_BLOCK2.id)).toBeNull();
   });
 });

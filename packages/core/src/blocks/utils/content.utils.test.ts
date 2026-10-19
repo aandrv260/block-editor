@@ -6,18 +6,11 @@ import {
   getPlainText,
   hasMarkInRange,
   insertTextAt,
-  isContentBlock,
   joinContent,
   normalizeContent,
   removeMark,
   splitContent,
 } from "./content.utils";
-import {
-  SAMPLE_BLOCK1,
-  SAMPLE_BLOCK2,
-  TOGGLE_LIST1_BLOCK,
-  testBlockToBlock,
-} from "../../document/utils/document-test.utils";
 
 const bold: Mark = { type: "bold" };
 const italic: Mark = { type: "italic" };
@@ -500,27 +493,5 @@ describe("deleteTextInRange()", () => {
 
     // Assert
     expect(deleteTextInRange(content, 2, 2)).toStrictEqual(content);
-  });
-});
-
-describe("isContentBlock()", () => {
-  it.each([
-    ["heading", testBlockToBlock(SAMPLE_BLOCK1, "root")],
-    ["text", testBlockToBlock(SAMPLE_BLOCK2, "root")],
-    ["toggle-list", testBlockToBlock(TOGGLE_LIST1_BLOCK, "root")],
-  ])("returns true for a %s block", (_, block) => {
-    // Assert
-    expect(isContentBlock(block)).toBe(true);
-  });
-
-  it("returns false for a block without text", () => {
-    // Arrange
-    const block = testBlockToBlock(
-      { id: "list", type: "bullet-list", data: {}, children: [] },
-      "root",
-    );
-
-    // Assert
-    expect(isContentBlock(block)).toBe(false);
   });
 });

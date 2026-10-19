@@ -1,5 +1,4 @@
-import type { TextRun } from "./content/content.schema";
-import type { BulletListBlock } from "./bullet-list/bullet-list-block.schema";
+import type { BulletListItemBlock } from "./bullet-list-item/bullet-list-item-block.schema";
 import type { CalloutBlock } from "./callout/callout-block.schema";
 import type { HeadingBlock } from "./heading/heading-block.schema";
 import type { QuoteBlock } from "./quote/quote-block.schema";
@@ -17,6 +16,4 @@ export type Block =
   | ToggleListBlock
   | QuoteBlock
   | CalloutBlock
-  | BulletListBlock;
-
-export type ContentBlock = Extract<Block, { data: { content: TextRun[] } }>;
+  | BulletListItemBlock;

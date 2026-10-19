@@ -2,6 +2,7 @@ import type { DocumentNode } from "../../blocks/models/block.models";
 import { assertEngineError } from "../../errors/test-utils/error-test.utils";
 import { InvalidBlockError, ParentBlockNotFoundError } from "../errors/common";
 import { InvalidDocumentError } from "../errors/factories";
+import { DocumentRoot } from "../DocumentRoot/DocumentRoot";
 import {
   validateBlockParentLink,
   validateBlockStructure,
@@ -351,20 +352,90 @@ const invalidBlocks: [string, unknown][] = [
     },
   ],
   [
-    "bullet-list-has-a-field-in-data",
+    "bullet-list-item-has-2-fields-in-data",
     {
       id: "1",
       parentId: "root",
-      type: "bullet-list",
+      type: "bullet-list-item",
       data: {
         content: [{ text: "text", marks: [] }],
+        level: 1,
       },
       children: [],
     },
   ],
   [
-    "bullet-list-has-no-children",
-    { id: "1", parentId: "root", type: "bullet-list", data: {} },
+    "bullet-list-item-has-no-children",
+    {
+      id: "1",
+      parentId: "root",
+      type: "bullet-list-item",
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
+    },
+  ],
+  [
+    "bullet-list-item-has-no-content",
+    {
+      id: "1",
+      parentId: "root",
+      type: "bullet-list-item",
+      data: {},
+      children: [],
+    },
+  ],
+  [
+    "bullet-list-item-has-a-text-child",
+    {
+      id: "1",
+      parentId: "root",
+      type: "bullet-list-item",
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
+      children: [
+        {
+          id: "2",
+          parentId: "1",
+          type: "text",
+          data: {
+            content: [{ text: "text", marks: [] }],
+          },
+        },
+      ],
+    },
+  ],
+  [
+    "bullet-list-item-has-a-text-grandchild",
+    {
+      id: "1",
+      parentId: "root",
+      type: "bullet-list-item",
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
+      children: [
+        {
+          id: "2",
+          parentId: "1",
+          type: "bullet-list-item",
+          data: {
+            content: [{ text: "text", marks: [] }],
+          },
+          children: [
+            {
+              id: "3",
+              parentId: "2",
+              type: "text",
+              data: {
+                content: [{ text: "text", marks: [] }],
+              },
+            },
+          ],
+        },
+      ],
+    },
   ],
   ["is-an-array", []],
   [
@@ -445,26 +516,30 @@ const invalidBlocks: [string, unknown][] = [
     },
   ],
   [
-    "bullet-list-has-no-data",
-    { id: "1", parentId: "root", type: "bullet-list", children: [] },
+    "bullet-list-item-has-no-data",
+    { id: "1", parentId: "root", type: "bullet-list-item", children: [] },
   ],
   [
-    "bullet-list-has-non-array-children",
+    "bullet-list-item-has-non-array-children",
     {
       id: "1",
       parentId: "root",
-      type: "bullet-list",
-      data: {},
+      type: "bullet-list-item",
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
       children: "children",
     },
   ],
   [
-    "bullet-list-has-an-extra-field",
+    "bullet-list-item-has-an-extra-field",
     {
       id: "1",
       parentId: "root",
-      type: "bullet-list",
-      data: {},
+      type: "bullet-list-item",
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
       children: [],
       extra: true,
     },
@@ -542,7 +617,38 @@ const validBlocks: [unknown][] = [
       },
     },
   ],
-  [{ id: "1", parentId: "root", type: "bullet-list", data: {}, children: [] }],
+  [
+    {
+      id: "1",
+      parentId: "root",
+      type: "bullet-list-item",
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
+      children: [],
+    },
+  ],
+  [
+    {
+      id: "1",
+      parentId: "root",
+      type: "bullet-list-item",
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
+      children: [
+        {
+          id: "2",
+          parentId: "1",
+          type: "bullet-list-item",
+          data: {
+            content: [{ text: "nested", marks: [{ type: "bold" }] }],
+          },
+          children: [],
+        },
+      ],
+    },
+  ],
   [
     {
       id: "1",
@@ -708,7 +814,9 @@ describe("validateBlockStructure()", () => {
     "throws an error if the block is invalid - %s",
     (_, block) => {
       // Assert
-      expect(() => validateBlockStructure(block)).toThrow(InvalidBlockError);
+      expect(() => validateBlockStructure(block, new DocumentRoot())).toThrow(
+        InvalidBlockError,
+      );
     },
   );
 
@@ -716,7 +824,7 @@ describe("validateBlockStructure()", () => {
     "does not throw an error if the block is valid - %o",
     block => {
       // Assert
-      expect(validateBlockStructure(block)).toBeUndefined();
+      expect(validateBlockStructure(block, new DocumentRoot())).toBeUndefined();
     },
   );
 
@@ -741,7 +849,7 @@ describe("validateBlockStructure()", () => {
     };
 
     // Assert
-    assertEngineError(() => validateBlockStructure(block), {
+    assertEngineError(() => validateBlockStructure(block, new DocumentRoot()), {
       ExpectedErrorClass: InvalidBlockError,
       expectedCode: "DOCUMENT:INVALID_BLOCK",
       expectedMessage:

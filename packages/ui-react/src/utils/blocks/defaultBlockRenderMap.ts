@@ -4,7 +4,7 @@ import TextBlock from "@/components/blocks/TextBlock";
 import ToggleListBlock from "@/components/blocks/ToggleListBlock";
 import QuoteBlock from "@/components/blocks/QuoteBlock";
 import CalloutBlock from "@/components/blocks/CalloutBlock";
-import BulletListBlock from "@/components/blocks/BulletListBlock";
+import BulletListItemBlock from "@/components/blocks/BulletListItemBlock";
 
 export const DEFAULT_BLOCK_RENDER_MAP = {
   heading: HeadingBlock,
@@ -12,5 +12,5 @@ export const DEFAULT_BLOCK_RENDER_MAP = {
   "toggle-list": ToggleListBlock,
   quote: QuoteBlock,
   callout: CalloutBlock,
-  "bullet-list": BulletListBlock,
+  "bullet-list-item": BulletListItemBlock,
 } as const satisfies BlockRendererMap;

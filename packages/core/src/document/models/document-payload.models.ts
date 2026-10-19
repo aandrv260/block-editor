@@ -1,5 +1,5 @@
 import type { Block } from "../../blocks/models/block.models";
-import type { BulletListBlock } from "../../blocks/models/bullet-list/bullet-list-block.schema";
+import type { BulletListItemBlock } from "../../blocks/models/bullet-list-item/bullet-list-item-block.schema";
 import type { CalloutBlock } from "../../blocks/models/callout/callout-block.schema";
 import type { HeadingBlock } from "../../blocks/models/heading/heading-block.schema";
 import type { QuoteBlock } from "../../blocks/models/quote/quote-block.schema";
@@ -19,4 +19,4 @@ export type BlockPayload =
   | BlockPayloadOf<ToggleListBlock>
   | BlockPayloadOf<QuoteBlock>
   | BlockPayloadOf<CalloutBlock>
-  | BlockPayloadOf<BulletListBlock>;
+  | BlockPayloadOf<BulletListItemBlock>;

@@ -170,10 +170,21 @@ export const MARKED_TEXT_BLOCK = {
   },
 } as const satisfies BlockPayload;
 
-export const BULLET_LIST1_BLOCK = {
-  id: "bullet-list-1",
-  type: "bullet-list",
-  data: {},
+export const BULLET_LIST_ITEM1_BLOCK = {
+  id: "bullet-list-item-1",
+  type: "bullet-list-item",
+  data: {
+    content: [{ text: "Milk", marks: [] }],
+  },
+  children: [],
+} as const satisfies BlockPayload;
+
+export const BULLET_LIST_ITEM2_BLOCK = {
+  id: "bullet-list-item-2",
+  type: "bullet-list-item",
+  data: {
+    content: [{ text: "Eggs", marks: [] }],
+  },
   children: [],
 } as const satisfies BlockPayload;
 

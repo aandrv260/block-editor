@@ -1,5 +1,5 @@
 import * as v from "valibot";
-import { BulletListBlockSchema } from "./bullet-list/bullet-list-block.schema";
+import { BulletListItemBlockSchema } from "./bullet-list-item/bullet-list-item-block.schema";
 import { CalloutBlockSchema } from "./callout/callout-block.schema";
 import { HeadingBlockSchema } from "./heading/heading-block.schema";
 import { QuoteBlockSchema } from "./quote/quote-block.schema";
@@ -12,7 +12,7 @@ export const BLOCK_SCHEMAS = {
   "toggle-list": ToggleListBlockSchema,
   quote: QuoteBlockSchema,
   callout: CalloutBlockSchema,
-  "bullet-list": BulletListBlockSchema,
+  "bullet-list-item": BulletListItemBlockSchema,
 };
 
 export type BlockSchemas = typeof BLOCK_SCHEMAS;
@@ -23,5 +23,5 @@ export const BlockSchema = v.variant("type", [
   ToggleListBlockSchema,
   QuoteBlockSchema,
   CalloutBlockSchema,
-  BulletListBlockSchema,
+  BulletListItemBlockSchema,
 ]);

@@ -301,7 +301,7 @@ describe("EditorDocument.fromJSON()", () => {
       {
         path: "children.0.type",
         message:
-          'Invalid type: Expected ("heading" | "text" | "toggle-list" | "quote" | "callout" | "bullet-list") but received undefined',
+          'Invalid type: Expected ("heading" | "text" | "toggle-list" | "quote" | "callout" | "bullet-list-item") but received undefined',
       },
     ]);
   });
@@ -329,7 +329,7 @@ describe("EditorDocument.fromJSON()", () => {
       {
         path: "children.0.type",
         message:
-          'Invalid type: Expected ("heading" | "text" | "toggle-list" | "quote" | "callout" | "bullet-list") but received "some_invalid_type"',
+          'Invalid type: Expected ("heading" | "text" | "toggle-list" | "quote" | "callout" | "bullet-list-item") but received "some_invalid_type"',
       },
     ]);
   });
@@ -816,5 +816,47 @@ describe("EditorDocument.fromJSON()", () => {
 
     expect(JSON.parse(serializedDocument)).toEqual(JSON.parse(json));
     expect(serializedDocument).toEqual(JSON.stringify(JSON.parse(json), null, 2));
+  });
+
+  it("throws an error when a bullet list item holds a block that is not a bullet list item", () => {
+    // Arrange
+    const json = JSON.stringify({
+      id: "root",
+      children: [
+        {
+          id: "item",
+          parentId: "root",
+          type: "bullet-list-item",
+          data: { content: [] },
+          children: [
+            {
+              id: "nested-item",
+              parentId: "item",
+              type: "bullet-list-item",
+              data: { content: [] },
+              children: [
+                {
+                  id: "text",
+                  parentId: "nested-item",
+                  type: "text",
+                  data: { content: [] },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    // Act and assert
+    assertInvalidDocument(
+      () => EditorDocument.fromJSON(json),
+      [
+        {
+          path: "children.0.children.0.children.0.type",
+          message: 'Invalid type: Expected "bullet-list-item" but received "text"',
+        },
+      ],
+    );
   });
 });
