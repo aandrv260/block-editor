@@ -1,22 +1,22 @@
-import type { DeepReadonly, HeadingBlock } from "@block-editor/core";
-import { useInsertBlock } from "../actions/useInsertBlock";
+import {
+  getPlainText,
+  type DeepReadonly,
+  type HeadingBlock,
+} from "@block-editor/core";
+import { useSplitBlock } from "../actions/useSplitBlock";
 import { useNewBlockFocus } from "./useNewBlockFocus";
 
 export const useEnterKeyBlockCreation = (block: DeepReadonly<HeadingBlock>) => {
-  const insertBlock = useInsertBlock();
+  const splitBlock = useSplitBlock();
   const { requestBlockFocus } = useNewBlockFocus();
 
   const createNewBlockOnEnterKeyInEnd = () => {
     const newBlockId = crypto.randomUUID();
 
-    insertBlock({
-      strategy: "after",
-      newBlock: {
-        id: newBlockId,
-        type: "heading",
-        data: { content: [], level: block.data.level },
-      },
-      targetId: block.id,
+    splitBlock({
+      blockId: block.id,
+      offset: getPlainText(block.data.content).length,
+      newBlockId,
     });
 
     requestBlockFocus(newBlockId);

@@ -1,12 +1,9 @@
 import {
   getPlainText,
-  normalizeContent,
-  type Block,
   type DeepReadonly,
   type HeadingBlock,
 } from "@block-editor/core";
-import { useDeleteBlock } from "../actions/useDeleteBlock";
-import { useUpdateBlock } from "../actions/useUpdateBlock";
+import { useMergeBlocks } from "../actions/useMergeBlocks";
 import { useBlockElementMap } from "./useBlockElementMap";
 import { useBlockSiblings } from "./useBlockSiblings";
 import { setCaretOffset } from "@/utils/caret/caret-offset.utils";
@@ -16,8 +13,7 @@ export const useBackspaceDeletionMerge = (
   block: DeepReadonly<HeadingBlock>,
   headingRef: React.RefObject<HTMLHeadingElement | null>,
 ) => {
-  const updateBlock = useUpdateBlock();
-  const deleteBlock = useDeleteBlock();
+  const mergeBlocks = useMergeBlocks();
   const { blockElementsMap } = useBlockElementMap();
   const { getPreviousBlock } = useBlockSiblings(block);
 
@@ -41,14 +37,11 @@ export const useBackspaceDeletionMerge = (
     );
     const previousBlockTextLength = previousBlockText.length;
 
-    const mergedText = previousBlockText + currentBlockText;
-
     return {
       previousBlockId: previousBlock.id,
       previousBlockText,
       previousBlockTextLength,
       currentBlockText,
-      mergedText,
       previousBlockHTMLElement,
       previousBlock: previousBlock as HeadingBlock,
     };
@@ -61,27 +54,12 @@ export const useBackspaceDeletionMerge = (
 
     if (!mergeData) return;
 
-    const { previousBlockId, previousBlockTextLength, mergedText, previousBlock } =
-      mergeData;
+    const { previousBlockId, previousBlockTextLength } = mergeData;
 
     event.preventDefault();
     event.stopPropagation();
 
-    // TODO: This must be 1 command because currently, I am calling 2 separate commands that create 2 records in the history. This is not only not efficient, but it also leads to bugs and inconsistencies when undoing/redoing. Will fix it very soon when I return to the history functionality of this UI adapter.
-    updateBlock({
-      blockId: previousBlockId,
-      newBlock: {
-        ...previousBlock,
-        type: "heading",
-        data: {
-          ...(previousBlock as HeadingBlock).data,
-          content: normalizeContent([{ text: mergedText, marks: [] }]),
-        },
-      } as Block,
-      childrenStrategy: "drop",
-    });
-
-    deleteBlock({ blockId: block.id });
+    mergeBlocks({ blockId: block.id });
 
     requestAnimationFrame(() => {
       const updatedPreviousBlockElement = blockElementsMap.get(previousBlockId);

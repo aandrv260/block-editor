@@ -41,11 +41,11 @@ export const updateBlockContent = (
   document: EditorDocument,
   block: Block,
   content: TextRun[],
-): void => {
+): Block => {
   const newBlock = { ...block };
 
   newBlock.data = { ...block.data, content };
-  document.updateBlock(block.id, newBlock, {
+  return document.updateBlock(block.id, newBlock, {
     childrenStrategy: "preserve",
   });
 };
