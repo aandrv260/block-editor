@@ -293,19 +293,19 @@ describe("Editor document integration", () => {
               "id": "toggle-list1",
               "parentId": "root",
               "type": "toggle-list",
-              "data": { "open": true },
+              "data": { "open": true, "content": [] },
               "children": [
                 {
                   "id": "toggle-list2",
                   "parentId": "toggle-list1",
                   "type": "toggle-list",
-                  "data": { "open": false },
+                  "data": { "open": false, "content": [] },
                   "children": [
                     {
                       "id": "p1",
                       "parentId": "toggle-list2",
                       "type": "toggle-list",
-                      "data": { "open": false },
+                      "data": { "open": false, "content": [] },
                       "children": []
                     }
                   ]
@@ -315,7 +315,7 @@ describe("Editor document integration", () => {
                   "parentId": "toggle-list1",
                   "type": "heading",
                   "data": {
-                    "text": "Block 3",
+                    "content": [{ "text": "Block 3", "marks": [] }],
                     "level": 2
                   }
                 }
@@ -348,19 +348,19 @@ describe("Editor document integration", () => {
             id: "toggle-list1",
             parentId: "root",
             type: "toggle-list",
-            data: { open: true },
+            data: { open: true, content: [] },
             children: [
               expect.objectContaining({
                 id: "toggle-list2",
                 parentId: "toggle-list1",
                 type: "toggle-list",
-                data: { open: false },
+                data: { open: false, content: [] },
                 children: [
                   expect.objectContaining({
                     id: "p1",
                     parentId: "toggle-list2",
                     type: "toggle-list",
-                    data: { open: false },
+                    data: { open: false, content: [] },
                     children: [],
                   }),
                 ],
@@ -371,7 +371,7 @@ describe("Editor document integration", () => {
                 parentId: "toggle-list1",
                 type: "heading",
                 data: {
-                  text: "Block 3",
+                  content: [{ text: "Block 3", marks: [] }],
                   level: 2,
                 },
               }),

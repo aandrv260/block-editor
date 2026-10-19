@@ -15,20 +15,68 @@ const invalidBlocks: [string, unknown][] = [
   ["is-a-boolean", true],
   ["is-a-number", 1],
   ["is-a-string", "block"],
-  ["has-no-id", { parentId: "root", type: "text", data: { text: "text" } }],
+  [
+    "has-no-id",
+    {
+      parentId: "root",
+      type: "text",
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
+    },
+  ],
   [
     "has-a-non-string-id",
-    { id: 1, parentId: "root", type: "text", data: { text: "text" } },
+    {
+      id: 1,
+      parentId: "root",
+      type: "text",
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
+    },
   ],
-  ["has-no-parent-id", { id: "1", type: "text", data: { text: "text" } }],
+  [
+    "has-no-parent-id",
+    {
+      id: "1",
+      type: "text",
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
+    },
+  ],
   [
     "has-a-non-string-parent-id",
-    { id: "1", parentId: 1, type: "text", data: { text: "text" } },
+    {
+      id: "1",
+      parentId: 1,
+      type: "text",
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
+    },
   ],
-  ["has-no-type", { id: "1", parentId: "root", data: { text: "text" } }],
+  [
+    "has-no-type",
+    {
+      id: "1",
+      parentId: "root",
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
+    },
+  ],
   [
     "has-an-unknown-type",
-    { id: "1", parentId: "root", type: "text1", data: { text: "text" } },
+    {
+      id: "1",
+      parentId: "root",
+      type: "text1",
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
+    },
   ],
   [
     "heading-has-3-fields-in-data",
@@ -36,7 +84,11 @@ const invalidBlocks: [string, unknown][] = [
       id: "1",
       parentId: "root",
       type: "heading",
-      data: { text: "text", level: 1, tag: "h1" },
+      data: {
+        content: [{ text: "text", marks: [] }],
+        level: 1,
+        tag: "h1",
+      },
     },
   ],
   [
@@ -45,7 +97,10 @@ const invalidBlocks: [string, unknown][] = [
       id: "1",
       parentId: "root",
       type: "heading",
-      data: { text: "text", level: 0 },
+      data: {
+        content: [{ text: "text", marks: [] }],
+        level: 0,
+      },
     },
   ],
   [
@@ -54,16 +109,26 @@ const invalidBlocks: [string, unknown][] = [
       id: "1",
       parentId: "root",
       type: "heading",
-      data: { text: "text", level: 4 },
+      data: {
+        content: [{ text: "text", marks: [] }],
+        level: 4,
+      },
     },
   ],
   [
-    "heading-has-no-text",
+    "heading-has-no-content",
     { id: "1", parentId: "root", type: "heading", data: { level: 1 } },
   ],
   [
     "heading-has-no-level",
-    { id: "1", parentId: "root", type: "heading", data: { text: "text" } },
+    {
+      id: "1",
+      parentId: "root",
+      type: "heading",
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
+    },
   ],
   ["heading-has-no-data", { id: "1", parentId: "root", type: "heading" }],
   [
@@ -72,21 +137,100 @@ const invalidBlocks: [string, unknown][] = [
       id: "1",
       parentId: "root",
       type: "heading",
-      data: { text: "text", level: 1 },
+      data: {
+        content: [{ text: "text", marks: [] }],
+        level: 1,
+      },
       children: [],
     },
   ],
   [
     "text-has-2-fields-in-data",
-    { id: "1", parentId: "root", type: "text", data: { text: "text", level: 1 } },
+    {
+      id: "1",
+      parentId: "root",
+      type: "text",
+      data: {
+        content: [{ text: "text", marks: [] }],
+        level: 1,
+      },
+    },
   ],
   [
-    "text-has-an-invalid-data-field",
-    { id: "1", parentId: "root", type: "text", data: { text1: "text" } },
+    "text-has-a-plain-string-text-instead-of-content",
+    { id: "1", parentId: "root", type: "text", data: { text: "text" } },
   ],
   [
-    "text-has-a-non-string-text",
-    { id: "1", parentId: "root", type: "text", data: { text: 1 } },
+    "text-has-a-non-array-content",
+    { id: "1", parentId: "root", type: "text", data: { content: "text" } },
+  ],
+  [
+    "text-has-a-run-with-a-non-string-text",
+    {
+      id: "1",
+      parentId: "root",
+      type: "text",
+      data: {
+        content: [{ text: 1, marks: [] }],
+      },
+    },
+  ],
+  [
+    "text-has-a-run-without-marks",
+    {
+      id: "1",
+      parentId: "root",
+      type: "text",
+      data: {
+        content: [{ text: "text" }],
+      },
+    },
+  ],
+  [
+    "text-has-a-run-with-an-extra-field",
+    {
+      id: "1",
+      parentId: "root",
+      type: "text",
+      data: {
+        content: [{ text: "text", marks: [], color: "red" }],
+      },
+    },
+  ],
+  [
+    "text-has-an-unknown-mark",
+    {
+      id: "1",
+      parentId: "root",
+      type: "text",
+      data: {
+        content: [{ text: "text", marks: [{ type: "highlight" }] }],
+      },
+    },
+  ],
+  [
+    "text-has-a-link-without-an-address",
+    {
+      id: "1",
+      parentId: "root",
+      type: "text",
+      data: {
+        content: [{ text: "text", marks: [{ type: "link" }] }],
+      },
+    },
+  ],
+  [
+    "text-has-an-unsafe-link",
+    {
+      id: "1",
+      parentId: "root",
+      type: "text",
+      data: {
+        content: [
+          { text: "text", marks: [{ type: "link", href: "javascript:alert(1)" }] },
+        ],
+      },
+    },
   ],
   [
     "text-has-children",
@@ -94,17 +238,19 @@ const invalidBlocks: [string, unknown][] = [
       id: "1",
       parentId: "root",
       type: "text",
-      data: { text: "text" },
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
       children: [],
     },
   ],
   [
-    "toggle-list-has-2-fields-in-data",
+    "toggle-list-has-3-fields-in-data",
     {
       id: "1",
       parentId: "root",
       type: "toggle-list",
-      data: { open: true, text: "text" },
+      data: { open: true, content: [], text: "text" },
       children: [],
     },
   ],
@@ -114,13 +260,28 @@ const invalidBlocks: [string, unknown][] = [
       id: "1",
       parentId: "root",
       type: "toggle-list",
-      data: { open: "true" },
+      data: { open: "true", content: [] },
+      children: [],
+    },
+  ],
+  [
+    "toggle-list-has-no-content",
+    {
+      id: "1",
+      parentId: "root",
+      type: "toggle-list",
+      data: { open: true },
       children: [],
     },
   ],
   [
     "toggle-list-has-no-children",
-    { id: "1", parentId: "root", type: "toggle-list", data: { open: true } },
+    {
+      id: "1",
+      parentId: "root",
+      type: "toggle-list",
+      data: { open: true, content: [] },
+    },
   ],
   [
     "toggle-list-has-non-array-children",
@@ -128,7 +289,7 @@ const invalidBlocks: [string, unknown][] = [
       id: "1",
       parentId: "root",
       type: "toggle-list",
-      data: { open: true },
+      data: { open: true, content: [] },
       children: {},
     },
   ],
@@ -138,13 +299,21 @@ const invalidBlocks: [string, unknown][] = [
       id: "1",
       parentId: "root",
       type: "toggle-list",
-      data: { open: true },
+      data: { open: true, content: [] },
       children: [{ id: "2", parentId: "1", type: "text", data: {} }],
     },
   ],
   [
     "quote-has-2-fields-in-data",
-    { id: "1", parentId: "root", type: "quote", data: { text: "text", level: 1 } },
+    {
+      id: "1",
+      parentId: "root",
+      type: "quote",
+      data: {
+        content: [{ text: "text", marks: [] }],
+        level: 1,
+      },
+    },
   ],
   [
     "quote-has-children",
@@ -152,13 +321,22 @@ const invalidBlocks: [string, unknown][] = [
       id: "1",
       parentId: "root",
       type: "quote",
-      data: { text: "text" },
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
       children: [],
     },
   ],
   [
-    "callout-has-a-non-string-text",
-    { id: "1", parentId: "root", type: "callout", data: { text: 1 } },
+    "callout-has-a-run-with-a-non-string-text",
+    {
+      id: "1",
+      parentId: "root",
+      type: "callout",
+      data: {
+        content: [{ text: 1, marks: [] }],
+      },
+    },
   ],
   [
     "callout-has-an-extra-field",
@@ -166,7 +344,9 @@ const invalidBlocks: [string, unknown][] = [
       id: "1",
       parentId: "root",
       type: "callout",
-      data: { text: "text" },
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
       extra: true,
     },
   ],
@@ -176,7 +356,9 @@ const invalidBlocks: [string, unknown][] = [
       id: "1",
       parentId: "root",
       type: "bullet-list",
-      data: { text: "text" },
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
       children: [],
     },
   ],
@@ -187,7 +369,14 @@ const invalidBlocks: [string, unknown][] = [
   ["is-an-array", []],
   [
     "has-a-non-string-type",
-    { id: "1", parentId: "root", type: 1, data: { text: "text" } },
+    {
+      id: "1",
+      parentId: "root",
+      type: 1,
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
+    },
   ],
   [
     "has-a-heading1-type",
@@ -195,7 +384,10 @@ const invalidBlocks: [string, unknown][] = [
       id: "1",
       parentId: "root",
       type: "heading1",
-      data: { text: "text", level: 1 },
+      data: {
+        content: [{ text: "text", marks: [] }],
+        level: 1,
+      },
     },
   ],
   ["text-has-no-data", { id: "1", parentId: "root", type: "text" }],
@@ -205,8 +397,15 @@ const invalidBlocks: [string, unknown][] = [
   ],
   ["quote-has-no-data", { id: "1", parentId: "root", type: "quote" }],
   [
-    "quote-has-a-non-string-text",
-    { id: "1", parentId: "root", type: "quote", data: { text: 1 } },
+    "quote-has-a-run-with-a-non-string-text",
+    {
+      id: "1",
+      parentId: "root",
+      type: "quote",
+      data: {
+        content: [{ text: 1, marks: [] }],
+      },
+    },
   ],
   [
     "quote-has-an-extra-field",
@@ -214,13 +413,23 @@ const invalidBlocks: [string, unknown][] = [
       id: "1",
       parentId: "root",
       type: "quote",
-      data: { text: "text" },
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
       extra: true,
     },
   ],
   [
     "callout-has-2-fields-in-data",
-    { id: "1", parentId: "root", type: "callout", data: { text: "text", level: 1 } },
+    {
+      id: "1",
+      parentId: "root",
+      type: "callout",
+      data: {
+        content: [{ text: "text", marks: [] }],
+        level: 1,
+      },
+    },
   ],
   ["callout-has-no-data", { id: "1", parentId: "root", type: "callout" }],
   [
@@ -229,7 +438,9 @@ const invalidBlocks: [string, unknown][] = [
       id: "1",
       parentId: "root",
       type: "callout",
-      data: { text: "text" },
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
       children: [],
     },
   ],
@@ -266,7 +477,10 @@ const validBlocks: [unknown][] = [
       id: "1",
       parentId: "root",
       type: "heading",
-      data: { text: "text", level: 1 },
+      data: {
+        content: [{ text: "text", marks: [] }],
+        level: 1,
+      },
     },
   ],
   [
@@ -274,37 +488,111 @@ const validBlocks: [unknown][] = [
       id: "1",
       parentId: "root",
       type: "heading",
-      data: { text: "text", level: 3 },
+      data: {
+        content: [{ text: "text", marks: [] }],
+        level: 3,
+      },
     },
   ],
-  [{ id: "1", parentId: "root", type: "text", data: { text: "text" } }],
+  [
+    {
+      id: "1",
+      parentId: "root",
+      type: "text",
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
+    },
+  ],
   [
     {
       id: "1",
       parentId: "root",
       type: "toggle-list",
-      data: { open: false },
-      children: [{ id: "2", parentId: "1", type: "text", data: { text: "text" } }],
+      data: { open: false, content: [] },
+      children: [
+        {
+          id: "2",
+          parentId: "1",
+          type: "text",
+          data: {
+            content: [{ text: "text", marks: [] }],
+          },
+        },
+      ],
     },
   ],
-  [{ id: "1", parentId: "root", type: "quote", data: { text: "text" } }],
-  [{ id: "1", parentId: "root", type: "callout", data: { text: "text" } }],
+  [
+    {
+      id: "1",
+      parentId: "root",
+      type: "quote",
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
+    },
+  ],
+  [
+    {
+      id: "1",
+      parentId: "root",
+      type: "callout",
+      data: {
+        content: [{ text: "text", marks: [] }],
+      },
+    },
+  ],
   [{ id: "1", parentId: "root", type: "bullet-list", data: {}, children: [] }],
   [
     {
       id: "1",
       parentId: "root",
       type: "heading",
-      data: { text: "text", level: 2 },
+      data: {
+        content: [{ text: "text", marks: [] }],
+        level: 2,
+      },
     },
   ],
-  [{ id: "1", parentId: "root", type: "text", data: { text: "" } }],
+  [{ id: "1", parentId: "root", type: "text", data: { content: [] } }],
+  [
+    {
+      id: "1",
+      parentId: "root",
+      type: "text",
+      data: {
+        content: [
+          { text: "Hello ", marks: [] },
+          {
+            text: "world",
+            marks: [
+              { type: "bold" },
+              { type: "italic" },
+              { type: "link", href: "https://example.com" },
+            ],
+          },
+        ],
+      },
+    },
+  ],
   [
     {
       id: "1",
       parentId: "root",
       type: "toggle-list",
-      data: { open: true },
+      data: {
+        open: true,
+        content: [{ text: "Title", marks: [{ type: "underline" }] }],
+      },
+      children: [],
+    },
+  ],
+  [
+    {
+      id: "1",
+      parentId: "root",
+      type: "toggle-list",
+      data: { open: true, content: [] },
       children: [],
     },
   ],
@@ -369,17 +657,27 @@ describe("validateDocumentStructure()", () => {
           id: "1",
           parentId: "root",
           type: "toggle-list",
-          data: { open: true },
+          data: { open: true, content: [] },
           children: [
             {
               id: "2",
               parentId: "1",
               type: "heading",
-              data: { text: "text", level: 9 },
+              data: {
+                content: [{ text: "text", marks: [] }],
+                level: 9,
+              },
             },
           ],
         },
-        { id: 3, parentId: "root", type: "text", data: { text: "text" } },
+        {
+          id: 3,
+          parentId: "root",
+          type: "text",
+          data: {
+            content: [{ text: "text", marks: [] }],
+          },
+        },
       ],
     };
 
@@ -428,13 +726,16 @@ describe("validateBlockStructure()", () => {
       id: "1",
       parentId: "root",
       type: "toggle-list",
-      data: { open: "true" },
+      data: { open: "true", content: [] },
       children: [
         {
           id: "2",
           parentId: "1",
           type: "heading",
-          data: { text: "text", level: 9 },
+          data: {
+            content: [{ text: "text", marks: [] }],
+            level: 9,
+          },
         },
       ],
     };
@@ -470,7 +771,9 @@ describe("validateBlockParentLink()", () => {
         {
           id: "block-1",
           type: "text",
-          data: { text: "some_text" },
+          data: {
+            content: [{ text: "some_text", marks: [] }],
+          },
           parentId: "parent-1",
         },
       ],
@@ -496,7 +799,9 @@ describe("validateBlockParentLink()", () => {
         {
           id: "block-1",
           type: "text",
-          data: { text: "some_text" },
+          data: {
+            content: [{ text: "some_text", marks: [] }],
+          },
           parentId: "parent-1",
         },
       ],

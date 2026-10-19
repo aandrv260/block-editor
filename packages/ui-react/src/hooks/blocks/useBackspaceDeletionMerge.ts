@@ -1,4 +1,10 @@
-import type { Block, DeepReadonly, HeadingBlock } from "@block-editor/core";
+import {
+  getPlainText,
+  normalizeContent,
+  type Block,
+  type DeepReadonly,
+  type HeadingBlock,
+} from "@block-editor/core";
 import { useDeleteBlock } from "../actions/useDeleteBlock";
 import { useUpdateBlock } from "../actions/useUpdateBlock";
 import { useBlockElementMap } from "./useBlockElementMap";
@@ -30,7 +36,9 @@ export const useBackspaceDeletionMerge = (
     if (!previousBlockHTMLElement) return null;
 
     // TODO: Later when I add UI support for other blocks, I will remove this casting. For now, leave it as is.
-    const previousBlockText = (previousBlock as HeadingBlock).data.text;
+    const previousBlockText = getPlainText(
+      (previousBlock as HeadingBlock).data.content,
+    );
     const previousBlockTextLength = previousBlockText.length;
 
     const mergedText = previousBlockText + currentBlockText;
@@ -67,7 +75,7 @@ export const useBackspaceDeletionMerge = (
         type: "heading",
         data: {
           ...(previousBlock as HeadingBlock).data,
-          text: mergedText,
+          content: normalizeContent([{ text: mergedText, marks: [] }]),
         },
       } as Block,
       childrenStrategy: "drop",

@@ -19,14 +19,14 @@ describe("swap()", () => {
           "id": "toggle-list1",
           "parentId": "root",
           "type": "toggle-list",
-          "data": { "open": false },
+          "data": { "open": false, "content": [] },
           "children": []
         },
         {
           "id": "toggle-list2",
           "parentId": "root",
           "type": "toggle-list",
-          "data": { "open": true },
+          "data": { "open": true, "content": [] },
           "children": []
         }
       ]
@@ -61,14 +61,14 @@ describe("swap()", () => {
             id: "toggle-list1",
             parentId: document.ROOT_ID,
             type: "toggle-list",
-            data: { open: false },
+            data: { open: false, content: [] },
           }),
 
           expect.objectContaining({
             id: "toggle-list2",
             parentId: document.ROOT_ID,
             type: "toggle-list",
-            data: { open: true },
+            data: { open: true, content: [] },
           }),
         ],
       }),
@@ -83,13 +83,18 @@ describe("swap()", () => {
       {
         id: "h1",
         type: "heading",
-        data: { text: "Heading 1", level: 1 },
+        data: {
+          content: [{ text: "Heading 1", marks: [] }],
+          level: 1,
+        },
         parentId: "root",
       },
       {
         id: "p1",
         type: "text",
-        data: { text: "Paragraph 1 after Heading 1" },
+        data: {
+          content: [{ text: "Paragraph 1 after Heading 1", marks: [] }],
+        },
         parentId: "root",
       },
     ]);
@@ -122,14 +127,19 @@ describe("swap()", () => {
             id: "h1",
             parentId: document.ROOT_ID,
             type: "heading",
-            data: { text: "Heading 1", level: 1 },
+            data: {
+              content: [{ text: "Heading 1", marks: [] }],
+              level: 1,
+            },
           }),
 
           expect.objectContaining({
             id: "p1",
             parentId: document.ROOT_ID,
             type: "text",
-            data: { text: "Paragraph 1 after Heading 1" },
+            data: {
+              content: [{ text: "Paragraph 1 after Heading 1", marks: [] }],
+            },
           }),
         ],
       }),

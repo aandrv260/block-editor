@@ -33,7 +33,9 @@ describe("blockCanHaveChildren()", () => {
     const textBlock: Block = {
       id: "text-block-1",
       type: "text",
-      data: { text: "some_text" },
+      data: {
+        content: [{ text: "some_text", marks: [] }],
+      },
       parentId: "root",
     };
 
@@ -47,7 +49,10 @@ describe("blockCanHaveChildren()", () => {
       id: "heading-block-1",
       type: "heading",
       parentId: "root",
-      data: { text: "some_text", level: 1 },
+      data: {
+        content: [{ text: "some_text", marks: [] }],
+        level: 1,
+      },
     };
 
     // Assert
@@ -59,7 +64,7 @@ describe("blockCanHaveChildren()", () => {
     const toggleListBlock: Block = {
       id: "toggle-list-block-1",
       type: "toggle-list",
-      data: { open: true },
+      data: { open: true, content: [] },
       parentId: "root",
       children: [],
     };
@@ -75,7 +80,9 @@ describe("blockPayloadCanHaveChildren()", () => {
     const textBlockPayload: BlockPayload = {
       id: "text-block-1",
       type: "text",
-      data: { text: "some_text" },
+      data: {
+        content: [{ text: "some_text", marks: [] }],
+      },
     };
 
     // Assert
@@ -87,7 +94,10 @@ describe("blockPayloadCanHaveChildren()", () => {
     const headingBlockPayload: BlockPayload = {
       id: "heading-block-1",
       type: "heading",
-      data: { text: "some_text", level: 1 },
+      data: {
+        content: [{ text: "some_text", marks: [] }],
+        level: 1,
+      },
     };
 
     // Assert
@@ -99,7 +109,7 @@ describe("blockPayloadCanHaveChildren()", () => {
     const toggleListBlockPayload: BlockPayload = {
       id: "toggle-list-block-1",
       type: "toggle-list",
-      data: { open: true },
+      data: { open: true, content: [] },
     };
 
     // Assert
@@ -114,7 +124,9 @@ describe("getUpdatedBlockParentChildren()", () => {
       {
         id: "block-1",
         type: "text",
-        data: { text: "some_text" },
+        data: {
+          content: [{ text: "some_text", marks: [] }],
+        },
         parentId: "root",
       },
     ];
@@ -122,7 +134,9 @@ describe("getUpdatedBlockParentChildren()", () => {
     const newDocumentBlock: Block = {
       id: "block-4",
       type: "text",
-      data: { text: "some_text" },
+      data: {
+        content: [{ text: "some_text", marks: [] }],
+      },
       parentId: "root",
     };
 
@@ -144,7 +158,9 @@ describe("getUpdatedBlockParentChildren()", () => {
       {
         id: "block-1",
         type: "text",
-        data: { text: "some_text" },
+        data: {
+          content: [{ text: "some_text", marks: [] }],
+        },
         parentId: "root",
       },
     ];
@@ -152,7 +168,9 @@ describe("getUpdatedBlockParentChildren()", () => {
     const newDocumentBlock: Block = {
       id: "block-4",
       type: "text",
-      data: { text: "some_text" },
+      data: {
+        content: [{ text: "some_text", marks: [] }],
+      },
       parentId: "root",
     };
 
@@ -176,25 +194,31 @@ describe("getUpdatedBlockParentChildren()", () => {
       {
         id: "block-1",
         type: "text",
-        data: { text: "some_text" },
+        data: {
+          content: [{ text: "some_text", marks: [] }],
+        },
         parentId: "root",
       },
       {
         id: "block-2",
         type: "text",
-        data: { text: "some_text" },
+        data: {
+          content: [{ text: "some_text", marks: [] }],
+        },
         parentId: "root",
       },
       {
         id: "block-3",
         type: "toggle-list",
-        data: { open: true },
+        data: { open: true, content: [] },
         parentId: "root",
         children: [
           {
             id: "block-3-child-1",
             type: "text",
-            data: { text: "some_text" },
+            data: {
+              content: [{ text: "some_text", marks: [] }],
+            },
             parentId: "block-3",
           },
         ],
@@ -204,7 +228,9 @@ describe("getUpdatedBlockParentChildren()", () => {
     const newDocumentBlock: Block = {
       id: "block-4",
       type: "text",
-      data: { text: "some_text" },
+      data: {
+        content: [{ text: "some_text", marks: [] }],
+      },
       parentId: "root",
     };
 
@@ -222,19 +248,25 @@ describe("getUpdatedBlockParentChildren()", () => {
       {
         id: "block-1",
         type: "text",
-        data: { text: "some_text" },
+        data: {
+          content: [{ text: "some_text", marks: [] }],
+        },
         parentId: "root",
       },
       {
         id: "block-2",
         type: "text",
-        data: { text: "some_text" },
+        data: {
+          content: [{ text: "some_text", marks: [] }],
+        },
         parentId: "root",
       },
       {
         id: "block-4",
         type: "text",
-        data: { text: "some_text" },
+        data: {
+          content: [{ text: "some_text", marks: [] }],
+        },
         parentId: "root",
       },
     ]);
@@ -262,32 +294,40 @@ describe("getUpdatedBlockChildren()", () => {
       {
         id: "block-1",
         type: "text",
-        data: { text: "some_text" },
+        data: {
+          content: [{ text: "some_text", marks: [] }],
+        },
       },
       {
         id: "block-2",
         type: "text",
-        data: { text: "some_text" },
+        data: {
+          content: [{ text: "some_text", marks: [] }],
+        },
       },
       {
         id: "block-3",
         type: "toggle-list",
-        data: { open: true },
+        data: { open: true, content: [] },
         children: [
           {
             id: "block-3-child-1",
             type: "text",
-            data: { text: "some_text" },
+            data: {
+              content: [{ text: "some_text", marks: [] }],
+            },
           },
           {
             id: "block-3-child-2",
             type: "toggle-list",
-            data: { open: true },
+            data: { open: true, content: [] },
             children: [
               {
                 id: "block-3-child-2-child-1",
                 type: "text",
-                data: { text: "some_text" },
+                data: {
+                  content: [{ text: "some_text", marks: [] }],
+                },
               },
             ],
           },
@@ -309,35 +349,43 @@ describe("getUpdatedBlockChildren()", () => {
       {
         id: "block-1",
         type: "text",
-        data: { text: "some_text" },
+        data: {
+          content: [{ text: "some_text", marks: [] }],
+        },
         parentId: newParentId,
       },
       {
         id: "block-2",
         type: "text",
-        data: { text: "some_text" },
+        data: {
+          content: [{ text: "some_text", marks: [] }],
+        },
         parentId: newParentId,
       },
       {
         id: "block-3",
         type: "toggle-list",
-        data: { open: true },
+        data: { open: true, content: [] },
         parentId: newParentId,
         children: [
           {
             id: "block-3-child-1",
             type: "text",
-            data: { text: "some_text" },
+            data: {
+              content: [{ text: "some_text", marks: [] }],
+            },
           },
           {
             id: "block-3-child-2",
             type: "toggle-list",
-            data: { open: true },
+            data: { open: true, content: [] },
             children: [
               {
                 id: "block-3-child-2-child-1",
                 type: "text",
-                data: { text: "some_text" },
+                data: {
+                  content: [{ text: "some_text", marks: [] }],
+                },
               },
             ],
           },
@@ -369,13 +417,15 @@ describe("getChildren()", () => {
         {
           id: "child-1",
           type: "text",
-          data: { text: "some_text" },
+          data: {
+            content: [{ text: "some_text", marks: [] }],
+          },
           parentId: "node-1",
         },
         {
           id: "child-2",
           type: "toggle-list",
-          data: { open: true },
+          data: { open: true, content: [] },
           parentId: "node-1",
           children: [],
         },
@@ -411,8 +461,16 @@ describe("getPayloadChildren()", () => {
     const payload: BlockPayload = {
       id: "payload-1",
       type: "toggle-list",
-      data: { open: true },
-      children: [{ id: "child-1", type: "text", data: { text: "some_text" } }],
+      data: { open: true, content: [] },
+      children: [
+        {
+          id: "child-1",
+          type: "text",
+          data: {
+            content: [{ text: "some_text", marks: [] }],
+          },
+        },
+      ],
     };
 
     // Assert
@@ -424,7 +482,7 @@ describe("getPayloadChildren()", () => {
     const payload: BlockPayload = {
       id: "payload-1",
       type: "toggle-list",
-      data: { open: true },
+      data: { open: true, content: [] },
     };
 
     // Assert

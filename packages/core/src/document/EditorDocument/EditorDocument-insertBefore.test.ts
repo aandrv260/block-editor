@@ -504,7 +504,9 @@ describe("insertBefore()", () => {
     const blockToInsert: BlockPayload = {
       id: "block5",
       type: "text",
-      data: { text: "some_text_for_block_5" },
+      data: {
+        content: [{ text: "some_text_for_block_5", marks: [] }],
+      },
     };
 
     // Act
@@ -603,7 +605,10 @@ describe("insertBefore()", () => {
   it("throws an error and leaves the document unchanged if the new block is invalid", () => {
     // Arrange
     const document = new EditorDocument();
-    const data = { text: "some_text", color: "red" };
+    const data = {
+      content: [{ text: "some_text", marks: [] }],
+      color: "red",
+    };
 
     document.appendChild("root", SAMPLE_BLOCK1);
 

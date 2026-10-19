@@ -18,6 +18,7 @@ export {
 export type { TextRun } from "./models/content/content.schema";
 export {
   addMark,
+  getPlainText,
   joinContent,
   normalizeContent,
   removeMark,

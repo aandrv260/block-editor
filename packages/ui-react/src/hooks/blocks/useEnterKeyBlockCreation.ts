@@ -14,7 +14,7 @@ export const useEnterKeyBlockCreation = (block: DeepReadonly<HeadingBlock>) => {
       newBlock: {
         id: newBlockId,
         type: "heading",
-        data: { text: "", level: block.data.level },
+        data: { content: [], level: block.data.level },
       },
       targetId: block.id,
     });

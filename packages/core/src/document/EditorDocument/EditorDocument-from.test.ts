@@ -92,19 +92,21 @@ describe("EditorDocument.from()", () => {
               "id": "toggle-list-1",
               "parentId": "root",
               "type": "toggle-list",
-              "data": { "open": false },
+              "data": { "open": false, "content": [] },
               "children": [
                 {
                   "id": "toggle-list-2",
                   "parentId": "toggle-list-1",
                   "type": "toggle-list",
-                  "data": { "open": true },
+                  "data": { "open": true, "content": [] },
                   "children": [
                       {
                           "id": "text-1",
                           "parentId": "toggle-list-2",
                           "type": "text",
-                          "data": { "text": "Hello test234" }
+                          "data": {
+                            "content": [{ "text": "Hello test234", "marks": [] }]
+                          }
                       }
                   ]
                 }
@@ -125,19 +127,21 @@ describe("EditorDocument.from()", () => {
           id: "toggle-list-1",
           parentId: "root",
           type: "toggle-list",
-          data: { open: false },
+          data: { open: false, content: [] },
           children: [
             {
               id: "toggle-list-2",
               parentId: "toggle-list-1",
               type: "toggle-list",
-              data: { open: true },
+              data: { open: true, content: [] },
               children: [
                 {
                   id: "text-1",
                   parentId: "toggle-list-2",
                   type: "text",
-                  data: { text: "Hello test234" },
+                  data: {
+                    content: [{ text: "Hello test234", marks: [] }],
+                  },
                 },
               ],
             },

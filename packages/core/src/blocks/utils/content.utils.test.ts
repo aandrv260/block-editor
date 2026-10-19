@@ -2,6 +2,7 @@ import type { TextRun } from "../models/content/content.schema";
 import type { Mark } from "../models/content/marks/mark.models";
 import {
   addMark,
+  getPlainText,
   joinContent,
   normalizeContent,
   removeMark,
@@ -96,6 +97,25 @@ describe("normalizeContent()", () => {
 
     // Assert
     expect(content).toStrictEqual(contentCopy);
+  });
+});
+
+describe("getPlainText()", () => {
+  it("joins the text of every run and drops the marks", () => {
+    // Arrange
+    const content: TextRun[] = [
+      { text: "Hello ", marks: [] },
+      { text: "world", marks: [bold, link] },
+      { text: "!", marks: [italic] },
+    ];
+
+    // Assert
+    expect(getPlainText(content)).toBe("Hello world!");
+  });
+
+  it("returns an empty string for empty content", () => {
+    // Assert
+    expect(getPlainText([])).toBe("");
   });
 });
 

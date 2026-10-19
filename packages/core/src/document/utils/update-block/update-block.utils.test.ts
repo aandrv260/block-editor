@@ -55,13 +55,17 @@ describe("getIndexOfBlockToUpdateInParent()", () => {
       {
         id: "1",
         type: "text",
-        data: { text: "some_text" },
+        data: {
+          content: [{ text: "some_text", marks: [] }],
+        },
         parentId: "root",
       },
       {
         id: "2",
         type: "text",
-        data: { text: "some_text" },
+        data: {
+          content: [{ text: "some_text", marks: [] }],
+        },
         parentId: "root",
       },
     ];
@@ -95,13 +99,17 @@ describe("getIndexOfBlockToUpdateInParent()", () => {
         {
           id: "1",
           type: "text",
-          data: { text: "some_text" },
+          data: {
+            content: [{ text: "some_text", marks: [] }],
+          },
           parentId: "root",
         },
         {
           id: "2",
           type: "text",
-          data: { text: "some_text" },
+          data: {
+            content: [{ text: "some_text", marks: [] }],
+          },
           parentId: "root",
         },
       ];

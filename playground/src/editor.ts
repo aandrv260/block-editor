@@ -9,7 +9,7 @@ editor.execute("insertBlock", {
   newBlock: {
     id: crypto.randomUUID(),
     type: "heading",
-    data: { text: "", level: 1 },
+    data: { content: [], level: 1 },
   },
 });
 

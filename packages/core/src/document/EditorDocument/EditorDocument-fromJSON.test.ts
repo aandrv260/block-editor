@@ -91,7 +91,7 @@ describe("EditorDocument.fromJSON()", () => {
               "parentId": "root",
               "type": "heading",
               "data": {
-                "text": "Hello",
+                "content": [{ "text": "Hello", "marks": [] }],
                 "level": 1
               }
             },
@@ -99,7 +99,7 @@ describe("EditorDocument.fromJSON()", () => {
               "id": "222-root",
               "type": "text",
               "data": {
-                "text": "Hello"
+                "content": [{ "text": "Hello", "marks": [] }]
               }
             }
           ]
@@ -128,7 +128,7 @@ describe("EditorDocument.fromJSON()", () => {
               "parentId": "root",
               "type": "text",
               "data": {
-                "text": "Hello test134"
+                "content": [{ "text": "Hello test134", "marks": [] }]
               }
             },
             {
@@ -136,7 +136,7 @@ describe("EditorDocument.fromJSON()", () => {
               "parentId": "root",
               "type": "text",
               "data": {
-                "text": "Hello test134"
+                "content": [{ "text": "Hello test134", "marks": [] }]
               }
             }
           ]
@@ -164,14 +164,15 @@ describe("EditorDocument.fromJSON()", () => {
               "id": "toggle-list1",
               "parentId": "root",
               "type": "toggle-list",
-              "data": { "open": false },
+              "data": { "open": false, "content": [] },
               "children": [
                 {
                   "id": "toggle-list2",
                   "parentId": "toggle-list1",
                   "type": "toggle-list",
                   "data": {
-                    "open": false
+                    "open": false,
+                    "content": []
                   },
                   "children": [
                     {
@@ -179,7 +180,8 @@ describe("EditorDocument.fromJSON()", () => {
                       "parentId": "toggle-list2",
                       "type": "toggle-list",
                       "data": {
-                        "open": false
+                        "open": false,
+                        "content": []
                       },
                       "children": []
                     }
@@ -212,7 +214,9 @@ describe("EditorDocument.fromJSON()", () => {
               "id": "111-root",
               "parentId": "root13",
               "type": "text",
-              "data": { "text": "Hello" }
+              "data": {
+                "content": [{ "text": "Hello", "marks": [] }]
+              }
             }
           ]
         }
@@ -240,14 +244,14 @@ describe("EditorDocument.fromJSON()", () => {
               "id": "toggle-list1",
               "parentId": "root",
               "type": "toggle-list",
-              "data": { "open": true },
+              "data": { "open": true, "content": [] },
               "children": [
                 {
                   "id": "p1",
                   "parentId": "root",
                   "type": "text",
                   "data": {
-                    "text": "Hello test134"
+                    "content": [{ "text": "Hello test134", "marks": [] }]
                   }
                 }
               ]
@@ -257,7 +261,7 @@ describe("EditorDocument.fromJSON()", () => {
               "parentId": "root",
               "type": "text",
               "data": {
-                "text": "Hello test234"
+                "content": [{ "text": "Hello test234", "marks": [] }]
               }
             }
           ]
@@ -340,19 +344,19 @@ describe("EditorDocument.fromJSON()", () => {
               "id": "toggle-list1",
               "parentId": "root",
               "type": "toggle-list",
-              "data": { "open": true },
+              "data": { "open": true, "content": [] },
               "children": [
                 {
                   "id": "toggle-list2",
                   "parentId": "toggle-list1",
                   "type": "toggle-list",
-                  "data": { "open": false },
+                  "data": { "open": false, "content": [] },
                   "children": [
                     {
                       "parentId": "toggle-list2",
                       "type": "text",
                       "data": {
-                        "text": "Hello test134"
+                        "content": [{ "text": "Hello test134", "marks": [] }]
                       }
                     }
                   ]
@@ -450,21 +454,21 @@ describe("EditorDocument.fromJSON()", () => {
               "id": "toggle-list1",
               "parentId": "root",
               "type": "toggle-list",
-              "data": { "open": true },
+              "data": { "open": true, "content": [] },
               "children": []
             },
             {
               "id": "toggle-list2",
               "parentId": "root",
               "type": "toggle-list",
-              "data": { "open": false },
+              "data": { "open": false, "content": [] },
               "children": [
                 {
                   "id": "p1",
                   "parentId": "toggle-list2",
                   "type": "text",
                   "data": {
-                    "text": "Hello test234"
+                    "content": [{ "text": "Hello test234", "marks": [] }]
                   }
                 }
               ]
@@ -481,7 +485,7 @@ describe("EditorDocument.fromJSON()", () => {
         id: "toggle-list1",
         parentId: "root",
         type: "toggle-list",
-        data: { open: true },
+        data: { open: true, content: [] },
         children: [],
       });
 
@@ -490,7 +494,9 @@ describe("EditorDocument.fromJSON()", () => {
         id: "p1",
         parentId: "toggle-list2",
         type: "text",
-        data: { text: "Hello test234" },
+        data: {
+          content: [{ text: "Hello test234", marks: [] }],
+        },
       });
 
     const assertCorrectToggleList2Block = () =>
@@ -498,7 +504,7 @@ describe("EditorDocument.fromJSON()", () => {
         id: "toggle-list2",
         parentId: "root",
         type: "toggle-list",
-        data: { open: false },
+        data: { open: false, content: [] },
         children: [assertCorrectP1Block()],
       });
 
@@ -523,7 +529,7 @@ describe("EditorDocument.fromJSON()", () => {
             id: "toggle-list1",
             parentId: "root",
             type: "toggle-list",
-            data: { open: true },
+            data: { open: true, content: [] },
             children: [],
           }),
 
@@ -531,14 +537,14 @@ describe("EditorDocument.fromJSON()", () => {
             id: "toggle-list2",
             parentId: "root",
             type: "toggle-list",
-            data: { open: false },
+            data: { open: false, content: [] },
             children: [
               {
                 id: "p1",
                 parentId: "toggle-list2",
                 type: "text",
                 data: {
-                  text: "Hello test234",
+                  content: [{ text: "Hello test234", marks: [] }],
                 },
               },
             ],
@@ -585,19 +591,23 @@ describe("EditorDocument.fromJSON()", () => {
             "id": "toggle-list1",
             "parentId": "root",
             "type": "toggle-list",
-            "data": { "open": true },
+            "data": { "open": true, "content": [] },
             "children": [
               {
                 "id": "p1",
                 "parentId": "toggle-list1",
                 "type": "text",
-                "data": { "text": "Hello paragraph1" }
+                "data": {
+                  "content": [{ "text": "Hello paragraph1", "marks": [] }]
+                }
               },
               {
                 "id": "p2",
                 "parentId": "toggle-list1",
                 "type": "text",
-                "data": { "text": "Hello paragraph2" }
+                "data": {
+                  "content": [{ "text": "Hello paragraph2", "marks": [] }]
+                }
               }
             ]
           },
@@ -605,19 +615,26 @@ describe("EditorDocument.fromJSON()", () => {
             "id": "p3",
             "parentId": "root",
             "type": "text",
-            "data": { "text": "Hello paragraph1" }
+            "data": {
+              "content": [{ "text": "Hello paragraph1", "marks": [] }]
+            }
           },
           {
             "id": "p4",
             "parentId": "root",
             "type": "heading",
-            "data": { "text": "Hello heading2", "level": 2 }
+            "data": {
+              "content": [{ "text": "Hello heading2", "marks": [] }],
+              "level": 2
+            }
           },
           {
             "id": "p5",
             "parentId": "root",
             "type": "text",
-            "data": { "text": "Hello paragraph2" }
+            "data": {
+              "content": [{ "text": "Hello paragraph2", "marks": [] }]
+            }
           }
         ]
       }
@@ -653,13 +670,15 @@ describe("EditorDocument.fromJSON()", () => {
               "id": "toggle-list1",
               "parentId": "root",
               "type": "toggle-list",
-              "data": { "open": false },
+              "data": { "open": false, "content": [] },
               "children": [
                 {
                   "id": "p1",
                   "parentId": "toggle-list1",
                   "type": "text",
-                  "data": { "text": "Paragraph 1" }
+                  "data": {
+                    "content": [{ "text": "Paragraph 1", "marks": [] }]
+                  }
                 }
               ]
             },
@@ -668,7 +687,7 @@ describe("EditorDocument.fromJSON()", () => {
               "parentId": "root",
               "type": "text",
               "data": {
-                "text": "Hello test134"
+                "content": [{ "text": "Hello test134", "marks": [] }]
               }
             }
           ]
@@ -684,13 +703,15 @@ describe("EditorDocument.fromJSON()", () => {
         id: "toggle-list1",
         parentId: "root",
         type: "toggle-list",
-        data: { open: false },
+        data: { open: false, content: [] },
         children: [
           expect.objectContaining({
             id: "p1",
             parentId: "toggle-list1",
             type: "text",
-            data: { text: "Paragraph 1" },
+            data: {
+              content: [{ text: "Paragraph 1", marks: [] }],
+            },
           }),
         ],
       }),
@@ -701,7 +722,9 @@ describe("EditorDocument.fromJSON()", () => {
         id: "p1",
         parentId: "toggle-list1",
         type: "text",
-        data: { text: "Paragraph 1" },
+        data: {
+          content: [{ text: "Paragraph 1", marks: [] }],
+        },
       }),
     );
 
@@ -711,7 +734,7 @@ describe("EditorDocument.fromJSON()", () => {
         parentId: "root",
         type: "text",
         data: {
-          text: "Hello test134",
+          content: [{ text: "Hello test134", marks: [] }],
         },
       }),
     );
@@ -730,19 +753,21 @@ describe("EditorDocument.fromJSON()", () => {
             "id": "toggle-list1",
             "parentId": "root",
             "type": "toggle-list",
-            "data": { "open": true },
+            "data": { "open": true, "content": [] },
             "children": [
               {
                 "id": "toggle-list2",
                 "parentId": "toggle-list1",
                 "type": "toggle-list",
-                "data": { "open": false },
+                "data": { "open": false, "content": [] },
                 "children": [
                   {
                     "id": "p1",
                     "parentId": "toggle-list2",
                     "type": "text",
-                    "data": { "text": "Paragraph 2 in Paragraph 1 in Heading 1" }
+                    "data": {
+                      "content": [{ "text": "Paragraph 2 in Paragraph 1 in Heading 1", "marks": [] }]
+                    }
                   }
                 ]
               }
@@ -760,17 +785,21 @@ describe("EditorDocument.fromJSON()", () => {
       expect.objectContaining({
         id: "toggle-list1",
         type: "toggle-list",
-        data: { open: true },
+        data: { open: true, content: [] },
         children: [
           expect.objectContaining({
             id: "toggle-list2",
             type: "toggle-list",
-            data: { open: false },
+            data: { open: false, content: [] },
             children: [
               expect.objectContaining({
                 id: "p1",
                 type: "text",
-                data: { text: "Paragraph 2 in Paragraph 1 in Heading 1" },
+                data: {
+                  content: [
+                    { text: "Paragraph 2 in Paragraph 1 in Heading 1", marks: [] },
+                  ],
+                },
               }),
             ],
           }),

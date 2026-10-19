@@ -5,21 +5,45 @@ import { parseDocumentJSON } from "./json-utils";
 describe("parseJSON()", () => {
   test.each([
     [
-      `{"id": "1", "type": "text", "data": { "text": "some_text" }}`,
-      { id: "1", type: "text", data: { text: "some_text" } },
-    ],
-    [`{}`, {}],
-    [
-      `[{ "id": "1", "type": "text", "data": { "text": "some_text" } }]`,
-      [{ id: "1", type: "text", data: { text: "some_text" } }],
-    ],
-    [
-      `{"id": "1", "type": "text", "data": { "text": "some_text" }, "children": [{"id": "2", "type": "text", "data": { "text": "some_text" }}]}`,
+      `{"id": "1", "type": "text", "data": { "content": [{ "text": "some_text", "marks": [] }] }}`,
       {
         id: "1",
         type: "text",
-        data: { text: "some_text" },
-        children: [{ id: "2", type: "text", data: { text: "some_text" } }],
+        data: {
+          content: [{ text: "some_text", marks: [] }],
+        },
+      },
+    ],
+    [`{}`, {}],
+    [
+      `[{ "id": "1", "type": "text", "data": { "content": [{ "text": "some_text", "marks": [] }] } }]`,
+      [
+        {
+          id: "1",
+          type: "text",
+          data: {
+            content: [{ text: "some_text", marks: [] }],
+          },
+        },
+      ],
+    ],
+    [
+      `{"id": "1", "type": "text", "data": { "content": [{ "text": "some_text", "marks": [] }] }, "children": [{"id": "2", "type": "text", "data": { "content": [{ "text": "some_text", "marks": [] }] }}]}`,
+      {
+        id: "1",
+        type: "text",
+        data: {
+          content: [{ text: "some_text", marks: [] }],
+        },
+        children: [
+          {
+            id: "2",
+            type: "text",
+            data: {
+              content: [{ text: "some_text", marks: [] }],
+            },
+          },
+        ],
       },
     ],
   ])("returns the parsed JSON if the JSON passed is %s", (json, expected) => {
@@ -30,7 +54,9 @@ describe("parseJSON()", () => {
   test.each([
     ['{"id": "1", "type": "text", "data: { "text": "some_text" }'],
     ["1e"],
-    [`{ id: "1", type: "text", data: { text: "some_text", }, }`],
+    [
+      `{ id: "1", type: "text", data: { content: [{ text: "some_text", marks: [] }] }, }`,
+    ],
   ])("throws an error if the JSON passed is invalid - %s", json => {
     // Arrange
     const tryParse = () => parseDocumentJSON(json);
