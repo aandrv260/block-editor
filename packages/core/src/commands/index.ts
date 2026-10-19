@@ -12,3 +12,6 @@ export type { DeleteBlockPayload } from "./executors/DeleteBlockCommand";
 export type { UpdateBlockPayload } from "./executors/UpdateBlockCommand";
 export type { MoveBlockPayload } from "./executors/MoveBlockCommand";
 export type { SwapDocumentPayload } from "./executors/SwapDocumentCommand/SwapDocumentCommand";
+export type { InsertTextPayload } from "./executors/InsertTextCommand";
+export type { DeleteTextPayload } from "./executors/DeleteTextCommand";
+export type { ToggleMarkPayload } from "./executors/ToggleMarkCommand";

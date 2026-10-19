@@ -534,7 +534,7 @@ describe("Editor document integration", () => {
     expect(updateBlockEventCallback).toHaveBeenNthCalledWith(1, {
       type: "block:update",
       blockId: TOGGLE_LIST1_BLOCK.id,
-      newBlock: TOGGLE_LIST4_BLOCK,
+      newBlock: editor.getBlock(TOGGLE_LIST4_BLOCK.id),
       childrenStrategy: "preserve",
     });
 
@@ -595,7 +595,7 @@ describe("Editor document integration", () => {
     expect(updateBlockEventCallback).toHaveBeenNthCalledWith(2, {
       type: "block:update",
       blockId: TOGGLE_LIST2_BLOCK.id,
-      newBlock: SAMPLE_BLOCK4,
+      newBlock: editor.getBlock(SAMPLE_BLOCK4.id),
       childrenStrategy: "drop",
     });
 
@@ -713,10 +713,7 @@ describe("Editor document integration", () => {
     expect(updateBlockEventCallback).toHaveBeenNthCalledWith(3, {
       type: "block:update",
       blockId: TOGGLE_LIST4_BLOCK.id,
-      newBlock: {
-        ...TOGGLE_LIST5_BLOCK,
-        children: [SAMPLE_BLOCK6, SAMPLE_BLOCK9],
-      },
+      newBlock: editor.getBlock(TOGGLE_LIST5_BLOCK.id),
       childrenStrategy: "replace",
     });
 

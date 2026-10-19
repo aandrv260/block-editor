@@ -2,12 +2,22 @@ import type { TextRun } from "../models/content/content.schema";
 import type { Mark } from "../models/content/marks/mark.models";
 import {
   addMark,
+  deleteTextInRange,
   getPlainText,
+  hasMarkInRange,
+  insertTextAt,
+  isContentBlock,
   joinContent,
   normalizeContent,
   removeMark,
   splitContent,
 } from "./content.utils";
+import {
+  SAMPLE_BLOCK1,
+  SAMPLE_BLOCK2,
+  TOGGLE_LIST1_BLOCK,
+  testBlockToBlock,
+} from "../../document/utils/document-test.utils";
 
 const bold: Mark = { type: "bold" };
 const italic: Mark = { type: "italic" };
@@ -172,6 +182,21 @@ describe("splitContent()", () => {
     ]);
   });
 
+  it("leaves out the runs without text", () => {
+    // Arrange
+    const content: TextRun[] = [
+      { text: "Hello", marks: [] },
+      { text: "", marks: [italic] },
+      { text: " world", marks: [bold] },
+    ];
+
+    // Assert
+    expect(splitContent(content, 5)).toStrictEqual([
+      [{ text: "Hello", marks: [] }],
+      [{ text: " world", marks: [bold] }],
+    ]);
+  });
+
   it("returns two empty parts for empty content", () => {
     // Assert
     expect(splitContent([], 0)).toStrictEqual([[], []]);
@@ -313,5 +338,189 @@ describe("removeMark()", () => {
 
     // Assert
     expect(removeMark(content, 0, 11, "bold")).toStrictEqual(content);
+  });
+});
+
+describe("hasMarkInRange()", () => {
+  it("returns true when all of the text in the range has the mark", () => {
+    // Arrange
+    const content: TextRun[] = [
+      { text: "Hello ", marks: [bold] },
+      { text: "world", marks: [bold, italic] },
+    ];
+
+    // Assert
+    expect(hasMarkInRange(content, 3, 9, bold)).toBe(true);
+  });
+
+  it("returns false when only part of the text in the range has the mark", () => {
+    // Arrange
+    const content: TextRun[] = [
+      { text: "Hello ", marks: [bold] },
+      { text: "world", marks: [] },
+    ];
+
+    // Assert
+    expect(hasMarkInRange(content, 3, 9, bold)).toBe(false);
+  });
+
+  it("returns false when the text in the range links to a different address", () => {
+    // Arrange
+    const content: TextRun[] = [{ text: "example", marks: [link] }];
+    const otherLink: Mark = { type: "link", href: "https://other.com" };
+
+    // Assert
+    expect(hasMarkInRange(content, 0, 7, otherLink)).toBe(false);
+  });
+
+  it("ignores runs without text in the range", () => {
+    // Arrange
+    const content: TextRun[] = [
+      { text: "Hel", marks: [bold] },
+      { text: "", marks: [] },
+      { text: "lo", marks: [bold] },
+    ];
+
+    // Assert
+    expect(hasMarkInRange(content, 0, 5, bold)).toBe(true);
+  });
+
+  it("returns false when the range is empty", () => {
+    // Arrange
+    const content: TextRun[] = [{ text: "Hello", marks: [bold] }];
+
+    // Assert
+    expect(hasMarkInRange(content, 2, 2, bold)).toBe(false);
+  });
+});
+
+describe("insertTextAt()", () => {
+  it("gives the new text the marks of the text right before the offset", () => {
+    // Arrange
+    const content: TextRun[] = [
+      { text: "Hello", marks: [bold] },
+      { text: " world", marks: [] },
+    ];
+
+    // Assert
+    expect(insertTextAt(content, 5, "!!")).toStrictEqual([
+      { text: "Hello!!", marks: [bold] },
+      { text: " world", marks: [] },
+    ]);
+  });
+
+  it("gives the new text the marks of the first run when the offset is at the start", () => {
+    // Arrange
+    const content: TextRun[] = [{ text: "world", marks: [italic] }];
+
+    // Assert
+    expect(insertTextAt(content, 0, "Hello ")).toStrictEqual([
+      { text: "Hello world", marks: [italic] },
+    ]);
+  });
+
+  it("inserts the text in the middle of a run", () => {
+    // Arrange
+    const content: TextRun[] = [{ text: "Helo", marks: [bold] }];
+
+    // Assert
+    expect(insertTextAt(content, 2, "l")).toStrictEqual([
+      { text: "Hello", marks: [bold] },
+    ]);
+  });
+
+  it("ignores a run without text right before the offset when picking the marks", () => {
+    // Arrange
+    const content: TextRun[] = [
+      { text: "Hello", marks: [bold] },
+      { text: "", marks: [italic] },
+      { text: " world", marks: [] },
+    ];
+
+    // Assert
+    expect(insertTextAt(content, 5, "!")).toStrictEqual([
+      { text: "Hello!", marks: [bold] },
+      { text: " world", marks: [] },
+    ]);
+  });
+
+  it("inserts text without marks into empty content", () => {
+    // Assert
+    expect(insertTextAt([], 0, "Hello")).toStrictEqual([
+      { text: "Hello", marks: [] },
+    ]);
+  });
+});
+
+describe("deleteTextInRange()", () => {
+  it("removes only the text in the range", () => {
+    // Arrange
+    const content: TextRun[] = [
+      { text: "Hello ", marks: [bold] },
+      { text: "big ", marks: [italic] },
+      { text: "world", marks: [] },
+    ];
+
+    // Assert
+    expect(deleteTextInRange(content, 3, 8)).toStrictEqual([
+      { text: "Hel", marks: [bold] },
+      { text: "g ", marks: [italic] },
+      { text: "world", marks: [] },
+    ]);
+  });
+
+  it("merges the text around the range when it has the same marks", () => {
+    // Arrange
+    const content: TextRun[] = [
+      { text: "Hello ", marks: [bold] },
+      { text: "big", marks: [] },
+      { text: " world", marks: [bold] },
+    ];
+
+    // Assert
+    expect(deleteTextInRange(content, 6, 9)).toStrictEqual([
+      { text: "Hello  world", marks: [bold] },
+    ]);
+  });
+
+  it("returns empty content when the range covers all of the text", () => {
+    // Arrange
+    const content: TextRun[] = [
+      { text: "Hello ", marks: [bold] },
+      { text: "world", marks: [] },
+    ];
+
+    // Assert
+    expect(deleteTextInRange(content, 0, 11)).toStrictEqual([]);
+  });
+
+  it("leaves the content as it is when the range is empty", () => {
+    // Arrange
+    const content: TextRun[] = [{ text: "Hello", marks: [bold] }];
+
+    // Assert
+    expect(deleteTextInRange(content, 2, 2)).toStrictEqual(content);
+  });
+});
+
+describe("isContentBlock()", () => {
+  it.each([
+    ["heading", testBlockToBlock(SAMPLE_BLOCK1, "root")],
+    ["text", testBlockToBlock(SAMPLE_BLOCK2, "root")],
+    ["toggle-list", testBlockToBlock(TOGGLE_LIST1_BLOCK, "root")],
+  ])("returns true for a %s block", (_, block) => {
+    // Assert
+    expect(isContentBlock(block)).toBe(true);
+  });
+
+  it("returns false for a block without text", () => {
+    // Arrange
+    const block = testBlockToBlock(
+      { id: "list", type: "bullet-list", data: {}, children: [] },
+      "root",
+    );
+
+    // Assert
+    expect(isContentBlock(block)).toBe(false);
   });
 });

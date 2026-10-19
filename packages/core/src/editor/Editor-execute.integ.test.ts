@@ -2,6 +2,7 @@ import { createEditor } from "./Editor-test.utils";
 import { Editor } from "./Editor";
 import {
   assertTreeIntegrity,
+  MARKED_TEXT_BLOCK,
   SAMPLE_BLOCK1,
 } from "@/document/utils/document-test.utils";
 import { assertEngineError } from "@/errors/test-utils/error-test.utils";
@@ -196,5 +197,144 @@ describe("Editor execute", () => {
     expect(() => executeWithoutTypes(editor, "toString")).toThrowError(
       UnknownCommandError,
     );
+  });
+
+  it("inserts text into a block and emits the text insert event", () => {
+    // Arrange
+    const { editor, INITIAL_DOCUMENT_JSON } = createEditor();
+    const onInsertText = vi.fn();
+
+    editor.execute("insertBlock", {
+      targetId: editor.ROOT_ID,
+      strategy: "append",
+      newBlock: MARKED_TEXT_BLOCK,
+    });
+
+    const documentJSONBeforeInsert = editor.getDocumentJSON();
+
+    editor.subscribe("text:insert", onInsertText);
+
+    // Act
+    editor.execute("insertText", {
+      blockId: MARKED_TEXT_BLOCK.id,
+      offset: 6,
+      text: "big ",
+    });
+
+    // Assert
+    expect(editor.getBlock(MARKED_TEXT_BLOCK.id)).toStrictEqual({
+      ...MARKED_TEXT_BLOCK,
+      parentId: editor.ROOT_ID,
+      data: {
+        content: [
+          { text: "Hello big ", marks: [] },
+          { text: "world", marks: [{ type: "bold" }] },
+        ],
+      },
+    });
+
+    expect(onInsertText).toHaveBeenCalledExactlyOnceWith({
+      type: "text:insert",
+      blockId: MARKED_TEXT_BLOCK.id,
+      offset: 6,
+      text: "big ",
+    });
+
+    expect(editor.getHistory()).toStrictEqual([
+      INITIAL_DOCUMENT_JSON,
+      documentJSONBeforeInsert,
+      editor.getDocumentJSON(),
+    ]);
+  });
+
+  it("deletes text from a block and emits the text delete event", () => {
+    // Arrange
+    const { editor, INITIAL_DOCUMENT_JSON } = createEditor();
+    const onDeleteText = vi.fn();
+
+    editor.execute("insertBlock", {
+      targetId: editor.ROOT_ID,
+      strategy: "append",
+      newBlock: MARKED_TEXT_BLOCK,
+    });
+
+    const documentJSONBeforeDelete = editor.getDocumentJSON();
+
+    editor.subscribe("text:delete", onDeleteText);
+
+    // Act
+    editor.execute("deleteText", { blockId: MARKED_TEXT_BLOCK.id, from: 0, to: 6 });
+
+    // Assert
+    expect(editor.getBlock(MARKED_TEXT_BLOCK.id)).toStrictEqual({
+      ...MARKED_TEXT_BLOCK,
+      parentId: editor.ROOT_ID,
+      data: {
+        content: [{ text: "world", marks: [{ type: "bold" }] }],
+      },
+    });
+
+    expect(onDeleteText).toHaveBeenCalledExactlyOnceWith({
+      type: "text:delete",
+      blockId: MARKED_TEXT_BLOCK.id,
+      from: 0,
+      to: 6,
+    });
+
+    expect(editor.getHistory()).toStrictEqual([
+      INITIAL_DOCUMENT_JSON,
+      documentJSONBeforeDelete,
+      editor.getDocumentJSON(),
+    ]);
+  });
+
+  it("toggles a mark on the text of a block and emits the mark add event", () => {
+    // Arrange
+    const { editor, INITIAL_DOCUMENT_JSON } = createEditor();
+    const onAddMark = vi.fn();
+
+    editor.execute("insertBlock", {
+      targetId: editor.ROOT_ID,
+      strategy: "append",
+      newBlock: MARKED_TEXT_BLOCK,
+    });
+
+    const documentJSONBeforeToggle = editor.getDocumentJSON();
+
+    editor.subscribe("mark:add", onAddMark);
+
+    // Act
+    editor.execute("toggleMark", {
+      blockId: MARKED_TEXT_BLOCK.id,
+      from: 0,
+      to: 11,
+      mark: { type: "italic" },
+    });
+
+    // Assert
+    expect(editor.getBlock(MARKED_TEXT_BLOCK.id)).toStrictEqual({
+      ...MARKED_TEXT_BLOCK,
+      parentId: editor.ROOT_ID,
+      data: {
+        content: [
+          { text: "Hello ", marks: [{ type: "italic" }] },
+          { text: "world", marks: [{ type: "bold" }, { type: "italic" }] },
+        ],
+      },
+    });
+
+    expect(onAddMark).toHaveBeenCalledExactlyOnceWith({
+      type: "mark:add",
+      blockId: MARKED_TEXT_BLOCK.id,
+      from: 0,
+      to: 11,
+      mark: { type: "italic" },
+    });
+
+    expect(editor.getHistory()).toStrictEqual([
+      INITIAL_DOCUMENT_JSON,
+      documentJSONBeforeToggle,
+      editor.getDocumentJSON(),
+    ]);
   });
 });

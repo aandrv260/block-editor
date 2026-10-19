@@ -363,7 +363,7 @@ describe("Editor full integration", () => {
     expect(updateEventCallback).toHaveBeenCalledExactlyOnceWith({
       type: "block:update",
       blockId: SAMPLE_BLOCK4.id,
-      newBlock: TOGGLE_LIST5_BLOCK,
+      newBlock: editor.getBlock(TOGGLE_LIST5_BLOCK.id),
       childrenStrategy: "drop",
     });
 
@@ -479,7 +479,7 @@ describe("Editor full integration", () => {
     ).toHaveBeenCalledExactlyOnceWith({
       type: "block:update",
       blockId: TOGGLE_LIST5_BLOCK.id,
-      newBlock: SAMPLE_BLOCK7,
+      newBlock: editor.getBlock(SAMPLE_BLOCK7.id),
       childrenStrategy: "drop",
     });
 

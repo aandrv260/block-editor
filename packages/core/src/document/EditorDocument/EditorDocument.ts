@@ -77,6 +77,7 @@ import {
 } from "../errors/update-block";
 import { traverse as traverseDocument } from "../utils/block-traversal.utils";
 import type { DeepReadonly } from "@/common/types/object.types";
+import { isContentBlock, normalizeContent } from "@/blocks/utils/content.utils";
 
 /**
  * The EditorDocument class is the core class that represents the document tree in the editor.
@@ -330,7 +331,7 @@ export class EditorDocument implements DocumentTree {
     blockId: string,
     payload: BlockPayload,
     { childrenStrategy }: UpdateBlockOptions = { childrenStrategy: "drop" },
-  ): void {
+  ): Block {
     if (this.isDocumentRoot(blockId)) {
       throw new CannotUpdateRootError();
     }
@@ -369,12 +370,18 @@ export class EditorDocument implements DocumentTree {
 
     validateBlockStructure(newBlock);
 
+    if (isContentBlock(newBlock)) {
+      newBlock.data.content = normalizeContent(newBlock.data.content);
+    }
+
     this.handleUpdate({
       childrenStrategy,
       indexOfBlockToRemoveInParent,
       parent: parentOfBlockToRemove,
       ctx: { blockMap: this.blocksMap, blockToReplace, newBlock },
     });
+
+    return newBlock;
   }
 
   private handleUpdate({

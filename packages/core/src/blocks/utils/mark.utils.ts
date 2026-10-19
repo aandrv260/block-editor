@@ -2,7 +2,7 @@ import { getObjectKeys } from "@/common/object.utils";
 import type { Mark } from "../models/content/marks/mark.models";
 import { ALL_MARK_TYPES } from "../models/content/marks/mark-type.models";
 
-const isSameMark = (
+export const isSameMark = (
   mark: Record<string, unknown>,
   otherMark: Record<string, unknown>,
 ): boolean => {
