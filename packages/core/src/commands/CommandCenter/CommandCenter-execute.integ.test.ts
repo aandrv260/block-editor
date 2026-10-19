@@ -5,13 +5,19 @@ import {
   TOGGLE_LIST1_BLOCK,
   TOGGLE_LIST2_BLOCK,
 } from "../../document/utils/document-test.utils";
-import type { EditorEventBus } from "../../events/editor-event-bus/editorEvent.models";
+import type {
+  EditorEvent,
+  EditorEventBus,
+} from "../../events/editor-event-bus/editorEvent.models";
 import { createEvent } from "../../events/editor-event-bus/createEvent";
 import { EventBus } from "../../events/event-bus/EventBus";
 import { DocumentHistory } from "../../history/DocumentHistory";
 import { assertEngineError } from "../../errors/test-utils/error-test.utils";
 import { BlockToDeleteNotFoundError } from "../errors/delete-block/BlockToDeleteNotFoundError";
-import type { CommandContext } from "../executors/commandExecutors.models";
+import type {
+  CommandContext,
+  CommandResult,
+} from "../executors/commandExecutors.models";
 import { DEFAULT_COMMANDS } from "../executors/defaultCommands";
 import { createTestDocument } from "../executors/utils/commandExecutors-test.utils";
 import { CommandCenter } from "./CommandCenter";
@@ -28,9 +34,44 @@ const deleteFirstBlockCommand = ({ document }: CommandContext<void>) => {
   return createEvent("block:delete", { blockId: firstBlockId });
 };
 
+const insertAfterFirstBlockAndDeleteItCommand = ({
+  document,
+}: CommandContext<void>): CommandResult => {
+  const firstBlockId = document.getRoot().children[0].id;
+
+  document.insertAfter(firstBlockId, SAMPLE_BLOCK3);
+  document.remove(firstBlockId);
+
+  return [
+    createEvent("block:insert", {
+      blockId: SAMPLE_BLOCK3.id,
+      targetId: firstBlockId,
+      strategy: "after",
+    }),
+    createEvent("block:delete", { blockId: firstBlockId }),
+  ];
+};
+
+const deleteFirstBlockAndSwapDocumentCommand = ({
+  document,
+}: CommandContext<void>): CommandResult => {
+  const firstBlockId = document.getRoot().children[0].id;
+  const element = createTestDocument([["root", SAMPLE_BLOCK4]]).toJSON();
+
+  document.remove(firstBlockId);
+  document.swap(element);
+
+  return [
+    createEvent("block:delete", { blockId: firstBlockId }),
+    createEvent("document:swap", { element, historyCleared: true }),
+  ];
+};
+
 const COMMANDS_WITH_CUSTOM_COMMAND = {
   ...DEFAULT_COMMANDS,
   deleteFirstBlock: deleteFirstBlockCommand,
+  insertAfterFirstBlockAndDeleteIt: insertAfterFirstBlockAndDeleteItCommand,
+  deleteFirstBlockAndSwapDocument: deleteFirstBlockAndSwapDocumentCommand,
 };
 
 const createCommandCenterWithCustomCommand = () => {
@@ -147,6 +188,73 @@ describe("CommandCenter execute", () => {
     ]);
 
     assertTreeIntegrity(document);
+  });
+
+  it("emits every event a command returns in order, then records one history entry and emits one change event", () => {
+    // Arrange
+    const { commandCenter, document, eventBus, history, INITIAL_HISTORY_DOC_JSON } =
+      createCommandCenterWithCustomCommand();
+
+    const emittedEvents: EditorEvent[] = [];
+    const onEvent = (event: EditorEvent) => emittedEvents.push(event);
+
+    eventBus.on("block:insert", onEvent);
+    eventBus.on("block:delete", onEvent);
+    eventBus.on("editor:change", onEvent);
+
+    // Act
+    commandCenter.execute("insertAfterFirstBlockAndDeleteIt");
+
+    // Assert
+    expect(emittedEvents).toStrictEqual([
+      {
+        type: "block:insert",
+        blockId: SAMPLE_BLOCK3.id,
+        targetId: TOGGLE_LIST1_BLOCK.id,
+        strategy: "after",
+      },
+      { type: "block:delete", blockId: TOGGLE_LIST1_BLOCK.id },
+      {
+        type: "editor:change",
+        documentJSON: document.toJSON(),
+        history: history.getHistory(),
+        currentPositionInHistory: 1,
+        root: document.getRoot(),
+        trigger: "insertAfterFirstBlockAndDeleteIt",
+      },
+    ]);
+
+    expect(document.getBlock(SAMPLE_BLOCK3.id)).toBe(document.getRoot().children[0]);
+    expect(document.getBlock(TOGGLE_LIST1_BLOCK.id)).toBeNull();
+
+    expect(history.getHistory()).toStrictEqual([
+      INITIAL_HISTORY_DOC_JSON,
+      document.toJSON(),
+    ]);
+
+    assertTreeIntegrity(document);
+  });
+
+  it("clears the history when one of the returned events is a document swap with a cleared history", () => {
+    // Arrange
+    const { commandCenter, document, history } =
+      createCommandCenterWithCustomCommand();
+
+    commandCenter.execute("insertBlock", {
+      targetId: TOGGLE_LIST2_BLOCK.id,
+      strategy: "after",
+      newBlock: SAMPLE_BLOCK3,
+    });
+
+    // Assert
+    expect(history.getSize()).toBe(2);
+
+    // Act
+    commandCenter.execute("deleteFirstBlockAndSwapDocument");
+
+    // Assert
+    expect(history.getHistory()).toStrictEqual([document.toJSON()]);
+    expect(history.getCurrentPosition()).toBe(0);
   });
 
   it("clears the history before recording it when the document is swapped with clearHistory", () => {
