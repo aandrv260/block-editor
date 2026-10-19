@@ -1,6 +1,8 @@
 import { createEditor, createDocumentToSwapWith } from "./Editor-test.utils";
+import { Editor } from "./Editor";
 import {
   SAMPLE_BLOCK1,
+  SAMPLE_BLOCK2,
   SAMPLE_BLOCK3,
   SAMPLE_BLOCK4,
   SAMPLE_BLOCK5,
@@ -406,5 +408,36 @@ describe("Editor history", () => {
     expect(editor.getHistory()).toEqual([]);
     expect(editor.getCurrentHistoryRecord()).toBeNull();
     expect(editor.getCurrentPositionInHistory()).toBe(-1);
+  });
+
+  it("uses the history group delay from the config to group text typed in a row", () => {
+    // Arrange
+    vi.useFakeTimers();
+
+    const editor = new Editor({ historyGroupDelay: 1000 });
+
+    editor.execute("insertBlock", {
+      targetId: editor.ROOT_ID,
+      strategy: "append",
+      newBlock: SAMPLE_BLOCK2,
+    });
+
+    // Act
+    editor.execute("insertText", {
+      blockId: SAMPLE_BLOCK2.id,
+      offset: 0,
+      text: "a",
+    });
+    vi.advanceTimersByTime(800);
+    editor.execute("insertText", {
+      blockId: SAMPLE_BLOCK2.id,
+      offset: 1,
+      text: "b",
+    });
+
+    // Assert
+    expect(editor.getHistory()).toHaveLength(3);
+
+    vi.useRealTimers();
   });
 });

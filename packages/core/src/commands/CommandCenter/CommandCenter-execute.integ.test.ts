@@ -13,6 +13,7 @@ import type {
 import { createEvent } from "../../events/editor-event-bus/createEvent";
 import { EventBus } from "../../events/event-bus/EventBus";
 import { DocumentHistory } from "../../history/DocumentHistory";
+import { DEFAULT_HISTORY_GROUP_DELAY } from "../../history/HistoryManager/HistoryManager.utils";
 import { assertEngineError } from "../../errors/test-utils/error-test.utils";
 import { BlockToDeleteNotFoundError } from "../errors/delete-block/BlockToDeleteNotFoundError";
 import type {
@@ -95,6 +96,7 @@ const createCommandCenterWithCustomCommand = () => {
     eventBus,
     history,
     commands: COMMANDS_WITH_CUSTOM_COMMAND,
+    historyGroupDelay: DEFAULT_HISTORY_GROUP_DELAY,
   });
 
   return {
@@ -353,5 +355,17 @@ describe("CommandCenter execute", () => {
     );
 
     assertTreeIntegrity(document);
+  });
+
+  it("turns the document into JSON only once per command", () => {
+    // Arrange
+    const { commandCenter, document } = createCommandCenter();
+    const toJSON = vi.spyOn(document, "toJSON");
+
+    // Act
+    commandCenter.execute("deleteBlock", { blockId: TOGGLE_LIST2_BLOCK.id });
+
+    // Assert
+    expect(toJSON).toHaveBeenCalledOnce();
   });
 });
