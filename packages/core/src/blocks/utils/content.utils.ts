@@ -1,8 +1,9 @@
 import type { DeepReadonly } from "@/common/types/object.types";
+import type { Block, ContentBlock } from "../models/block.models";
 import type { TextRun } from "../models/content/content.schema";
 import type { Mark } from "../models/content/marks/mark.models";
 import type { MarkType } from "../models/content/marks/mark-type.models";
-import { areMarksEqual, normalizeMarks } from "./mark.utils";
+import { areMarksEqual, isSameMark, normalizeMarks } from "./mark.utils";
 
 export const normalizeContent = (content: TextRun[]): TextRun[] => {
   const normalizedContent: TextRun[] = [];
@@ -39,6 +40,10 @@ export const splitContent = (
   let runStart = 0;
 
   for (const run of content) {
+    if (run.text === "") {
+      continue;
+    }
+
     const runEnd = runStart + run.text.length;
 
     if (runEnd <= offset) {
@@ -55,10 +60,7 @@ export const splitContent = (
     runStart = runEnd;
   }
 
-  return [
-    normalizeContent(contentBeforeOffset),
-    normalizeContent(contentAfterOffset),
-  ];
+  return [contentBeforeOffset, contentAfterOffset];
 };
 
 export const joinContent = (
@@ -68,17 +70,28 @@ export const joinContent = (
   return normalizeContent([...content, ...otherContent]);
 };
 
+const splitContentAtRange = (
+  content: TextRun[],
+  from: number,
+  to: number,
+): [TextRun[], TextRun[], TextRun[]] => {
+  const [contentBeforeRange, contentFromRange] = splitContent(content, from);
+  const [contentInRange, contentAfterRange] = splitContent(
+    contentFromRange,
+    to - from,
+  );
+
+  return [contentBeforeRange, contentInRange, contentAfterRange];
+};
+
 const updateMarksInRange = (
   content: TextRun[],
   from: number,
   to: number,
   updateMarks: (marks: Mark[]) => Mark[],
 ): TextRun[] => {
-  const [contentBeforeRange, contentFromRange] = splitContent(content, from);
-  const [contentInRange, contentAfterRange] = splitContent(
-    contentFromRange,
-    to - from,
-  );
+  const [contentBeforeRange, contentInRange, contentAfterRange] =
+    splitContentAtRange(content, from, to);
 
   const updatedContentInRange = contentInRange.map(run => ({
     ...run,
@@ -110,4 +123,51 @@ export const removeMark = (
   return updateMarksInRange(content, from, to, marks =>
     marks.filter(mark => mark.type !== markType),
   );
+};
+
+export const hasMarkInRange = (
+  content: TextRun[],
+  from: number,
+  to: number,
+  mark: Mark,
+): boolean => {
+  const [, contentInRange] = splitContentAtRange(content, from, to);
+
+  return (
+    contentInRange.length > 0 &&
+    contentInRange.every(run => run.marks.some(runMark => isSameMark(runMark, mark)))
+  );
+};
+
+export const insertTextAt = (
+  content: TextRun[],
+  offset: number,
+  text: string,
+): TextRun[] => {
+  const [contentBeforeOffset, contentAfterOffset] = splitContent(content, offset);
+  const neighborRun = contentBeforeOffset.at(-1) ?? contentAfterOffset.at(0);
+
+  return normalizeContent([
+    ...contentBeforeOffset,
+    { text, marks: neighborRun?.marks ?? [] },
+    ...contentAfterOffset,
+  ]);
+};
+
+export const deleteTextInRange = (
+  content: TextRun[],
+  from: number,
+  to: number,
+): TextRun[] => {
+  const [contentBeforeRange, , contentAfterRange] = splitContentAtRange(
+    content,
+    from,
+    to,
+  );
+
+  return joinContent(contentBeforeRange, contentAfterRange);
+};
+
+export const isContentBlock = (block: Block): block is ContentBlock => {
+  return "content" in block.data;
 };

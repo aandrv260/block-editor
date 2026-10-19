@@ -85,7 +85,7 @@ describe("CommandCenter update block", () => {
     expect(updateBlockEventCallback).toHaveBeenCalledWith({
       type: "block:update",
       blockId: TOGGLE_LIST2_BLOCK.id,
-      newBlock: SAMPLE_BLOCK4,
+      newBlock: document.getBlock(SAMPLE_BLOCK4.id),
       childrenStrategy: "drop",
     });
 
@@ -265,10 +265,7 @@ describe("CommandCenter update block", () => {
     expect(updateBlockEventCallback).toHaveBeenCalledWith({
       type: "block:update",
       blockId: TOGGLE_LIST1_BLOCK.id,
-      newBlock: {
-        ...TOGGLE_LIST4_BLOCK,
-        children: [SAMPLE_BLOCK4, SAMPLE_BLOCK5],
-      },
+      newBlock: document.getBlock(TOGGLE_LIST4_BLOCK.id),
       childrenStrategy: "replace",
     });
 
@@ -367,7 +364,7 @@ describe("CommandCenter update block", () => {
     expect(updateBlockEventCallback).toHaveBeenNthCalledWith(1, {
       type: "block:update",
       blockId: TOGGLE_LIST1_BLOCK.id,
-      newBlock: TOGGLE_LIST4_BLOCK,
+      newBlock: document.getBlock(TOGGLE_LIST4_BLOCK.id),
       childrenStrategy: "preserve",
     });
 
@@ -419,7 +416,7 @@ describe("CommandCenter update block", () => {
     expect(updateBlockEventCallback).toHaveBeenNthCalledWith(2, {
       type: "block:update",
       blockId: TOGGLE_LIST2_BLOCK.id,
-      newBlock: SAMPLE_BLOCK4,
+      newBlock: document.getBlock(SAMPLE_BLOCK4.id),
       childrenStrategy: "drop",
     });
 
@@ -528,10 +525,7 @@ describe("CommandCenter update block", () => {
     expect(updateBlockEventCallback).toHaveBeenNthCalledWith(3, {
       type: "block:update",
       blockId: TOGGLE_LIST4_BLOCK.id,
-      newBlock: {
-        ...TOGGLE_LIST5_BLOCK,
-        children: [SAMPLE_BLOCK6, SAMPLE_BLOCK9],
-      },
+      newBlock: document.getBlock(TOGGLE_LIST5_BLOCK.id),
       childrenStrategy: "replace",
     });
 
@@ -547,5 +541,75 @@ describe("CommandCenter update block", () => {
     expect(history.getSize()).toBe(5);
 
     assertTreeIntegrity(document);
+  });
+
+  it("emits the block as it was saved, with tidy content and the kept children", () => {
+    // Arrange
+    const { document, eventBus, commandCenter } = createCommandCenter();
+    const onUpdate = vi.fn();
+
+    eventBus.on("block:update", onUpdate);
+
+    // Act
+    commandCenter.execute("updateBlock", {
+      blockId: TOGGLE_LIST1_BLOCK.id,
+      newBlock: {
+        ...TOGGLE_LIST1_BLOCK,
+        data: {
+          open: true,
+          content: [
+            { text: "Ti", marks: [] },
+            { text: "", marks: [{ type: "bold" }] },
+            { text: "tle", marks: [] },
+          ],
+        },
+      },
+      childrenStrategy: "preserve",
+    });
+
+    // Assert
+    expect(onUpdate).toHaveBeenCalledExactlyOnceWith({
+      type: "block:update",
+      blockId: TOGGLE_LIST1_BLOCK.id,
+      newBlock: {
+        ...TOGGLE_LIST1_BLOCK,
+        parentId: document.ROOT_ID,
+        data: { open: true, content: [{ text: "Title", marks: [] }] },
+        children: [
+          { ...TOGGLE_LIST2_BLOCK, parentId: TOGGLE_LIST1_BLOCK.id, children: [] },
+        ],
+      },
+      childrenStrategy: "preserve",
+    });
+  });
+
+  it("emits a copy of the saved block that later commands do not change", () => {
+    // Arrange
+    const { document, eventBus, commandCenter } = createCommandCenter();
+    const onUpdate = vi.fn();
+
+    eventBus.on("block:update", onUpdate);
+
+    commandCenter.execute("updateBlock", {
+      blockId: TOGGLE_LIST1_BLOCK.id,
+      newBlock: TOGGLE_LIST1_BLOCK,
+      childrenStrategy: "preserve",
+    });
+
+    const emittedBlock = onUpdate.mock.calls[0][0].newBlock;
+    const savedBlockAtUpdate = structuredClone(
+      document.getBlock(TOGGLE_LIST1_BLOCK.id),
+    );
+
+    // Act
+    commandCenter.execute("insertBlock", {
+      targetId: TOGGLE_LIST1_BLOCK.id,
+      strategy: "append",
+      newBlock: SAMPLE_BLOCK3,
+    });
+
+    // Assert
+    expect(emittedBlock).not.toBe(document.getBlock(TOGGLE_LIST1_BLOCK.id));
+    expect(emittedBlock).toStrictEqual(savedBlockAtUpdate);
   });
 });

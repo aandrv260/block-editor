@@ -1,6 +1,7 @@
+import type { Mark } from "@/blocks/models/content/marks/mark.models";
 import type { DeepReadonly } from "@/common/types/object.types";
 import type { DocumentRoot } from "@/document/DocumentRoot/DocumentRoot";
-import type { BlockPayload } from "@/document/models/document-payload.models";
+import type { Block } from "@/blocks/models/block.models";
 import type {
   ConstructableDocumentElement,
   MoveBlockStrategy,
@@ -16,16 +17,44 @@ type DocumentEventsData = {
     targetId: string;
     strategy: "before" | "after" | "append";
   };
-  "block:delete": { blockId: string };
+  "block:delete": {
+    blockId: string;
+  };
   "block:update": {
     blockId: string;
     childrenStrategy: UpdateBlockChildrenStrategy;
-    newBlock: BlockPayload;
+    newBlock: DeepReadonly<Block>;
   };
-  "block:move": { blockId: string; targetId: string; strategy: MoveBlockStrategy };
+  "block:move": {
+    blockId: string;
+    targetId: string;
+    strategy: MoveBlockStrategy;
+  };
   "document:swap": {
     element: ConstructableDocumentElement;
     historyCleared: boolean;
+  };
+  "text:insert": {
+    blockId: string;
+    offset: number;
+    text: string;
+  };
+  "text:delete": {
+    blockId: string;
+    from: number;
+    to: number;
+  };
+  "mark:add": {
+    blockId: string;
+    from: number;
+    to: number;
+    mark: Mark;
+  };
+  "mark:remove": {
+    blockId: string;
+    from: number;
+    to: number;
+    mark: Mark;
   };
 };
 

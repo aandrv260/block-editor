@@ -174,7 +174,7 @@ export interface DocumentTree {
     blockId: string,
     payload: BlockPayload,
     options?: UpdateBlockOptions,
-  ): void;
+  ): Block;
 
   /**
    * Move a block to a target block.

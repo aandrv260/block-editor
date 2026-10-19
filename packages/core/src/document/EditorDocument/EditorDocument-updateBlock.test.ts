@@ -1950,4 +1950,38 @@ describe("updateBlock()", () => {
       parentId: "root",
     });
   });
+
+  it("tidies the content of the updated block", () => {
+    // Arrange
+    const document = new EditorDocument();
+
+    document.appendChild("root", SAMPLE_BLOCK2);
+
+    // Act
+    document.updateBlock(SAMPLE_BLOCK2.id, {
+      id: SAMPLE_BLOCK2.id,
+      type: "text",
+      data: {
+        content: [
+          { text: "Hello", marks: [{ type: "italic" }, { type: "bold" }] },
+          { text: "", marks: [] },
+          { text: " world", marks: [{ type: "bold" }, { type: "italic" }] },
+        ],
+      },
+    });
+
+    // Assert
+    expect(document.getBlock(SAMPLE_BLOCK2.id)).toStrictEqual({
+      id: SAMPLE_BLOCK2.id,
+      parentId: "root",
+      type: "text",
+      data: {
+        content: [
+          { text: "Hello world", marks: [{ type: "bold" }, { type: "italic" }] },
+        ],
+      },
+    });
+
+    assertTreeIntegrity(document);
+  });
 });

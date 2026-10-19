@@ -159,6 +159,24 @@ export const SAMPLE_BLOCK10 = {
   },
 } as const satisfies BlockPayload;
 
+export const MARKED_TEXT_BLOCK = {
+  id: "marked-text",
+  type: "text",
+  data: {
+    content: [
+      { text: "Hello ", marks: [] },
+      { text: "world", marks: [{ type: "bold" }] },
+    ],
+  },
+} as const satisfies BlockPayload;
+
+export const BULLET_LIST1_BLOCK = {
+  id: "bullet-list-1",
+  type: "bullet-list",
+  data: {},
+  children: [],
+} as const satisfies BlockPayload;
+
 /**
  * Asserts the integrity of the document by checking that:
  * - Each block has a parent

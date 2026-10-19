@@ -13,13 +13,13 @@ export const updateBlockCommand = ({
   payload,
   document,
 }: CommandContext<UpdateBlockPayload>) => {
-  document.updateBlock(payload.blockId, payload.newBlock, {
+  const newBlock = document.updateBlock(payload.blockId, payload.newBlock, {
     childrenStrategy: payload.childrenStrategy,
   });
 
   return createEvent("block:update", {
     blockId: payload.blockId,
-    newBlock: payload.newBlock,
+    newBlock: structuredClone(newBlock),
     childrenStrategy: payload.childrenStrategy,
   });
 };

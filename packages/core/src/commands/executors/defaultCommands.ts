@@ -2,6 +2,9 @@ import { insertBlockCommand } from "./InsertBlockCommand";
 import { deleteBlockCommand } from "./DeleteBlockCommand";
 import { moveBlockCommand } from "./MoveBlockCommand";
 import { updateBlockCommand } from "./UpdateBlockCommand";
+import { insertTextCommand } from "./InsertTextCommand";
+import { deleteTextCommand } from "./DeleteTextCommand";
+import { toggleMarkCommand } from "./ToggleMarkCommand";
 import { swapDocumentCommand } from "./SwapDocumentCommand/SwapDocumentCommand";
 import type { Commands } from "./commandExecutors.models";
 
@@ -11,6 +14,9 @@ export const DEFAULT_COMMANDS = {
   moveBlock: moveBlockCommand,
   updateBlock: updateBlockCommand,
   swapDocument: swapDocumentCommand,
+  insertText: insertTextCommand,
+  deleteText: deleteTextCommand,
+  toggleMark: toggleMarkCommand,
 } as const satisfies Commands;
 
 export type DefaultCommands = typeof DEFAULT_COMMANDS;
