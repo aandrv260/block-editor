@@ -1,5 +1,9 @@
 export { createCommand } from "./createCommand";
 export type {
+  Transaction,
+  TransactionCallback,
+} from "./transaction/transaction.models";
+export type {
   CommandContext,
   CommandResult,
   Commands,

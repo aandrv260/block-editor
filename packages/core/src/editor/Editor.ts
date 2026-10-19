@@ -9,6 +9,7 @@ import type {
 } from "@/events/editor-event-bus/editorEvent.models";
 import { EventBus } from "@/events/event-bus/EventBus";
 import type { CommandArgsOf } from "@/commands/executors/commandExecutors.models";
+import type { TransactionCallback } from "@/commands/transaction/transaction.models";
 import {
   DEFAULT_COMMANDS,
   type DefaultCommands,
@@ -104,6 +105,12 @@ export class Editor<
     ...args: CommandArgsOf<TSchema["commands"][TType]>
   ): void {
     this.commandCenter.execute(type, ...args);
+  }
+
+  public transaction<TReturn>(
+    callback: TransactionCallback<TSchema["commands"], TReturn>,
+  ): void {
+    this.commandCenter.transaction(callback);
   }
 
   public getRoot(): DeepReadonly<DocumentRoot> {

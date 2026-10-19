@@ -1,5 +1,6 @@
 import type { DeepReadonly } from "@/common/types/object.types";
 import type { CommandArgsOf } from "@/commands/executors/commandExecutors.models";
+import type { TransactionCallback } from "@/commands/transaction/transaction.models";
 import type { Block, DocumentNode } from "@/blocks/models/block.models";
 import type { DocumentRoot } from "@/document/DocumentRoot/DocumentRoot";
 import type {
@@ -47,6 +48,28 @@ export interface IEditor<TSchema extends EditorSchema = DefaultEditorSchema> {
   execute<TType extends CommandType<TSchema>>(
     type: TType,
     ...args: CommandArgsOf<TSchema["commands"][TType]>
+  ): void;
+
+  /**
+   * Runs several commands as one change with one history record.
+   *
+   * It auto-commits when the callback returns and rolls everything back when the callback calls `tx.abort()` or throws.
+   *
+   * The callback must be synchronous, and other editor changes can't run until it finishes.
+   *
+   * Example:
+   * ```TS
+   * editor.transaction(tx => {
+   *   tx.execute("insertBlock", { targetId: "root", strategy: "append", newBlock });
+   *
+   *   if (shouldCancel) {
+   *     tx.abort();
+   *   }
+   * });
+   * ```
+   */
+  transaction<TReturn>(
+    callback: TransactionCallback<TSchema["commands"], TReturn>,
   ): void;
 
   /**

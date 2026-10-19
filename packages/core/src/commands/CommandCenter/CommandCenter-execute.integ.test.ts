@@ -1,5 +1,6 @@
 import {
   assertTreeIntegrity,
+  SAMPLE_BLOCK1,
   SAMPLE_BLOCK3,
   SAMPLE_BLOCK4,
   TOGGLE_LIST1_BLOCK,
@@ -67,11 +68,18 @@ const deleteFirstBlockAndSwapDocumentCommand = ({
   ];
 };
 
+const appendBlockAndFailCommand = ({ document }: CommandContext<void>) => {
+  document.appendChild(document.ROOT_ID, SAMPLE_BLOCK1);
+
+  throw new Error("The command failed after changing the document!");
+};
+
 const COMMANDS_WITH_CUSTOM_COMMAND = {
   ...DEFAULT_COMMANDS,
   deleteFirstBlock: deleteFirstBlockCommand,
   insertAfterFirstBlockAndDeleteIt: insertAfterFirstBlockAndDeleteItCommand,
   deleteFirstBlockAndSwapDocument: deleteFirstBlockAndSwapDocumentCommand,
+  appendBlockAndFail: appendBlockAndFailCommand,
 };
 
 const createCommandCenterWithCustomCommand = () => {
@@ -320,5 +328,30 @@ describe("CommandCenter execute", () => {
     expect(onEditorChange).not.toHaveBeenCalled();
     expect(history.getHistory()).toStrictEqual([INITIAL_HISTORY_DOC_JSON]);
     expect(document.toJSON()).toBe(INITIAL_HISTORY_DOC_JSON);
+  });
+
+  it("rolls back the changes of a command that fails after it already changed the document", () => {
+    // Arrange
+    const { commandCenter, document, eventBus, history, INITIAL_HISTORY_DOC_JSON } =
+      createCommandCenterWithCustomCommand();
+
+    const onEditorChange = vi.fn();
+
+    eventBus.on("editor:change", onEditorChange);
+
+    // Act and assert
+    expect(() => commandCenter.execute("appendBlockAndFail")).toThrow(
+      "The command failed after changing the document!",
+    );
+
+    expect(document.toJSON()).toBe(INITIAL_HISTORY_DOC_JSON);
+    expect(document.getBlock(SAMPLE_BLOCK1.id)).toBeNull();
+    expect(history.getHistory()).toStrictEqual([INITIAL_HISTORY_DOC_JSON]);
+
+    expect(onEditorChange).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ trigger: "rollback" }),
+    );
+
+    assertTreeIntegrity(document);
   });
 });
