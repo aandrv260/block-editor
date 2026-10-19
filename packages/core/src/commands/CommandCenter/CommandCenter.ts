@@ -6,14 +6,9 @@ import type {
   CommandEvent,
   EditorEventBus,
 } from "../../events/editor-event-bus/editorEvent.models";
-import type {
-  CommandArgsOf,
-  CommandContext,
-  CommandResult,
-  Commands,
-} from "../executors/commandExecutors.models";
-import { UnknownCommandError } from "../errors/unknown-command/UnknownCommandError";
-import { toCommandEvents } from "./CommandCenter.utils";
+import type { CommandArgsOf, Commands } from "../executors/commandExecutors.models";
+import { TransactionManager } from "../transaction/TransactionManager";
+import type { TransactionCallback } from "../transaction/transaction.models";
 
 interface CommandCenterConfig<TCommands extends Commands> {
   document: EditorDocument;
@@ -33,8 +28,8 @@ export class CommandCenter<TCommands extends Commands> {
   private document: EditorDocument;
   private readonly history: DocumentHistory;
   private readonly historyManager: HistoryManager;
+  private readonly transactionManager: TransactionManager<TCommands>;
   private readonly eventBus: EditorEventBus;
-  private readonly commands: TCommands;
 
   constructor({
     document,
@@ -45,8 +40,12 @@ export class CommandCenter<TCommands extends Commands> {
     this.document = document;
     this.eventBus = eventBus;
     this.history = history;
-    this.commands = commands;
     this.historyManager = new HistoryManager({ document, history, eventBus });
+    this.transactionManager = new TransactionManager({
+      document,
+      history,
+      commands,
+    });
   }
 
   /**
@@ -58,44 +57,56 @@ export class CommandCenter<TCommands extends Commands> {
     type: TType,
     ...args: CommandArgsOf<TCommands[TType]>
   ): void {
-    const command = this.getCommand(type);
-    const events = toCommandEvents(
-      command({ payload: args[0], document: this.document }),
-    );
-
-    this.recordHistory(events);
-    events.forEach(event => this.eventBus.emit(event.type, event));
-    this.emitChangeEvent(type);
+    this.runTransaction(type, transaction => transaction.execute(type, ...args));
   }
 
-  private getCommand(
-    type: string,
-  ): (context: CommandContext<unknown>) => CommandResult {
-    if (!Object.hasOwn(this.commands, type)) {
-      throw new UnknownCommandError(type);
+  public transaction<TReturn>(
+    callback: TransactionCallback<TCommands, TReturn>,
+  ): void {
+    this.runTransaction("transaction", callback);
+  }
+
+  private runTransaction(
+    trigger: string,
+    callback: TransactionCallback<TCommands, unknown>,
+  ): void {
+    const result = this.transactionManager.run(trigger, callback);
+
+    if (result.status !== "committed" && result.isDocumentRestored) {
+      this.emitChangeEvent("rollback");
     }
 
-    return this.commands[type] as (
-      context: CommandContext<unknown>,
-    ) => CommandResult;
+    if (result.status === "failed") {
+      throw result.error;
+    }
+
+    if (result.status === "committed" && result.events.length > 0) {
+      this.recordHistory(result.events);
+      result.events.forEach(event => this.eventBus.emit(event.type, event));
+      this.emitChangeEvent(trigger);
+    }
   }
 
   public undo(): void {
+    this.transactionManager.ensureNoOpenTransaction("undo");
     this.historyManager.undo();
     this.emitChangeEvent("undo");
   }
 
   public redo(): void {
+    this.transactionManager.ensureNoOpenTransaction("redo");
     this.historyManager.redo();
     this.emitChangeEvent("redo");
   }
 
   public jumpTo(index: number): void {
+    this.transactionManager.ensureNoOpenTransaction("jumpTo");
     this.historyManager.jumpTo(index);
     this.emitChangeEvent("jumpTo");
   }
 
   public setHistory(newHistory: readonly string[]): void {
+    this.transactionManager.ensureNoOpenTransaction("setHistory");
     this.historyManager.setHistory(newHistory);
     this.emitChangeEvent("setHistory");
   }
@@ -114,6 +125,7 @@ export class CommandCenter<TCommands extends Commands> {
     this.historyManager.record();
   }
 
+  // TODO: This should be done through hook/extension because it gets triggerred always when there is a change to the editor.
   private emitChangeEvent(trigger: string) {
     this.eventBus.emit(
       "editor:change",
