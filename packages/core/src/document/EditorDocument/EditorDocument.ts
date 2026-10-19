@@ -77,7 +77,7 @@ import {
 } from "../errors/update-block";
 import { traverse as traverseDocument } from "../utils/block-traversal.utils";
 import type { DeepReadonly } from "@/common/types/object.types";
-import { isContentBlock, normalizeContent } from "@/blocks/utils/content.utils";
+import { normalizeContent } from "@/blocks/utils/content.utils";
 
 /**
  * The EditorDocument class is the core class that represents the document tree in the editor.
@@ -149,19 +149,7 @@ export class EditorDocument implements DocumentTree {
       throw new BlockAlreadyExistsError(newBlock.id);
     }
 
-    const newBlockToAppend = blockPayloadToDocumentBlock(newBlock, parentId);
-
-    validateBlockStructure(newBlockToAppend);
-    this.validateChildrenIds(newBlockToAppend);
-
-    if (this.isDocumentRoot(parentId)) {
-      this.root.children = [...this.root.children, newBlockToAppend];
-      this.addBlockToMap(newBlockToAppend);
-      this.updateChildren(newBlockToAppend);
-      return;
-    }
-
-    const parentBlock = this.getBlock(parentId);
+    const parentBlock = this.getBlockOrRoot(parentId);
 
     if (!parentBlock) {
       throw new InvalidParentBlockError(parentId);
@@ -170,6 +158,11 @@ export class EditorDocument implements DocumentTree {
     if (!blockCanHaveChildren(parentBlock)) {
       throw new ParentBlockCannotHaveChildrenError(parentId);
     }
+
+    const newBlockToAppend = blockPayloadToDocumentBlock(newBlock, parentId);
+
+    validateBlockStructure(newBlockToAppend, parentBlock);
+    this.validateChildrenIds(newBlockToAppend);
 
     parentBlock.children = [...parentBlock.children, newBlockToAppend];
     this.addBlockToMap(newBlockToAppend);
@@ -261,7 +254,7 @@ export class EditorDocument implements DocumentTree {
       parentOfTarget.id,
     );
 
-    validateBlockStructure(newBlockToInsert);
+    validateBlockStructure(newBlockToInsert, parentOfTarget);
     this.validateChildrenIds(newBlockToInsert);
     this.updateChildren(newBlockToInsert);
 
@@ -368,11 +361,9 @@ export class EditorDocument implements DocumentTree {
       parentOfBlockToRemove.id,
     );
 
-    validateBlockStructure(newBlock);
+    validateBlockStructure(newBlock, parentOfBlockToRemove);
 
-    if (isContentBlock(newBlock)) {
-      newBlock.data.content = normalizeContent(newBlock.data.content);
-    }
+    newBlock.data.content = normalizeContent(newBlock.data.content);
 
     this.handleUpdate({
       childrenStrategy,
@@ -534,6 +525,14 @@ export class EditorDocument implements DocumentTree {
       throw new CannotMoveBlockToDescendantError();
     }
 
+    const newParent = strategy === "append" ? target : this.getBlockParent(targetId);
+
+    if (!newParent) {
+      throw new ParentOfTargetNotFoundError(targetId);
+    }
+
+    validateBlockStructure(blockToMove, newParent);
+
     this.remove(blockId);
 
     if (strategy === "append") {
@@ -556,7 +555,7 @@ export class EditorDocument implements DocumentTree {
     return this.blocksMap.size + 1;
   }
 
-  private getBlockParent(blockId: string): DocumentNode | null {
+  private getBlockParent(blockId: string): Block | DocumentRoot | null {
     const block = this.getBlock(blockId);
 
     if (!block) {

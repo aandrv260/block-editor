@@ -1,5 +1,7 @@
 import {
   SAMPLE_BLOCK1,
+  BULLET_LIST_ITEM1_BLOCK,
+  BULLET_LIST_ITEM2_BLOCK,
   SAMPLE_BLOCK2,
   SAMPLE_BLOCK3,
   SAMPLE_BLOCK4,
@@ -750,5 +752,54 @@ describe("appendChild()", () => {
     expect(document.getBlock(TOGGLE_LIST1_BLOCK.id)).toBeNull();
     expect(document.getBlock(TOGGLE_LIST2_BLOCK.id)).toBeNull();
     expect(document.getBlock("node1")).toBeNull();
+  });
+
+  it("appends a bullet list item inside another bullet list item", () => {
+    // Arrange
+    const document = new EditorDocument();
+
+    document.appendChild("root", BULLET_LIST_ITEM1_BLOCK);
+
+    // Act
+    document.appendChild(BULLET_LIST_ITEM1_BLOCK.id, BULLET_LIST_ITEM2_BLOCK);
+
+    // Assert
+    expect(document.getBlock(BULLET_LIST_ITEM1_BLOCK.id)?.children).toStrictEqual([
+      { ...BULLET_LIST_ITEM2_BLOCK, parentId: BULLET_LIST_ITEM1_BLOCK.id },
+    ]);
+
+    assertTreeIntegrity(document);
+  });
+
+  it("throws an error and leaves the document unchanged when the parent does not allow the block inside it", () => {
+    // Arrange
+    const document = new EditorDocument();
+
+    document.appendChild("root", BULLET_LIST_ITEM1_BLOCK);
+
+    const initialDocumentJSON = document.toJSON();
+
+    // Act and assert
+    assertEngineError(
+      () => document.appendChild(BULLET_LIST_ITEM1_BLOCK.id, SAMPLE_BLOCK2),
+      {
+        ExpectedErrorClass: InvalidBlockError,
+        expectedCode: "DOCUMENT:INVALID_BLOCK",
+        expectedMessage:
+          'Invalid block. type: Invalid type: Expected "bullet-list-item" but received "text"',
+        expectedContext: {
+          issues: [
+            {
+              path: "type",
+              message:
+                'Invalid type: Expected "bullet-list-item" but received "text"',
+            },
+          ],
+        },
+      },
+    );
+
+    expect(document.toJSON()).toBe(initialDocumentJSON);
+    expect(document.getBlock(SAMPLE_BLOCK2.id)).toBeNull();
   });
 });

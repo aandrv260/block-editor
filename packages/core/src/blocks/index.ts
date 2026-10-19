@@ -1,6 +1,6 @@
 // Blocks
 export * from "./models/block.models";
-export type { BulletListBlock } from "./models/bullet-list/bullet-list-block.schema";
+export type { BulletListItemBlock } from "./models/bullet-list-item/bullet-list-item-block.schema";
 export type { CalloutBlock } from "./models/callout/callout-block.schema";
 export type { QuoteBlock } from "./models/quote/quote-block.schema";
 export type { TextBlock } from "./models/text/text-block.schema";

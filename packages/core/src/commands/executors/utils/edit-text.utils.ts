@@ -1,8 +1,7 @@
-import type { ContentBlock } from "../../../blocks/models/block.models";
+import type { Block } from "../../../blocks/models/block.models";
 import type { TextRun } from "../../../blocks/models/content/content.schema";
-import { getPlainText, isContentBlock } from "../../../blocks/utils/content.utils";
+import { getPlainText } from "../../../blocks/utils/content.utils";
 import type { EditorDocument } from "../../../document/EditorDocument";
-import { BlockHasNoContentError } from "../../errors/edit-text/BlockHasNoContentError";
 import { BlockToEditNotFoundError } from "../../errors/edit-text/BlockToEditNotFoundError";
 import { InvalidTextRangeError } from "../../errors/edit-text/InvalidTextRangeError";
 
@@ -15,15 +14,11 @@ interface TextRange {
 export const getBlockToEdit = (
   document: EditorDocument,
   { blockId, from, to }: TextRange,
-): ContentBlock => {
+): Block => {
   const block = document.getBlock(blockId);
 
   if (!block) {
     throw new BlockToEditNotFoundError(blockId);
-  }
-
-  if (!isContentBlock(block)) {
-    throw new BlockHasNoContentError(blockId);
   }
 
   const textLength = getPlainText(block.data.content).length;
@@ -44,7 +39,7 @@ export const getBlockToEdit = (
 
 export const updateBlockContent = (
   document: EditorDocument,
-  block: ContentBlock,
+  block: Block,
   content: TextRun[],
 ): void => {
   const newBlock = { ...block };

@@ -1,11 +1,9 @@
 import { EditorDocument } from "../../document/EditorDocument";
 import {
   assertTreeIntegrity,
-  BULLET_LIST1_BLOCK,
   MARKED_TEXT_BLOCK,
 } from "../../document/utils/document-test.utils";
 import { assertEngineError } from "../../errors/test-utils/error-test.utils";
-import { BlockHasNoContentError } from "../errors/edit-text/BlockHasNoContentError";
 import { BlockToEditNotFoundError } from "../errors/edit-text/BlockToEditNotFoundError";
 import { InvalidTextRangeError } from "../errors/edit-text/InvalidTextRangeError";
 import { createCommandCenter } from "./CommandCenter-test.utils";
@@ -108,36 +106,6 @@ describe("CommandCenter delete text", () => {
         expectedMessage:
           "The block whose text you're trying to edit does not exist!",
         expectedContext: { blockId: "not_existing_block" },
-      },
-    );
-
-    expect(onEditorChange).not.toHaveBeenCalled();
-    expect(history.getHistory()).toStrictEqual([INITIAL_HISTORY_DOC_JSON]);
-    expect(document.toJSON()).toBe(INITIAL_HISTORY_DOC_JSON);
-  });
-
-  it("throws an error and changes nothing when the block has no text", () => {
-    // Arrange
-    const { document, history, eventBus, commandCenter, INITIAL_HISTORY_DOC_JSON } =
-      createCommandCenter([["root", BULLET_LIST1_BLOCK]]);
-
-    const onEditorChange = vi.fn();
-
-    eventBus.on("editor:change", onEditorChange);
-
-    // Act and assert
-    assertEngineError(
-      () =>
-        commandCenter.execute("deleteText", {
-          blockId: BULLET_LIST1_BLOCK.id,
-          from: 0,
-          to: 0,
-        }),
-      {
-        ExpectedErrorClass: BlockHasNoContentError,
-        expectedCode: "COMMAND:BLOCK_HAS_NO_CONTENT",
-        expectedMessage: "The block you're trying to edit has no text!",
-        expectedContext: { blockId: BULLET_LIST1_BLOCK.id },
       },
     );
 

@@ -1,7 +1,7 @@
 import type { DeepReadonly } from "@block-editor/core";
 import type { BlockType } from "@block-editor/core";
 import type {
-  BulletListBlock,
+  BulletListItemBlock,
   CalloutBlock,
   HeadingBlock,
   QuoteBlock,
@@ -15,7 +15,7 @@ export interface BlockRendererPropsMapping {
   "toggle-list": ToggleListBlock;
   quote: QuoteBlock;
   callout: CalloutBlock;
-  "bullet-list": BulletListBlock;
+  "bullet-list-item": BulletListItemBlock;
 }
 
 export type BlockRendererProps<T extends BlockType> = {

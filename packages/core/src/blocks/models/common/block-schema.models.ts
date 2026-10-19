@@ -7,6 +7,7 @@ export const BlockBaseSchema = v.strictObject({
   parentId: v.string(),
 });
 
-export const BlockChildrenSchema: v.GenericSchema<Block[]> = v.array(
-  v.lazy(() => BlockSchema),
-);
+export const BlockChildrenSchema: v.ArraySchema<
+  v.GenericSchema<Block>,
+  undefined
+> = v.array(v.lazy(() => BlockSchema));

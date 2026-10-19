@@ -1,5 +1,7 @@
 import {
   SAMPLE_BLOCK1,
+  BULLET_LIST_ITEM1_BLOCK,
+  BULLET_LIST_ITEM2_BLOCK,
   SAMPLE_BLOCK2,
   SAMPLE_BLOCK3,
   SAMPLE_BLOCK4,
@@ -17,7 +19,7 @@ import {
 import { EditorDocument } from "./EditorDocument";
 import type { MoveBlockStrategy } from "../models/document.models";
 import { assertEngineError } from "../../errors/test-utils/error-test.utils";
-import { TargetBlockNotFoundError } from "../errors/common";
+import { InvalidBlockError, TargetBlockNotFoundError } from "../errors/common";
 import {
   BlockToMoveNotFoundError,
   CannotMoveBlockToDescendantError,
@@ -790,4 +792,76 @@ describe("moveBlock()", () => {
     expect(block2?.parentId).toBe(document.ROOT_ID);
     expect(block3?.parentId).toBe(document.ROOT_ID);
   });
+
+  it("moves a bullet list item inside another bullet list item", () => {
+    // Arrange
+    const document = new EditorDocument();
+
+    document.appendChild("root", BULLET_LIST_ITEM1_BLOCK);
+    document.appendChild("root", BULLET_LIST_ITEM2_BLOCK);
+
+    // Act
+    document.moveBlock({
+      blockId: BULLET_LIST_ITEM2_BLOCK.id,
+      targetId: BULLET_LIST_ITEM1_BLOCK.id,
+      strategy: "append",
+    });
+
+    // Assert
+    expect(document.getRoot().children).toStrictEqual([
+      {
+        ...BULLET_LIST_ITEM1_BLOCK,
+        parentId: "root",
+        children: [
+          { ...BULLET_LIST_ITEM2_BLOCK, parentId: BULLET_LIST_ITEM1_BLOCK.id },
+        ],
+      },
+    ]);
+
+    assertTreeIntegrity(document);
+  });
+
+  it.each<[MoveBlockStrategy, string]>([
+    ["append", BULLET_LIST_ITEM1_BLOCK.id],
+    ["before", BULLET_LIST_ITEM2_BLOCK.id],
+    ["after", BULLET_LIST_ITEM2_BLOCK.id],
+  ])(
+    "throws an error and keeps the block where it was when the new parent does not allow it, using the %s strategy",
+    (strategy, targetId) => {
+      // Arrange
+      const document = new EditorDocument();
+
+      document.appendChild("root", BULLET_LIST_ITEM1_BLOCK);
+      document.appendChild(BULLET_LIST_ITEM1_BLOCK.id, BULLET_LIST_ITEM2_BLOCK);
+      document.appendChild("root", SAMPLE_BLOCK2);
+
+      const initialDocumentJSON = document.toJSON();
+
+      // Act and assert
+      assertEngineError(
+        () => document.moveBlock({ blockId: SAMPLE_BLOCK2.id, targetId, strategy }),
+        {
+          ExpectedErrorClass: InvalidBlockError,
+          expectedCode: "DOCUMENT:INVALID_BLOCK",
+          expectedMessage:
+            'Invalid block. type: Invalid type: Expected "bullet-list-item" but received "text"',
+          expectedContext: {
+            issues: [
+              {
+                path: "type",
+                message:
+                  'Invalid type: Expected "bullet-list-item" but received "text"',
+              },
+            ],
+          },
+        },
+      );
+
+      expect(document.toJSON()).toBe(initialDocumentJSON);
+      expect(document.getBlock(SAMPLE_BLOCK2.id)).toBe(
+        document.getRoot().children[1],
+      );
+      assertTreeIntegrity(document);
+    },
+  );
 });

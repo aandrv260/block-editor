@@ -1,5 +1,4 @@
 import type { DeepReadonly } from "@/common/types/object.types";
-import type { Block, ContentBlock } from "../models/block.models";
 import type { TextRun } from "../models/content/content.schema";
 import type { Mark } from "../models/content/marks/mark.models";
 import type { MarkType } from "../models/content/marks/mark-type.models";
@@ -166,8 +165,4 @@ export const deleteTextInRange = (
   );
 
   return joinContent(contentBeforeRange, contentAfterRange);
-};
-
-export const isContentBlock = (block: Block): block is ContentBlock => {
-  return "content" in block.data;
 };
