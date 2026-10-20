@@ -8,22 +8,26 @@ import {
 import { assertEngineError } from "@/errors/test-utils/error-test.utils";
 import { UnknownCommandError } from "@/commands/errors/unknown-command/UnknownCommandError";
 import { InvalidBlockError } from "@/document/errors/common";
+import { defineExtension } from "@/extensions/defineExtension";
 // Simulates a caller without types, such as plain JavaScript, to reach the runtime guard.
 const executeWithoutTypes = (editor: Editor, type: string) =>
   (editor as unknown as { execute: (type: string) => void }).execute(type);
 
-const createEditorWithCustomCommand = () =>
-  new Editor({
-    commands: ({ createCommand }) => ({
-      deleteFirstBlock: createCommand(({ document, createEvent }) => {
-        const firstBlockId = document.getRoot().children[0].id;
+const DeleteFirstBlockExtension = defineExtension({
+  name: "DeleteFirstBlockExtension",
+  commands: ({ createCommand }) => ({
+    deleteFirstBlock: createCommand(({ document, createEvent }) => {
+      const firstBlockId = document.getRoot().children[0].id;
 
-        document.remove(firstBlockId);
+      document.remove(firstBlockId);
 
-        return createEvent("block:delete", { blockId: firstBlockId });
-      }),
+      return createEvent("block:delete", { blockId: firstBlockId });
     }),
-  });
+  }),
+});
+
+const createEditorWithCustomCommand = () =>
+  new Editor({ extensions: [DeleteFirstBlockExtension] });
 
 describe("Editor execute", () => {
   it("executes a built-in command, records the history and emits its events", () => {

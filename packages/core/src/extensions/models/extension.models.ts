@@ -1,122 +1,264 @@
 import type {
   AnyCommands,
-  CommandArgsOf,
+  CommandOf,
+  ExecutableCommand,
 } from "@/commands/executors/commandExecutors.models";
-import type { DefaultCommands } from "@/commands/executors/defaultCommands";
 import type { Transaction } from "@/commands/transaction/transaction.models";
 import type { ReadonlyEditorDocument } from "@/document/models/document.models";
 import type {
+  CommandBuilder,
+  EditorCommands,
+  NoCustomCommands,
+  WithoutBuiltInCommandNames,
+} from "@/editor/editor-commands.models";
+import type {
   AnyCustomEvents,
   CommandEvent,
-  EditorEventsMap,
+  EditorEventHandler,
+  EditorEventType,
+  EventsDefinition,
+  NoCustomEvents,
 } from "@/events/editor-event-bus/editorEvent.models";
 
-export type CommandOf<TCommands extends AnyCommands> = {
-  [TType in keyof TCommands & string]: {
-    type: TType;
-    payload: CommandArgsOf<TCommands[TType]>[0];
-  };
-}[keyof TCommands & string];
+export type ExtensionCommand<TCommands = NoCustomCommands> = CommandOf<
+  EditorCommands<TCommands>
+>;
 
-export type ExtensionCommand = CommandOf<DefaultCommands>;
+export type ExtensionExecute<TCommands = NoCustomCommands> = Transaction<
+  EditorCommands<TCommands>
+>["execute"];
 
-export type ExtensionExecute = Transaction<DefaultCommands>["execute"];
+export type ExtensionSubscribe<TEvents = NoCustomEvents> = <
+  TType extends EditorEventType<TEvents>,
+>(
+  event: TType,
+  handler: EditorEventHandler<TType, TEvents>,
+) => VoidFunction;
 
-export type ExtensionLifecycleContext = {
+export type EditorInitContext<TEvents = NoCustomEvents> = {
+  document: ReadonlyEditorDocument;
+  subscribe: ExtensionSubscribe<TEvents>;
+  onCleanup: (cleanup: VoidFunction) => void;
+};
+
+export type EditorDestroyContext = {
   document: ReadonlyEditorDocument;
 };
 
-export type BeforeCommandContext = {
-  command: ExtensionCommand;
+export type ExtensionCommandSource = {
+  type: "extension";
+  name: string;
+};
+
+export type CommandSource = { type: "editor" } | ExtensionCommandSource;
+
+export type CommittedCommand<TCommands = NoCustomCommands> =
+  ExtensionCommand<TCommands> & { source: CommandSource };
+
+export type ExecutedCommand = ExecutableCommand & { source: CommandSource };
+
+export type BeforeCommandContext<TCommands = NoCustomCommands> = {
+  command: ExtensionCommand<TCommands>;
+  source: CommandSource;
   document: ReadonlyEditorDocument;
   abort: () => never;
 };
 
-export type AfterCommandContext = {
-  command: ExtensionCommand;
+export type AfterCommandContext<TCommands = NoCustomCommands> = {
+  command: ExtensionCommand<TCommands>;
+  source: CommandSource;
   events: readonly CommandEvent<AnyCustomEvents>[];
   document: ReadonlyEditorDocument;
-  execute: ExtensionExecute;
+  execute: ExtensionExecute<TCommands>;
   abort: () => never;
 };
 
-export type BeforeCommitContext = {
-  commands: readonly ExtensionCommand[];
+export type BeforeCommitContext<TCommands = NoCustomCommands> = {
+  commands: readonly CommittedCommand<TCommands>[];
   events: readonly CommandEvent<AnyCustomEvents>[];
   document: ReadonlyEditorDocument;
-  execute: ExtensionExecute;
+  execute: ExtensionExecute<TCommands>;
   abort: () => never;
 };
 
-export type ExtensionListeners = {
-  [TType in keyof EditorEventsMap]?: (event: EditorEventsMap[TType]) => void;
-};
-
-export type Extension = {
+export type Extension<TEvents = NoCustomEvents, TCommands = NoCustomCommands> = {
   /**
-   * A unique name for the extension. Two extensions with the same name throw a `DuplicateExtensionError`.
-   * An extension that defines no hooks throws an `ExtensionWithoutHooksError`.
+   * A unique name for the extension.
    */
   name: string;
 
   /**
+   * Define custom events that the extension's commands can return and listeners can subscribe to.
+   */
+  events?: EventsDefinition<TEvents>;
+
+  /**
+   * Add custom commands to the editor.
+   *
+   * Create each command with `createCommand`, so its payload and the events it returns are typed.
+   */
+  commands?: (
+    builder: CommandBuilder<TEvents>,
+  ) => WithoutBuiltInCommandNames<TCommands>;
+
+  /**
    * Runs before every command, in the order of the editor's extensions.
+   *
    * Return nothing to let the command through, or return a whole new command to replace it.
-   * Call `abort` to roll back the whole transaction without an error.
+   * A replaced command keeps the `source` of the original one.
+   *
+   * `source` tells whether app code ran the command or an extension ran it as a follow-up command.
    *
    * It runs inside the transaction, so it must be synchronous.
-   * Returning a promise throws an `AsyncExtensionHookError` and rolls back the whole transaction.
    */
-  beforeCommand?: (context: BeforeCommandContext) => ExtensionCommand | void;
+  onBeforeCommand?: (
+    context: BeforeCommandContext<TCommands>,
+  ) => ExtensionCommand<TCommands> | void;
 
   /**
    * Runs after every command, inside the same transaction, with the events the command returned.
-   * Commands run with `execute` belong to the same transaction and are undone in the same step.
+   *
+   * Commands run with `context.execute` belong to the same transaction and are undone in the same step.
+   *
+   * `source` tells whether app code ran the command or an extension ran it as a follow-up command.
    *
    * It runs inside the transaction, so it must be synchronous.
-   * Returning a promise throws an `AsyncExtensionHookError` and rolls back the whole transaction.
    */
-  afterCommand?: (context: AfterCommandContext) => void;
+  onAfterCommand?: (context: AfterCommandContext<TCommands>) => void;
 
   /**
    * Runs once per transaction, right before it commits, with every command that ran and every event the transaction collected.
-   * The commands are in the order they ran, after any replacement by `beforeCommand`, and include follow-up commands.
-   * Commands run with `execute` belong to the same transaction and are undone in the same step.
-   * Each extension gets its own copy of the commands and events, which includes the follow-up commands of the extensions before it.
    *
-   * It runs inside the transaction, so it must be synchronous.
-   * Returning a promise throws an `AsyncExtensionHookError` and rolls back the whole transaction.
+   * The commands are in the order they ran, after any replacement by `onBeforeCommand`, and include follow-up commands.
+   * Each command has a `source` that tells whether app code ran it or which extension ran it as a follow-up command.
+   *
+   * Commands run with `context.execute` belong to the same transaction and are undone in the same step.
    */
-  beforeCommit?: (context: BeforeCommitContext) => void;
+  onBeforeCommit?: (context: BeforeCommitContext<TCommands>) => void;
 
   /**
-   * Runs once when the editor is created, after the extension listeners are added.
+   * Runs once when the editor initializes its extensions.
+   * Use `subscribe` to listen to built-in events and the extension's own events.
+   *
+   * The listeners run after a change is committed, like listeners added with `editor.subscribe`.
+   * They are removed when the editor is cleaned up, and calling `subscribe` after that does nothing.
+   *
+   * Use `onCleanup` to release what this hook creates, such as timers.
+   * The cleanups run in registration order on `editor.cleanup()`, after every `onEditorDestroy` and before the listeners are removed.
+   * A cleanup registered after the editor is cleaned up runs right away.
+   *
+   * It can be async, but the editor does not wait for it or catch its errors.
+   *
+   * Example:
+   * ```TS
+   * const AutosaveExtension = (options: { delay: number }) =>
+   *   defineExtension({
+   *     name: "AutosaveExtension",
+   *     onEditorInit: ({ subscribe, onCleanup }) => {
+   *       let timer: ReturnType<typeof setTimeout> | undefined;
+   *
+   *       subscribe("editor:change", event => {
+   *         clearTimeout(timer);
+   *         timer = setTimeout(() => save(event.documentJSON), options.delay);
+   *       });
+   *
+   *       onCleanup(() => clearTimeout(timer));
+   *     },
+   *   });
+   * ```
+   */
+  onEditorInit?: (context: EditorInitContext<TEvents>) => void;
+
+  /**
+   * Runs once when the editor is cleaned up, before the listeners added with `subscribe` are removed.
+   *
    * It can be async, but the editor does not wait for it or catch its errors.
    */
-  onCreate?: (context: ExtensionLifecycleContext) => void;
-
-  /**
-   * Runs once when the editor is cleaned up, before the extension listeners are removed.
-   * It can be async, but the editor does not wait for it or catch its errors.
-   */
-  onDestroy?: (context: ExtensionLifecycleContext) => void;
-
-  /**
-   * Event listeners owned by the extension. They are added when the editor is created and removed when it is cleaned up.
-   * They run after a change is committed, like listeners added with `editor.subscribe`, so they can be async.
-   */
-  on?: ExtensionListeners;
+  onEditorDestroy?: (context: EditorDestroyContext) => void;
 };
 
-export type TransactionHook = "beforeCommand" | "afterCommand" | "beforeCommit";
-
-export type ExecutableCommand = {
-  type: string;
-  payload: unknown;
+export type AnyExtension = {
+  name: string;
+  events?: EventsDefinition<unknown>;
+  commands?: (builder: {
+    createCommand: <TCommand>(command: TCommand) => TCommand;
+  }) => AnyCommands;
+  onBeforeCommand?(context: {
+    command: ExtensionCommand;
+    source: CommandSource;
+    document: ReadonlyEditorDocument;
+    abort: () => never;
+  }): ExecutableCommand | void;
+  onAfterCommand?(context: {
+    command: ExtensionCommand;
+    source: CommandSource;
+    events: readonly CommandEvent<AnyCustomEvents>[];
+    document: ReadonlyEditorDocument;
+    execute: ExtensionExecute;
+    abort: () => never;
+  }): void;
+  onBeforeCommit?(context: {
+    commands: readonly CommittedCommand[];
+    events: readonly CommandEvent<AnyCustomEvents>[];
+    document: ReadonlyEditorDocument;
+    execute: ExtensionExecute;
+    abort: () => never;
+  }): void;
+  onEditorInit?(context: EditorInitContext): void;
+  onEditorDestroy?(context: EditorDestroyContext): void;
+  call?: never;
 };
+
+type UnionToIntersection<TUnion> = (
+  TUnion extends unknown ? (value: TUnion) => void : never
+) extends (value: infer TIntersection) => void
+  ? TIntersection
+  : never;
+
+type ExtensionTypes<TExtension> =
+  TExtension extends Extension<infer TEvents, infer TCommands>
+    ? { events: TEvents; commands: TCommands }
+    : { events: NoCustomEvents; commands: NoCustomCommands };
+
+type EventsOfExtension<TExtension> = TExtension extends unknown
+  ? unknown extends ExtensionTypes<TExtension>["events"]
+    ? NoCustomEvents
+    : ExtensionTypes<TExtension>["events"]
+  : never;
+
+type CommandsOfExtension<TExtension> = TExtension extends unknown
+  ? unknown extends ExtensionTypes<TExtension>["commands"]
+    ? NoCustomCommands
+    : ExtensionTypes<TExtension>["commands"]
+  : never;
+
+export type ExtensionsEvents<TExtensions extends readonly AnyExtension[]> = [
+  TExtensions[number],
+] extends [never]
+  ? NoCustomEvents
+  : UnionToIntersection<EventsOfExtension<TExtensions[number]>>;
+
+export type ExtensionsCommands<TExtensions extends readonly AnyExtension[]> = [
+  TExtensions[number],
+] extends [never]
+  ? NoCustomCommands
+  : UnionToIntersection<CommandsOfExtension<TExtensions[number]>>;
+
+type WithoutUnknownFields<TExtension> = TExtension & {
+  [TField in Exclude<keyof TExtension, keyof AnyExtension>]: never;
+};
+
+export type ValidExtensions<TExtensions extends readonly AnyExtension[]> = {
+  [TIndex in keyof TExtensions]: WithoutUnknownFields<TExtensions[TIndex]>;
+};
+
+export type TransactionHook =
+  | "onBeforeCommand"
+  | "onAfterCommand"
+  | "onBeforeCommit";
 
 export type ExtensionHookActions = {
   document: ReadonlyEditorDocument;
-  execute: ExtensionExecute;
+  createExecute: (source: ExtensionCommandSource) => ExtensionExecute;
   abort: () => never;
 };

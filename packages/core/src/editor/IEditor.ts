@@ -146,7 +146,7 @@ export interface IEditor<
 
   /**
    * Cleans up event listeners and other side effects.
-   * It calls the `onDestroy` hook of every extension and removes the extension listeners.
+   * It calls the `onEditorDestroy` hook of every extension and then removes the listeners that extensions added with `subscribe`.
    *
    * For instance, in React, you will want to use this method in the `useEffect` cleanup function.
    */

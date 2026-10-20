@@ -4,13 +4,10 @@ import { DEFAULT_HISTORY_GROUP_DELAY } from "@/history/HistoryManager/HistoryMan
 import type { DocumentRoot } from "@/document/DocumentRoot/DocumentRoot";
 import { EditorDocument } from "@/document/EditorDocument";
 import type {
-  AnyCustomEvents,
   EditorEventBus,
   EditorEventHandler,
   EditorEventsMap,
   EditorEventType,
-  EventsDefinition,
-  NoCustomEvents,
 } from "@/events/editor-event-bus/editorEvent.models";
 import { EventBus } from "@/events/event-bus/EventBus";
 import type { CommandArgsOf } from "@/commands/executors/commandExecutors.models";
@@ -19,14 +16,7 @@ import {
   DEFAULT_COMMANDS,
   type DefaultCommands,
 } from "@/commands/executors/defaultCommands";
-import type {
-  CommandBuilder,
-  CommandType,
-  CustomCommands,
-  EditorCommands,
-  NoCustomCommands,
-  WithoutBuiltInCommandNames,
-} from "./editor-commands.models";
+import type { CommandType, EditorCommands } from "./editor-commands.models";
 import type { IEditor } from "./IEditor";
 import type { Block, DocumentNode } from "@/blocks/models/block.models";
 import type { ConstructableDocumentElement } from "@/document/models/document.models";
@@ -34,9 +24,14 @@ import type { SwapDocumentPayload } from "@/commands/executors/SwapDocumentComma
 import type { DeepReadonly } from "@/common/types/object.types";
 import { EventStream } from "@/events/EventStream/EventStream";
 import type { IEventStream } from "@/events/EventStream/IEventStream";
-import type { Extension } from "@/extensions/models/extension.models";
+import type {
+  AnyExtension,
+  ExtensionsCommands,
+  ExtensionsEvents,
+  ValidExtensions,
+} from "@/extensions/models/extension.models";
 
-export interface EditorConfig<TCustomEvents, TCustomCommands> {
+export interface EditorConfig<TExtensions extends readonly AnyExtension[]> {
   /**
    * The initial document to use for the editor. The editor can construct a document out of a `JSON` string, a `DocumentRoot` or `EditorDocument`.
    *
@@ -59,44 +54,40 @@ export interface EditorConfig<TCustomEvents, TCustomCommands> {
   historyGroupDelay?: number;
 
   /**
-   * Define custom events that custom commands can return and listeners can subscribe to.
+   * Extensions add custom commands and events, and hook into every command and transaction of the editor in array order.
+   * The editor's commands and events are typed from its extensions.
+   *
+   * Two extensions with the same name throw a `DuplicateExtensionError`, and two commands with the same name throw a `DuplicateCommandError`.
+   *
+   * An extension without hooks and commands throws a `NoopExtensionError`.
+   * The `onBeforeCommand`, `onAfterCommand` and `onBeforeCommit` hooks must be synchronous.
    */
-  events?: EventsDefinition<TCustomEvents>;
-
-  /**
-   * Add custom commands to the editor.
-   * Create each command with `createCommand`, so its payload and the events it returns are typed.
-   */
-  commands?: (
-    builder: CommandBuilder<TCustomEvents>,
-  ) => WithoutBuiltInCommandNames<TCustomCommands>;
-
-  /**
-   * Extensions hook into every command and transaction of the editor and run in array order.
-   * Two extensions with the same name throw a `DuplicateExtensionError`, and an extension without hooks throws an `ExtensionWithoutHooksError`.
-   * The `beforeCommand`, `afterCommand` and `beforeCommit` hooks must be synchronous.
-   */
-  extensions?: readonly Extension[];
+  extensions?: TExtensions & ValidExtensions<TExtensions>;
 }
 
 // TODO: Move docs to IEditor interface. Also, define a more clear contract and use cases for the cleanup method or remove it.
 export class Editor<
-  TCustomEvents extends AnyCustomEvents = NoCustomEvents,
-  TCustomCommands extends CustomCommands<TCustomEvents> = NoCustomCommands,
-> implements IEditor<TCustomEvents, TCustomCommands> {
+  const TExtensions extends readonly AnyExtension[] = readonly AnyExtension[],
+> implements IEditor<
+  ExtensionsEvents<TExtensions>,
+  ExtensionsCommands<TExtensions>
+> {
   private document: EditorDocument;
   private readonly history: DocumentHistory;
-  private readonly eventBus: EventBus<EditorEventsMap<TCustomEvents>>;
-  private readonly commandCenter: CommandCenter<EditorCommands<TCustomCommands>>;
+  private readonly eventBus: EventBus<
+    EditorEventsMap<ExtensionsEvents<TExtensions>>
+  >;
+  private readonly commandCenter: CommandCenter<
+    EditorCommands<ExtensionsCommands<TExtensions>>
+  >;
   public readonly ROOT_ID: string;
 
   constructor({
     initialDocument,
     historyLimit,
     historyGroupDelay = DEFAULT_HISTORY_GROUP_DELAY,
-    commands,
-    extensions = [],
-  }: EditorConfig<TCustomEvents, TCustomCommands> = {}) {
+    extensions,
+  }: EditorConfig<TExtensions> = {}) {
     this.document = EditorDocument.from(initialDocument);
     this.ROOT_ID = this.document.ROOT_ID;
     this.eventBus = new EventBus();
@@ -106,15 +97,12 @@ export class Editor<
       limit: historyLimit,
     });
 
-    this.commandCenter = new CommandCenter<EditorCommands<TCustomCommands>>({
+    this.commandCenter = new CommandCenter({
       eventBus: this.eventBus as EditorEventBus,
       history: this.history,
       document: this.document,
-      commands: {
-        ...DEFAULT_COMMANDS,
-        ...commands?.({ createCommand: command => command }),
-      },
-      extensions,
+      commands: DEFAULT_COMMANDS,
+      extensions: extensions ?? [],
       historyGroupDelay,
     });
   }
@@ -139,15 +127,18 @@ export class Editor<
     return this.history.getCurrentPosition();
   }
 
-  public execute<TType extends CommandType<TCustomCommands>>(
+  public execute<TType extends CommandType<ExtensionsCommands<TExtensions>>>(
     type: TType,
-    ...args: CommandArgsOf<EditorCommands<TCustomCommands>[TType]>
+    ...args: CommandArgsOf<EditorCommands<ExtensionsCommands<TExtensions>>[TType]>
   ): void {
     this.commandCenter.execute(type, ...args);
   }
 
   public transaction<TReturn>(
-    callback: TransactionCallback<EditorCommands<TCustomCommands>, TReturn>,
+    callback: TransactionCallback<
+      EditorCommands<ExtensionsCommands<TExtensions>>,
+      TReturn
+    >,
   ): void {
     this.commandCenter.transaction(callback);
   }
@@ -198,23 +189,23 @@ export class Editor<
     this.eventBus.cleanup();
   }
 
-  public on<TEvent extends EditorEventType<TCustomEvents>>(
+  public on<TEvent extends EditorEventType<ExtensionsEvents<TExtensions>>>(
     event: TEvent,
-  ): IEventStream<EditorEventsMap<TCustomEvents>[TEvent]> {
+  ): IEventStream<EditorEventsMap<ExtensionsEvents<TExtensions>>[TEvent]> {
     return new EventStream(handler => this.eventBus.on(event, handler));
   }
 
-  public subscribe<T extends EditorEventType<TCustomEvents>>(
+  public subscribe<T extends EditorEventType<ExtensionsEvents<TExtensions>>>(
     event: T,
-    handler: EditorEventHandler<T, TCustomEvents>,
+    handler: EditorEventHandler<T, ExtensionsEvents<TExtensions>>,
   ): VoidFunction {
     const unsubscribe = this.eventBus.on(event, handler);
     return unsubscribe;
   }
 
-  public unsubscribe<T extends EditorEventType<TCustomEvents>>(
+  public unsubscribe<T extends EditorEventType<ExtensionsEvents<TExtensions>>>(
     event: T,
-    handler: EditorEventHandler<T, TCustomEvents>,
+    handler: EditorEventHandler<T, ExtensionsEvents<TExtensions>>,
   ): void {
     this.eventBus.off(event, handler);
   }

@@ -3,6 +3,7 @@ import type { CommandBuilder } from "./editor-commands.models";
 import { SAMPLE_BLOCK1, SAMPLE_BLOCK2 } from "@/document/utils/document-test.utils";
 import { createTestDocument } from "@/commands/executors/utils/commandExecutors-test.utils";
 import type { NoCustomEvents } from "@/events/editor-event-bus/editorEvent.models";
+import { defineExtension } from "@/extensions/defineExtension";
 
 const createDeleteCommands = ({
   createCommand,
@@ -62,9 +63,10 @@ describe("createEditor", () => {
     expect(editor.getHistory()).toStrictEqual([editor.getDocumentJSON()]);
   });
 
-  it("executes the custom commands next to the built-in ones", () => {
+  it("executes the custom commands of an extension next to the built-in ones", () => {
     // Arrange
-    const editor = createEditor({
+    const DeleteBlocksExtension = defineExtension({
+      name: "DeleteBlocksExtension",
       commands: ({ createCommand }) => ({
         deleteFirstBlock: createCommand(({ document, createEvent }) => {
           const firstBlockId = document.getRoot().children[0].id;
@@ -84,6 +86,7 @@ describe("createEditor", () => {
       }),
     });
 
+    const editor = createEditor({ extensions: [DeleteBlocksExtension] });
     const onDelete = vi.fn();
 
     editor.subscribe("block:delete", onDelete);
@@ -119,9 +122,14 @@ describe("createEditor", () => {
     expect(editor.getHistory()).toHaveLength(5);
   });
 
-  it("executes the custom commands of a builder declared apart from the editor", () => {
+  it("executes the custom commands of a builder declared apart from its extension", () => {
     // Arrange
-    const editor = createEditor({ commands: createDeleteCommands });
+    const DeleteCommandsExtension = defineExtension({
+      name: "DeleteCommandsExtension",
+      commands: createDeleteCommands,
+    });
+
+    const editor = createEditor({ extensions: [DeleteCommandsExtension] });
 
     editor.execute("insertBlock", {
       targetId: editor.ROOT_ID,

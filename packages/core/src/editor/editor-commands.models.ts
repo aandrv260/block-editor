@@ -25,5 +25,5 @@ export type CommandBuilder<TCustomEvents> = {
 };
 
 export type WithoutBuiltInCommandNames<TCustomCommands> = TCustomCommands & {
-  [TType in keyof DefaultCommands]?: never;
+  [TType in keyof TCustomCommands & keyof DefaultCommands]: never;
 };
