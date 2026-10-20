@@ -1,36 +1,42 @@
-import { getObjectKeys } from "@/common/object.utils";
+import type { AnyCommands } from "@/commands/executors/commandExecutors.models";
+import { getObjectEntries, getObjectKeys } from "@/common/object.utils";
 import { AsyncExtensionHookError } from "../errors/AsyncExtensionHookError";
+import { DuplicateCommandError } from "../errors/DuplicateCommandError";
 import { DuplicateExtensionError } from "../errors/DuplicateExtensionError";
-import { ExtensionWithoutHooksError } from "../errors/ExtensionWithoutHooksError";
-import type { Extension, TransactionHook } from "../models/extension.models";
+import { NoopExtensionError } from "../errors/NoopExtensionError";
+import type {
+  AnyExtension,
+  Extension,
+  TransactionHook,
+} from "../models/extension.models";
 
-type ExtensionFeature = Exclude<keyof Extension, "name">;
+type RuntimeExtensionField = Exclude<keyof Extension, "name" | "events">;
 
-const EXTENSION_HOOKS = {
-  beforeCommand: true,
-  afterCommand: true,
-  beforeCommit: true,
-  onCreate: true,
-  onDestroy: true,
-  on: true,
-} as const satisfies Record<ExtensionFeature, true>;
+const RUNTIME_EXTENSION_FIELDS = {
+  commands: true,
+  onBeforeCommand: true,
+  onAfterCommand: true,
+  onBeforeCommit: true,
+  onEditorInit: true,
+  onEditorDestroy: true,
+} as const satisfies Record<RuntimeExtensionField, true>;
 
-export const ensureExtensionsHaveHooks = (
-  extensions: readonly Extension[],
+export const ensureNoNoopExtensions = (
+  extensions: readonly AnyExtension[],
 ): void => {
   extensions.forEach(extension => {
-    const hasHook = getObjectKeys(EXTENSION_HOOKS).some(
-      hook => extension[hook] !== undefined,
+    const doesSomething = getObjectKeys(RUNTIME_EXTENSION_FIELDS).some(
+      field => extension[field] !== undefined,
     );
 
-    if (!hasHook) {
-      throw new ExtensionWithoutHooksError(extension.name);
+    if (!doesSomething) {
+      throw new NoopExtensionError(extension.name);
     }
   });
 };
 
 export const ensureUniqueExtensionNames = (
-  extensions: readonly Extension[],
+  extensions: readonly AnyExtension[],
 ): void => {
   const names = new Set<string>();
 
@@ -51,4 +57,29 @@ export const ensureHookIsSynchronous = (
   if (result instanceof Promise) {
     throw new AsyncExtensionHookError(extensionName, hook);
   }
+};
+
+export const mergeExtensionCommands = (
+  builtInCommands: AnyCommands,
+  extensions: readonly AnyExtension[],
+): AnyCommands => {
+  const commands: AnyCommands = { ...builtInCommands };
+
+  extensions.forEach(({ name, commands: createCommands }) => {
+    if (!createCommands) {
+      return;
+    }
+
+    const extensionCommands = createCommands({ createCommand: command => command });
+
+    getObjectEntries(extensionCommands).forEach(([type, command]) => {
+      if (Object.hasOwn(commands, type)) {
+        throw new DuplicateCommandError(type, name);
+      }
+
+      commands[type] = command;
+    });
+  });
+
+  return commands;
 };

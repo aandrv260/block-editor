@@ -25,7 +25,7 @@ const createEditorWithExtensions = (extensions: Extension[]) => {
 
 const GreetNewHeadingsExtension = defineExtension({
   name: "GreetNewHeadingsExtension",
-  afterCommand: ({ command, execute }) => {
+  onAfterCommand: ({ command, execute }) => {
     if (
       command.type === "insertBlock" &&
       command.payload.newBlock.type === "heading"
@@ -40,18 +40,18 @@ const GreetNewHeadingsExtension = defineExtension({
 });
 
 const ASYNC_HOOK_EXTENSIONS = {
-  beforeCommand: {
+  onBeforeCommand: {
     name: "AsyncBeforeCommandExtension",
-    beforeCommand: (() =>
-      Promise.resolve()) as unknown as Extension["beforeCommand"],
+    onBeforeCommand: (() =>
+      Promise.resolve()) as unknown as Extension["onBeforeCommand"],
   },
-  afterCommand: {
+  onAfterCommand: {
     name: "AsyncAfterCommandExtension",
-    afterCommand: async () => {},
+    onAfterCommand: async () => {},
   },
-  beforeCommit: {
+  onBeforeCommit: {
     name: "AsyncBeforeCommitExtension",
-    beforeCommit: async () => {},
+    onBeforeCommit: async () => {},
   },
 } satisfies Record<TransactionHook, Extension>;
 
@@ -61,7 +61,7 @@ describe("Editor extension hooks", () => {
     const { editor } = createEditorWithExtensions([
       {
         name: "ReplaceBlockExtension",
-        beforeCommand: ({ command }) => {
+        onBeforeCommand: ({ command }) => {
           if (command.type === "insertBlock") {
             return {
               type: "insertBlock",
@@ -92,7 +92,7 @@ describe("Editor extension hooks", () => {
     const { editor, INITIAL_DOCUMENT_JSON } = createEditorWithExtensions([
       {
         name: "PreventDeletesExtension",
-        beforeCommand: ({ command, abort }) => {
+        onBeforeCommand: ({ command, abort }) => {
           if (command.type === "deleteBlock") {
             abort();
           }
@@ -180,7 +180,7 @@ describe("Editor extension hooks", () => {
     const { editor } = createEditorWithExtensions([
       {
         name: "RecorderExtension",
-        beforeCommand: ({ command }) => {
+        onBeforeCommand: ({ command }) => {
           seenCommands.push(command.type);
         },
       },
@@ -219,10 +219,10 @@ describe("Editor extension hooks", () => {
 
   it("runs the before commit hooks once per transaction with every event of the transaction", () => {
     // Arrange
-    const beforeCommit = vi.fn();
+    const onBeforeCommit = vi.fn();
     const { editor } = createEditorWithExtensions([
       GreetNewHeadingsExtension,
-      { name: "CommitWatcherExtension", beforeCommit },
+      { name: "CommitWatcherExtension", onBeforeCommit },
     ]);
 
     // Act
@@ -241,7 +241,7 @@ describe("Editor extension hooks", () => {
     });
 
     // Assert
-    expect(beforeCommit).toHaveBeenCalledExactlyOnceWith(
+    expect(onBeforeCommit).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({
         events: [
           {
@@ -269,11 +269,11 @@ describe("Editor extension hooks", () => {
 
   it("gives the before commit hooks every command that ran, including replacements and follow-up commands", () => {
     // Arrange
-    const beforeCommit = vi.fn();
+    const onBeforeCommit = vi.fn();
     const { editor } = createEditorWithExtensions([
       {
         name: "ReplaceBlockExtension",
-        beforeCommand: ({ command }) => {
+        onBeforeCommand: ({ command }) => {
           if (
             command.type === "insertBlock" &&
             command.payload.newBlock.id === SAMPLE_BLOCK2.id
@@ -286,7 +286,7 @@ describe("Editor extension hooks", () => {
         },
       },
       GreetNewHeadingsExtension,
-      { name: "CommitWatcherExtension", beforeCommit },
+      { name: "CommitWatcherExtension", onBeforeCommit },
     ]);
 
     // Act
@@ -297,7 +297,7 @@ describe("Editor extension hooks", () => {
     });
 
     // Assert
-    expect(beforeCommit).toHaveBeenCalledExactlyOnceWith(
+    expect(onBeforeCommit).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({
         commands: [
           {
@@ -307,10 +307,12 @@ describe("Editor extension hooks", () => {
               strategy: "append",
               newBlock: SAMPLE_BLOCK1,
             },
+            source: { type: "editor" },
           },
           {
             type: "insertText",
             payload: { blockId: SAMPLE_BLOCK1.id, offset: 0, text: "Hello " },
+            source: { type: "extension", name: "GreetNewHeadingsExtension" },
           },
         ],
       }),
@@ -322,7 +324,7 @@ describe("Editor extension hooks", () => {
     const { editor, INITIAL_DOCUMENT_JSON } = createEditorWithExtensions([
       {
         name: "AppendTrailingBlockExtension",
-        beforeCommit: ({ document, execute }) => {
+        onBeforeCommit: ({ document, execute }) => {
           if (!document.getBlock(SAMPLE_BLOCK2.id)) {
             execute("insertBlock", {
               targetId: document.ROOT_ID,
@@ -355,11 +357,11 @@ describe("Editor extension hooks", () => {
 
   it("gives each before commit hook the follow-up commands of the before commit hooks before it", () => {
     // Arrange
-    const beforeCommit = vi.fn();
+    const onBeforeCommit = vi.fn();
     const { editor } = createEditorWithExtensions([
       {
         name: "AppendSecondBlockExtension",
-        beforeCommit: ({ document, execute }) => {
+        onBeforeCommit: ({ document, execute }) => {
           if (!document.getBlock(SAMPLE_BLOCK2.id)) {
             execute("insertBlock", {
               targetId: document.ROOT_ID,
@@ -369,7 +371,7 @@ describe("Editor extension hooks", () => {
           }
         },
       },
-      { name: "CommitWatcherExtension", beforeCommit },
+      { name: "CommitWatcherExtension", onBeforeCommit },
     ]);
 
     // Act
@@ -380,7 +382,7 @@ describe("Editor extension hooks", () => {
     });
 
     // Assert
-    expect(beforeCommit).toHaveBeenCalledExactlyOnceWith(
+    expect(onBeforeCommit).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({
         commands: [
           {
@@ -390,6 +392,7 @@ describe("Editor extension hooks", () => {
               strategy: "append",
               newBlock: SAMPLE_BLOCK1,
             },
+            source: { type: "editor" },
           },
           {
             type: "insertBlock",
@@ -398,6 +401,7 @@ describe("Editor extension hooks", () => {
               strategy: "append",
               newBlock: SAMPLE_BLOCK2,
             },
+            source: { type: "extension", name: "AppendSecondBlockExtension" },
           },
         ],
         events: [
@@ -425,7 +429,7 @@ describe("Editor extension hooks", () => {
     const { editor } = createEditorWithExtensions([
       {
         name: "GreetEveryHeadingExtension",
-        beforeCommit: ({ commands, execute }) => {
+        onBeforeCommit: ({ commands, execute }) => {
           commands.forEach(command => {
             if (command.type === "insertBlock") {
               execute("insertText", {
@@ -465,7 +469,7 @@ describe("Editor extension hooks", () => {
     const { editor, INITIAL_DOCUMENT_JSON } = createEditorWithExtensions([
       {
         name: "EndlessTypingExtension",
-        afterCommand: ({ execute }) =>
+        onAfterCommand: ({ execute }) =>
           execute("insertText", { blockId: SAMPLE_BLOCK1.id, offset: 0, text: "a" }),
       },
     ]);
@@ -495,7 +499,7 @@ describe("Editor extension hooks", () => {
     const { editor, INITIAL_DOCUMENT_JSON } = createEditorWithExtensions([
       {
         name: "DeleteMissingBlockExtension",
-        afterCommand: ({ command, execute }) => {
+        onAfterCommand: ({ command, execute }) => {
           if (command.type === "insertBlock") {
             execute("deleteBlock", { blockId: "not_existing_block" });
           }
@@ -515,11 +519,12 @@ describe("Editor extension hooks", () => {
     expect(editor.getDocumentJSON()).toBe(INITIAL_DOCUMENT_JSON);
   });
 
-  it("runs the hooks for commands from the editor config", () => {
+  it("runs the hooks of every extension for the commands of another extension", () => {
     // Arrange
     const seenCommands: string[] = [];
 
-    const editor = new Editor({
+    const DeleteSampleBlockExtension = defineExtension({
+      name: "DeleteSampleBlockExtension",
       commands: ({ createCommand }) => ({
         deleteSampleBlock: createCommand(({ document, createEvent }) => {
           document.remove(SAMPLE_BLOCK1.id);
@@ -527,10 +532,14 @@ describe("Editor extension hooks", () => {
           return createEvent("block:delete", { blockId: SAMPLE_BLOCK1.id });
         }),
       }),
+    });
+
+    const editor = new Editor({
       extensions: [
+        DeleteSampleBlockExtension,
         {
           name: "RecorderExtension",
-          beforeCommand: ({ command }) => {
+          onBeforeCommand: ({ command }) => {
             seenCommands.push(command.type);
           },
         },
@@ -550,7 +559,7 @@ describe("Editor extension hooks", () => {
     expect(seenCommands).toStrictEqual(["insertBlock", "deleteSampleBlock"]);
   });
 
-  it.each<TransactionHook>(["beforeCommand", "afterCommand", "beforeCommit"])(
+  it.each<TransactionHook>(["onBeforeCommand", "onAfterCommand", "onBeforeCommit"])(
     "rolls back the transaction and throws an async extension hook error when the %s hook returns a promise",
     hook => {
       // Arrange
@@ -582,12 +591,12 @@ describe("Editor extension hooks", () => {
 
   it("does not run the hooks on undo and redo", () => {
     // Arrange
-    const beforeCommand = vi.fn();
-    const afterCommand = vi.fn();
-    const beforeCommit = vi.fn();
+    const onBeforeCommand = vi.fn();
+    const onAfterCommand = vi.fn();
+    const onBeforeCommit = vi.fn();
 
     const { editor } = createEditorWithExtensions([
-      { name: "WatcherExtension", beforeCommand, afterCommand, beforeCommit },
+      { name: "WatcherExtension", onBeforeCommand, onAfterCommand, onBeforeCommit },
     ]);
 
     editor.execute("insertBlock", {
@@ -603,9 +612,9 @@ describe("Editor extension hooks", () => {
     editor.redo();
 
     // Assert
-    expect(beforeCommand).not.toHaveBeenCalled();
-    expect(afterCommand).not.toHaveBeenCalled();
-    expect(beforeCommit).not.toHaveBeenCalled();
+    expect(onBeforeCommand).not.toHaveBeenCalled();
+    expect(onAfterCommand).not.toHaveBeenCalled();
+    expect(onBeforeCommit).not.toHaveBeenCalled();
   });
 
   it("saves every text edit as its own history record when an after command hook adds a follow-up command", () => {
@@ -615,7 +624,7 @@ describe("Editor extension hooks", () => {
     const { editor } = createEditorWithExtensions([
       {
         name: "MirrorTextExtension",
-        afterCommand: ({ command, execute }) => {
+        onAfterCommand: ({ command, execute }) => {
           if (
             command.type === "insertText" &&
             command.payload.blockId === SAMPLE_BLOCK2.id
@@ -661,5 +670,91 @@ describe("Editor extension hooks", () => {
     expect(editor.getHistory()).toHaveLength(4);
 
     vi.useRealTimers();
+  });
+
+  it("tells the command hooks whether app code or an extension ran the command", () => {
+    // Arrange
+    const sources: unknown[] = [];
+
+    const { editor } = createEditorWithExtensions([
+      GreetNewHeadingsExtension,
+      {
+        name: "SourceRecorderExtension",
+        onBeforeCommand: ({ command, source }) => {
+          sources.push({ hook: "onBeforeCommand", command: command.type, source });
+        },
+        onAfterCommand: ({ command, source }) => {
+          sources.push({ hook: "onAfterCommand", command: command.type, source });
+        },
+      },
+    ]);
+
+    // Act
+    editor.execute("insertBlock", {
+      targetId: editor.ROOT_ID,
+      strategy: "append",
+      newBlock: SAMPLE_BLOCK1,
+    });
+
+    // Assert
+    const followUpSource = {
+      type: "extension",
+      name: "GreetNewHeadingsExtension",
+    };
+
+    expect(sources).toStrictEqual([
+      {
+        hook: "onBeforeCommand",
+        command: "insertBlock",
+        source: { type: "editor" },
+      },
+      { hook: "onBeforeCommand", command: "insertText", source: followUpSource },
+      { hook: "onAfterCommand", command: "insertText", source: followUpSource },
+      { hook: "onAfterCommand", command: "insertBlock", source: { type: "editor" } },
+    ]);
+  });
+
+  it("keeps the source of a command that a before command hook replaces", () => {
+    // Arrange
+    const onBeforeCommit = vi.fn();
+
+    const { editor } = createEditorWithExtensions([
+      {
+        name: "ReplaceBlockExtension",
+        onBeforeCommand: ({ command }) => {
+          if (command.type === "insertBlock") {
+            return {
+              type: "insertBlock",
+              payload: { ...command.payload, newBlock: SAMPLE_BLOCK2 },
+            };
+          }
+        },
+      },
+      { name: "CommitWatcherExtension", onBeforeCommit },
+    ]);
+
+    // Act
+    editor.execute("insertBlock", {
+      targetId: editor.ROOT_ID,
+      strategy: "append",
+      newBlock: SAMPLE_BLOCK1,
+    });
+
+    // Assert
+    expect(onBeforeCommit).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        commands: [
+          {
+            type: "insertBlock",
+            payload: {
+              targetId: editor.ROOT_ID,
+              strategy: "append",
+              newBlock: SAMPLE_BLOCK2,
+            },
+            source: { type: "editor" },
+          },
+        ],
+      }),
+    );
   });
 });

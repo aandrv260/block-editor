@@ -12,12 +12,14 @@ import type {
   CommandArgsOf,
   CommandContext,
   CommandResult,
+  ExecutableCommand,
 } from "../executors/commandExecutors.models";
 import { createCommandEvent } from "../../events/editor-event-bus/createCommandEvent";
 import type { Transaction } from "./transaction.models";
 import type { ExtensionManager } from "../../extensions/ExtensionManager/ExtensionManager";
 import type {
-  ExecutableCommand,
+  CommandSource,
+  ExecutedCommand,
   ExtensionHookActions,
 } from "../../extensions/models/extension.models";
 
@@ -36,7 +38,7 @@ export class EditorTransaction<
   private readonly extensionManager: ExtensionManager;
   private readonly hookActions: ExtensionHookActions;
   private readonly getActiveTransaction: () => EditorTransaction<TCommands> | null;
-  private readonly executedCommands: ExecutableCommand[] = [];
+  private readonly executedCommands: ExecutedCommand[] = [];
   private readonly events: CommandEvent<AnyCustomEvents>[] = [];
   private aborted = false;
 
@@ -53,7 +55,10 @@ export class EditorTransaction<
 
     this.hookActions = {
       document,
-      execute: (type, ...args) => this.executeCommand({ type, payload: args[0] }),
+      createExecute:
+        source =>
+        (type, ...args) =>
+          this.executeCommand({ type, payload: args[0] }, source),
       abort: () => this.abort(),
     };
   }
@@ -62,7 +67,7 @@ export class EditorTransaction<
     type: TType,
     ...args: CommandArgsOf<TCommands[TType]>
   ): void {
-    this.executeCommand({ type, payload: args[0] });
+    this.executeCommand({ type, payload: args[0] }, { type: "editor" });
   }
 
   public runBeforeCommit(): void {
@@ -89,20 +94,26 @@ export class EditorTransaction<
     return this.aborted;
   }
 
-  private executeCommand(command: ExecutableCommand): void {
+  private executeCommand(command: ExecutableCommand, source: CommandSource): void {
     this.ensureIsActive();
 
     this.extensionManager.runWithLoopGuard(() => {
       const finalCommand = this.extensionManager.runBeforeCommand(
         command,
+        source,
         this.hookActions,
       );
 
       const events = this.runCommand(finalCommand);
 
-      this.executedCommands.push(finalCommand);
+      this.executedCommands.push({ ...finalCommand, source });
       this.events.push(...events);
-      this.extensionManager.runAfterCommand(finalCommand, events, this.hookActions);
+      this.extensionManager.runAfterCommand(
+        finalCommand,
+        source,
+        events,
+        this.hookActions,
+      );
     });
   }
 

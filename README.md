@@ -1,199 +1,108 @@
 ## Description
 
-A framework-agnostic, event-driven block editor engine focused on deterministic behavior, architectural clarity, and testability.
+A framework-agnostic, event-driven block editor engine focused on developer experience, architectural clarity, and testability.
 
-Designed as a pure data engine with a strict separation between state, commands, and rendering.
+Runs in any JavaScript environment, from web browsers to servers and web workers.
 
-Built to run in any JavaScript environment no matter if it's a web browser, server components, a desktop application, a mobile application or web workers.
-
-The engine has a single runtime dependency by design: [Valibot](https://valibot.dev), a tiny, tree-shakable schema library that validates blocks.
+Around 12 KB minified and gzipped, with a single runtime dependency: [Valibot](https://valibot.dev).
 
 ## Why this engine exists
 
-Most editors couple rendering, state mutation, and side effects - making them rigid, hard to test, and dangerous to evolve at scale.
+This engine is lightweight and fast by design. The whole core is around 12 KB gzipped with a single dependency, every command runs synchronously, and every block lookup is O(1), so it stays fast as documents grow.
 
-This engine solves that. The core is pure, immutable, and UI-agnostic. The UI is simply a function of the state of the engine and nothing more.
+It also focuses on developer experience. Most editor engines are powerful but hard to learn, with schemas, plugin systems with many concepts and global type augmentation. Here the API is small, the data is plain JSON, and everything is typed automatically.
 
-This architecture enables:
-
-- Safe refactoring without UI regressions
-- Deterministic debugging (same input → same output)
-- A stable contract
-- Zero coupling between renderer and data
-- Confidence when extending the editor under pressure
-
-## Key highlights:
-
-### Unidirectional data flow with command-based data mutation
-
-```md
-execute -> CommandCenter -> mutation -> event
-```
-
-Example:
+## Quick look
 
 ```TS
-editor.execute("moveBlock", {
-  blockId: "block1",
-  targetId: "root",
-  strategy: "append",
+const ClearDocumentExtension = defineExtension({
+  name: "ClearDocumentExtension",
+  events: defineEvents<{
+    "document:clear": { removedBlocks: number };
+  }>(),
+  commands: ({ createCommand }) => ({
+    clearDocument: createCommand(({ document, createEvent }) => {
+      const blocks = [...document.getRoot().children];
+
+      blocks.forEach(block => document.remove(block.id));
+
+      return createEvent("document:clear", {
+        removedBlocks: blocks.length,
+      });
+    }),
+  }),
 });
+
+const editor = new Editor({ extensions: [ClearDocumentExtension] });
+
+// Several commands, one change, one undo step
+editor.transaction(tx => {
+  tx.execute("insertBlock", { targetId: "root", strategy: "append", newBlock });
+  tx.execute("insertText", { blockId: newBlock.id, offset: 0, text: "Hello" });
+});
+
+// Typed from the extension, with autocomplete
+editor.execute("clearDocument");
+editor.subscribe("document:clear", event => console.log(event.removedBlocks));
 ```
 
-The command type picks the command, and its payload is fully typed. The built-in commands are `insertBlock`, `deleteBlock`, `updateBlock`, `moveBlock` and `swapDocument`.
+## Key highlights
 
-This is simple, synchronous, predictable and easy to debug.
+- **Command-based mutation.** The document only changes through commands, and every payload is typed.
+- **Transactions.** Several commands commit as one change and roll back if anything fails.
+- **Typed extensions.** Custom commands, events and hooks are typed per editor, with no global type augmentation.
+- **Extension hooks.** `onBeforeCommand`, `onAfterCommand`, `onBeforeCommit`, `onEditorInit` and `onEditorDestroy`.
+- **Event streams.** A lazy, Rx-inspired `editor.on(...)` with `map`, `filter` and `tap`, without external libraries.
+- **Typed errors.** Every error extends `EngineError`, with error codes and type guards.
+- **Readonly by default.** The document, blocks and history are exposed as readonly.
 
-### Extensively tested
-
-✓ Core tests: 690+ passing
-
-✓ Coverage: 92%+
-
-✓ ~10,000+ lines of test code
-
-✓ Running in less than 2 seconds
-
-Tests cover from low-level unit tests to high-level integration flows
-
-**More than 92% code coverage** (intentionally excluding error class constructors)
-
-### Production-grade error handling
-
-Custom error classes with specific error codes and namespaces to help you handle errors in a type-safe and predictable way
-
-All errors classes in the core extend the `EngineError` base abstract class
-
-Included pure type guards for the errors so you can focus on your business logic and not low-level details
-
-### Minimalistic and custom reactive event streams
-
-The engine exposes a minimal, lazy, Rx-inspired event stream system tailored for editor workflows - without any external reactive libraries.
-
-- Lazy by design
-- Composable
-- Side-effect isolated
-
-```TS
-const editor = new Editor();
-const logDeletion = (event: EditorEventsMap["block:delete"]) => { ... }
-
-// It is recommended you prepend or append dollar sign to the variable name to indicate it is a stream.
-const deleteBlockWithLogging$ = editor
-  .on("block:delete")
-  .filter(event => event.blockId === blockId)
-  .tap(logDeletion);
-
-// Nothing will ever be emitted until you call the .subscribe() method.
-const deleteBlockLogged$ = deleteBlockWithLogging$.map(event => ({
-  blockId: event.blockId,
-  logged: true,
-}));
-
-// ... in another part of your application code
-// Now onDelete will be called when an event is emitted.
-deleteBlockLogged$.subscribe(onDelete);
-```
-
-### Immutability by default
-
-Every exposed structure is readonly:
-
-- document root
-- block nodes
-- history stack
-
-This enforces correctness and makes debugging trivial.
-
-### JSON-based document history
-
-The engine never stores full document object snapshots in the history. It only stores the JSON snapshots of the document.
-
-The history is a simple array of JSON strings, making it easy to serialize, persist, and inspect.
-
-You can set a limit to the history so you can save memory.
-
-### The UI is designed to literally be a function of the editor state
+### The UI is a function of the editor state
 
 For the same editor state, you always get the same UI rendered.
 
-The UI just takes the editor and based on its state, it constructs the DOM tree.
-
-**Note:** The UI implementation is intentionally minimal and incomplete. Its purpose is to demonstrate architectural boundaries and adapter design, not to serve as a polished editor UI.
-
-### Framework-agnostic core (one tiny dependency, runs anywhere)
-
-Even though only an adapter for React is provided out of the box, you can use the core with any framework you want since the core depends only on Valibot, which runs in any JavaScript environment.
-
-You can override the rendering and logic for all or only specific blocks.
+**Note:** The React adapter is intentionally minimal. It demonstrates the architectural boundaries, not a polished editor UI yet. Work is still in progress.
 
 ### Built with performance in mind
 
-The document tree uses a HashMap indexing of each block so you can get a block by its ID in O(1) average time complexity.
+Every block is indexed by its ID, so you get any block in O(1) average time, even in large documents.
 
-This is very efficient for large documents and extremely useful in the future for reacting to changes and updating only the DOM subtree that is affected.
+This also makes it possible to update only the DOM subtree that changed.
 
-The history is a simple array of JSON strings so you can serialize and deserialize it easily. Massive objects are not stored in history. You can set a limit to the history so you can save memory for large documents.
+### Framework-agnostic core
 
-## Architecture
+Only a React adapter ships out of the box, but the core works with any framework since it depends only on Valibot.
 
-The editor is structured around a strict separation between state, mutation, and presentation.
+You can override the rendering and logic for all or only specific blocks.
 
-### Core Engine (Framework-agnostic)
+### Developer experience first
 
-The core engine is responsible for all state ownership and mutations.
+Commands and events are typed from your extensions, so you get autocomplete everywhere without writing a single type.
 
-**Architectural constraints:**
+The API is intentionally minimal. `execute`, `transaction` and `subscribe` cover almost everything you need.
 
-- The document state can only be mutated through commands
+Mistakes fail at compile time, from a typo in an event name to a hook that doesn't exist.
 
-- Commands are triggered exclusively through `editor.execute`
+### Extensively tested
 
-- The CommandCenter is the single authority allowed to mutate state
+✓ Core tests: 840+ passing
 
-- All state changes emit explicit, typed events
+✓ Coverage: 94%+
 
-- No UI code can access or mutate the document directly
-
-### Command-driven state mutation
-
-```MD
-Execute → Command → State Mutation → Event
-```
-
-This unidirectional flow guarantees:
-
-- Deterministic behavior
-
-- Debuggable execution paths
-
-- Safe refactoring as the system grows
-
-### Event-based integration boundary
-
-- The engine communicates exclusively through events.
-- The presentation layer reacts to events but never drives state implicitly.
-
-### Presentation Layer (UI adapters)
-
-The presentation layer is a pure consumer of editor state and events.
-
-**Its responsibilities are limited to:**
-
-- Rendering editor state
-- Executing commands
-- Reacting to emitted events
+✓ Running in less than 2 seconds
 
 ## Package Structure
 
 ```
 packages/
 ├── core/                   # Framework-agnostic engine
-│   ├── blocks/             # Block models and validation
-│   ├── commands/           # Commands for mutating the state
+│   ├── blocks/             # Block models, text content, marks and validation
+│   ├── commands/           # Commands, transactions and the CommandCenter
 │   ├── document/           # Document tree
+│   ├── editor/             # Editor entry point and its types
+│   ├── errors/             # EngineError base class and error codes
 │   ├── events/             # EventBus, events and reactive streams
-│   └── history/            # Undo/redo management
+│   ├── extensions/         # Extensions and their hooks
+│   └── history/            # Undo/redo management and history grouping
 │
 └── ui-react/               # React integration layer
     ├── components/         # Block renderers
@@ -203,35 +112,21 @@ packages/
 
 ## Quick start
 
-This repository is a pnpm-based monorepo.
-
-- The core engine lives in packages/core
-- The React adapter lives in packages/ui-react
-- The playground provides a minimal environment to interact with the editor
-
 ```bash
 # Install dependencies and build the packages
 pnpm install && pnpm -r build
 
 # Start the playground development server
-pnpm --filter playground dev
+pnpm playground
 
 # Run core tests
 pnpm -F @block-editor/core test
-
-# Run core test coverage
-pnpm -F @block-editor/core test-coverage
 ```
 
-## Planned evolution (alpha and beyond)
+## Planned next steps
 
-**Note:** The following items are intentionally deferred to later phases to keep the core engine focused, stable, and testable. They are not exhaustive.
-
-- Expand the reference UI implementation (marks, edge cases, performance tuning).
-- Custom event stream channels
-- Collaboration support (multi-user editing, real-time collaboration, etc.)
-- Declarative event stream error handling
 - Block extension system
-- Comprehensive documentation site
+- Expand the UI implementation
+- Collaboration support
 - Built-in persistence layer
-- Lifecycle hooks
+- Comprehensive documentation site

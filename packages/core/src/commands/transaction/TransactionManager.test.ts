@@ -170,9 +170,9 @@ describe("TransactionManager", () => {
 
   it("runs the before commit hooks once with every command and event of the transaction", () => {
     // Arrange
-    const beforeCommit = vi.fn();
+    const onBeforeCommit = vi.fn();
     const { transactionManager, document } = createTransactionManager([
-      { name: "FirstExtension", beforeCommit },
+      { name: "FirstExtension", onBeforeCommit },
     ]);
 
     // Act
@@ -187,7 +187,7 @@ describe("TransactionManager", () => {
     });
 
     // Assert
-    expect(beforeCommit).toHaveBeenCalledExactlyOnceWith(
+    expect(onBeforeCommit).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({
         commands: [
           {
@@ -197,8 +197,13 @@ describe("TransactionManager", () => {
               strategy: "append",
               newBlock: SAMPLE_BLOCK1,
             },
+            source: { type: "editor" },
           },
-          { type: "deleteBlock", payload: { blockId: TOGGLE_LIST1_BLOCK.id } },
+          {
+            type: "deleteBlock",
+            payload: { blockId: TOGGLE_LIST1_BLOCK.id },
+            source: { type: "editor" },
+          },
         ],
         events: [
           {
@@ -215,9 +220,9 @@ describe("TransactionManager", () => {
 
   it("leaves a failed command out of the before commit commands when the callback catches its error", () => {
     // Arrange
-    const beforeCommit = vi.fn();
+    const onBeforeCommit = vi.fn();
     const { transactionManager, document } = createTransactionManager([
-      { name: "FirstExtension", beforeCommit },
+      { name: "FirstExtension", onBeforeCommit },
     ]);
 
     // Act
@@ -236,7 +241,7 @@ describe("TransactionManager", () => {
     });
 
     // Assert
-    expect(beforeCommit).toHaveBeenCalledExactlyOnceWith(
+    expect(onBeforeCommit).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({
         commands: [
           {
@@ -246,6 +251,7 @@ describe("TransactionManager", () => {
               strategy: "append",
               newBlock: SAMPLE_BLOCK1,
             },
+            source: { type: "editor" },
           },
         ],
       }),
@@ -254,9 +260,9 @@ describe("TransactionManager", () => {
 
   it("does not run the before commit hooks when the callback aborts", () => {
     // Arrange
-    const beforeCommit = vi.fn();
+    const onBeforeCommit = vi.fn();
     const { transactionManager } = createTransactionManager([
-      { name: "FirstExtension", beforeCommit },
+      { name: "FirstExtension", onBeforeCommit },
     ]);
 
     // Act
@@ -269,14 +275,14 @@ describe("TransactionManager", () => {
     });
 
     // Assert
-    expect(beforeCommit).not.toHaveBeenCalled();
+    expect(onBeforeCommit).not.toHaveBeenCalled();
   });
 
   it("restores the document and reports an abort when a before commit hook aborts", () => {
     // Arrange
     const { transactionManager, document, initialDocumentJSON } =
       createTransactionManager([
-        { name: "FirstExtension", beforeCommit: ({ abort }) => abort() },
+        { name: "FirstExtension", onBeforeCommit: ({ abort }) => abort() },
       ]);
 
     // Act

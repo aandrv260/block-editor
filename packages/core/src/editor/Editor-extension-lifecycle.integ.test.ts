@@ -1,12 +1,14 @@
 import { SAMPLE_BLOCK1 } from "@/document/utils/document-test.utils";
 import { assertEngineError } from "@/errors/test-utils/error-test.utils";
 import { DuplicateExtensionError } from "@/extensions/errors/DuplicateExtensionError";
-import { ExtensionWithoutHooksError } from "@/extensions/errors/ExtensionWithoutHooksError";
+import { NoopExtensionError } from "@/extensions/errors/NoopExtensionError";
+import { defineEvents } from "@/events/editor-event-bus/defineEvents";
 import { ExtensionErrorCodes } from "@/extensions/errors/ExtensionErrorCodes";
+import { defineExtension } from "@/extensions/defineExtension";
 import { Editor } from "./Editor";
 
 describe("Editor extension lifecycle", () => {
-  it("calls the create hooks in array order with the editor's document when the editor is created", () => {
+  it("calls the init hooks in array order with the editor's document when the editor is created", () => {
     // Arrange
     const calls: string[] = [];
     const documentSizes: number[] = [];
@@ -16,12 +18,12 @@ describe("Editor extension lifecycle", () => {
       extensions: [
         {
           name: "FirstExtension",
-          onCreate: ({ document }) => {
+          onEditorInit: ({ document }) => {
             calls.push("first");
             documentSizes.push(document.size);
           },
         },
-        { name: "SecondExtension", onCreate: () => calls.push("second") },
+        { name: "SecondExtension", onEditorInit: () => calls.push("second") },
       ],
     });
 
@@ -32,24 +34,29 @@ describe("Editor extension lifecycle", () => {
 
   it("calls the destroy hooks when the editor is cleaned up", () => {
     // Arrange
-    const onDestroy = vi.fn();
+    const onEditorDestroy = vi.fn();
     const editor = new Editor({
-      extensions: [{ name: "FirstExtension", onDestroy }],
+      extensions: [{ name: "FirstExtension", onEditorDestroy }],
     });
 
     // Act
     editor.cleanup();
 
     // Assert
-    expect(onDestroy).toHaveBeenCalledOnce();
+    expect(onEditorDestroy).toHaveBeenCalledOnce();
   });
 
-  it("calls the extension listeners after a command changes the editor", () => {
+  it("calls the listeners that an init hook subscribed after a command changes the editor", () => {
     // Arrange
     const onBlockInsert = vi.fn();
     const editor = new Editor({
       extensions: [
-        { name: "FirstExtension", on: { "block:insert": onBlockInsert } },
+        {
+          name: "FirstExtension",
+          onEditorInit: ({ subscribe }) => {
+            subscribe("block:insert", onBlockInsert);
+          },
+        },
       ],
     });
 
@@ -69,12 +76,17 @@ describe("Editor extension lifecycle", () => {
     });
   });
 
-  it("stops calling the extension listeners after the editor is cleaned up", () => {
+  it("stops calling the subscribed listeners after the editor is cleaned up", () => {
     // Arrange
     const onBlockInsert = vi.fn();
     const editor = new Editor({
       extensions: [
-        { name: "FirstExtension", on: { "block:insert": onBlockInsert } },
+        {
+          name: "FirstExtension",
+          onEditorInit: ({ subscribe }) => {
+            subscribe("block:insert", onBlockInsert);
+          },
+        },
       ],
     });
 
@@ -97,8 +109,8 @@ describe("Editor extension lifecycle", () => {
       () =>
         new Editor({
           extensions: [
-            { name: "AutosaveExtension", onCreate: () => {} },
-            { name: "AutosaveExtension", onDestroy: () => {} },
+            { name: "AutosaveExtension", onEditorInit: () => {} },
+            { name: "AutosaveExtension", onEditorDestroy: () => {} },
           ],
         }),
       {
@@ -111,32 +123,41 @@ describe("Editor extension lifecycle", () => {
     );
   });
 
-  it("throws an extension without hooks error when an extension defines no hooks", () => {
+  it("throws a noop extension error when an extension defines only events", () => {
     // Act and assert
     assertEngineError(
-      () => new Editor({ extensions: [{ name: "AutosaveExtension" }] }),
+      () =>
+        new Editor({
+          extensions: [
+            {
+              name: "AutosaveExtension",
+              events: defineEvents<{ "autosave:done": { at: number } }>(),
+            },
+          ],
+        }),
       {
-        ExpectedErrorClass: ExtensionWithoutHooksError,
-        expectedCode: ExtensionErrorCodes.EXTENSION_WITHOUT_HOOKS,
+        ExpectedErrorClass: NoopExtensionError,
+        expectedCode: ExtensionErrorCodes.NOOP_EXTENSION,
         expectedMessage:
-          'The extension "AutosaveExtension" does not define any hooks, so it would never run!',
+          'The extension "AutosaveExtension" defines no hooks and no commands, so it does nothing!',
         expectedContext: { name: "AutosaveExtension" },
       },
     );
   });
 
-  it("accepts async create hooks, destroy hooks and listeners", async () => {
+  it("accepts async init hooks, destroy hooks and listeners", async () => {
     // Arrange
     const onBlockInsert = vi.fn();
-    const onDestroy = vi.fn();
+    const onEditorDestroy = vi.fn();
 
     const editor = new Editor({
       extensions: [
         {
           name: "AsyncLifecycleExtension",
-          onCreate: async () => {},
-          onDestroy: async () => onDestroy(),
-          on: { "block:insert": async event => onBlockInsert(event) },
+          onEditorInit: async ({ subscribe }) => {
+            subscribe("block:insert", async event => onBlockInsert(event));
+          },
+          onEditorDestroy: async () => onEditorDestroy(),
         },
       ],
     });
@@ -153,6 +174,71 @@ describe("Editor extension lifecycle", () => {
 
     // Assert
     expect(onBlockInsert).toHaveBeenCalledOnce();
-    expect(onDestroy).toHaveBeenCalledOnce();
+    expect(onEditorDestroy).toHaveBeenCalledOnce();
+  });
+
+  it("keeps the state of a factory extension apart for each editor", () => {
+    // Arrange
+    const CounterExtension = () => {
+      let insertedBlocks = 0;
+
+      return defineExtension({
+        name: "CounterExtension",
+        onEditorInit: ({ subscribe }) => {
+          subscribe("block:insert", () => {
+            insertedBlocks++;
+          });
+        },
+        onEditorDestroy: () => counts.push(insertedBlocks),
+      });
+    };
+
+    const counts: number[] = [];
+    const firstEditor = new Editor({ extensions: [CounterExtension()] });
+    const secondEditor = new Editor({ extensions: [CounterExtension()] });
+
+    firstEditor.execute("insertBlock", {
+      targetId: firstEditor.ROOT_ID,
+      strategy: "append",
+      newBlock: SAMPLE_BLOCK1,
+    });
+
+    // Act
+    firstEditor.cleanup();
+    secondEditor.cleanup();
+
+    // Assert
+    expect(counts).toStrictEqual([1, 0]);
+  });
+
+  it("releases what an init hook created when the editor is cleaned up", () => {
+    // Arrange
+    vi.useFakeTimers();
+
+    const onTick = vi.fn();
+
+    const editor = new Editor({
+      extensions: [
+        {
+          name: "TickerExtension",
+          onEditorInit: ({ onCleanup }) => {
+            const interval = setInterval(onTick, 100);
+
+            onCleanup(() => clearInterval(interval));
+          },
+        },
+      ],
+    });
+
+    vi.advanceTimersByTime(100);
+
+    // Act
+    editor.cleanup();
+    vi.advanceTimersByTime(300);
+
+    // Assert
+    expect(onTick).toHaveBeenCalledOnce();
+
+    vi.useRealTimers();
   });
 });

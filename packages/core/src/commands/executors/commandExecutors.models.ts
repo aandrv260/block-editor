@@ -36,3 +36,15 @@ export type CommandArgsOf<TCommand> = TCommand extends (
       : [payload: TPayload]
     : never
   : never;
+
+export type CommandOf<TCommands extends AnyCommands> = {
+  [TType in keyof TCommands & string]: {
+    type: TType;
+    payload: CommandArgsOf<TCommands[TType]>[0];
+  };
+}[keyof TCommands & string];
+
+export type ExecutableCommand = {
+  type: string;
+  payload: unknown;
+};

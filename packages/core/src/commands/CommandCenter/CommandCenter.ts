@@ -14,14 +14,15 @@ import type {
 import { TransactionManager } from "../transaction/TransactionManager";
 import type { TransactionCallback } from "../transaction/transaction.models";
 import { ExtensionManager } from "../../extensions/ExtensionManager/ExtensionManager";
-import type { Extension } from "../../extensions/models/extension.models";
+import type { AnyExtension } from "../../extensions/models/extension.models";
+import { mergeExtensionCommands } from "../../extensions/ExtensionManager/ExtensionManager.utils";
 
 interface CommandCenterConfig {
   document: EditorDocument;
   eventBus: EditorEventBus;
   history: DocumentHistory;
   commands: AnyCommands;
-  extensions: readonly Extension[];
+  extensions: readonly AnyExtension[];
   historyGroupDelay: number;
 }
 
@@ -63,7 +64,7 @@ export class CommandCenter<TCommands extends AnyCommands> {
     this.transactionManager = new TransactionManager({
       document,
       history,
-      commands,
+      commands: mergeExtensionCommands(commands, extensions),
       extensionManager: this.extensionManager,
     });
 

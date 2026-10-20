@@ -1,51 +1,54 @@
 import { Editor } from "./Editor";
 import { defineEvents } from "@/events/editor-event-bus/defineEvents";
+import { defineExtension } from "@/extensions/defineExtension";
 
-const createCalloutEditor = () =>
-  new Editor({
-    events: defineEvents<{
-      "callout:insert": { blockId: string; color: string };
-    }>(),
+const CalloutsExtension = defineExtension({
+  name: "CalloutsExtension",
+  events: defineEvents<{
+    "callout:insert": { blockId: string; color: string };
+  }>(),
 
-    commands: ({ createCommand }) => ({
-      insertCallout: createCommand<{ id: string; color: string }>(
-        ({ payload, document, createEvent }) => {
-          document.appendChild(document.ROOT_ID, {
-            id: payload.id,
-            type: "callout",
-            data: { content: [] },
-          });
+  commands: ({ createCommand }) => ({
+    insertCallout: createCommand<{ id: string; color: string }>(
+      ({ payload, document, createEvent }) => {
+        document.appendChild(document.ROOT_ID, {
+          id: payload.id,
+          type: "callout",
+          data: { content: [] },
+        });
 
-          return createEvent("callout:insert", {
+        return createEvent("callout:insert", {
+          blockId: payload.id,
+          color: payload.color,
+        });
+      },
+    ),
+
+    insertCalloutWithBlockEvent: createCommand<{ id: string; color: string }>(
+      ({ payload, document, createEvent }) => {
+        document.appendChild(document.ROOT_ID, {
+          id: payload.id,
+          type: "callout",
+          data: { content: [] },
+        });
+
+        return [
+          createEvent("block:insert", {
+            blockId: payload.id,
+            targetId: document.ROOT_ID,
+            strategy: "append",
+          }),
+          createEvent("callout:insert", {
             blockId: payload.id,
             color: payload.color,
-          });
-        },
-      ),
+          }),
+        ];
+      },
+    ),
+  }),
+});
 
-      insertCalloutWithBlockEvent: createCommand<{ id: string; color: string }>(
-        ({ payload, document, createEvent }) => {
-          document.appendChild(document.ROOT_ID, {
-            id: payload.id,
-            type: "callout",
-            data: { content: [] },
-          });
-
-          return [
-            createEvent("block:insert", {
-              blockId: payload.id,
-              targetId: document.ROOT_ID,
-              strategy: "append",
-            }),
-            createEvent("callout:insert", {
-              blockId: payload.id,
-              color: payload.color,
-            }),
-          ];
-        },
-      ),
-    }),
-  });
+const createCalloutEditor = () => new Editor({ extensions: [CalloutsExtension] });
 
 describe("Editor custom events", () => {
   it("emits the custom event of a custom command to its listener", () => {

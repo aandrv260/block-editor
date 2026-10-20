@@ -1,22 +1,24 @@
-import { getObjectKeys } from "@/common/object.utils";
+import type { ExecutableCommand } from "@/commands/executors/commandExecutors.models";
 import type { ReadonlyEditorDocument } from "@/document/models/document.models";
 import type { UnsubscribeFn } from "@/events/event-bus/EventBus";
 import type {
   AnyCustomEvents,
   CommandEvent,
   EditorEventBus,
-  EditorEventsMap,
+  EditorEventHandler,
+  EditorEventType,
 } from "@/events/editor-event-bus/editorEvent.models";
 import { ExtensionLoopError } from "../errors/ExtensionLoopError";
 import type {
-  ExecutableCommand,
-  Extension,
+  AnyExtension,
+  CommandSource,
+  CommittedCommand,
+  ExecutedCommand,
   ExtensionCommand,
   ExtensionHookActions,
-  ExtensionListeners,
 } from "../models/extension.models";
 import {
-  ensureExtensionsHaveHooks,
+  ensureNoNoopExtensions,
   ensureHookIsSynchronous,
   ensureUniqueExtensionNames,
 } from "./ExtensionManager.utils";
@@ -24,20 +26,22 @@ import {
 export const MAX_EXTENSION_DEPTH = 10;
 
 interface ExtensionManagerConfig {
-  extensions: readonly Extension[];
+  extensions: readonly AnyExtension[];
   document: ReadonlyEditorDocument;
   eventBus: EditorEventBus;
 }
 
 export class ExtensionManager {
-  private readonly extensions: readonly Extension[];
+  private readonly extensions: readonly AnyExtension[];
   private readonly document: ReadonlyEditorDocument;
   private readonly eventBus: EditorEventBus;
   private readonly unsubscribeFns: UnsubscribeFn[] = [];
+  private readonly cleanups: VoidFunction[] = [];
+  private isDestroyed = false;
   private depth = 0;
 
   constructor({ extensions, document, eventBus }: ExtensionManagerConfig) {
-    ensureExtensionsHaveHooks(extensions);
+    ensureNoNoopExtensions(extensions);
     ensureUniqueExtensionNames(extensions);
     this.extensions = extensions;
     this.document = document;
@@ -45,17 +49,23 @@ export class ExtensionManager {
   }
 
   public init(): void {
-    this.extensions.forEach(({ on }) => on && this.addListeners(on));
-    this.extensions.forEach(({ onCreate }) =>
-      onCreate?.({ document: this.document }),
+    this.extensions.forEach(({ onEditorInit }) =>
+      onEditorInit?.({
+        document: this.document,
+        subscribe: (event, handler) => this.subscribe(event, handler),
+        onCleanup: cleanup => this.addCleanup(cleanup),
+      }),
     );
   }
 
   public destroy(): void {
-    this.extensions.forEach(({ onDestroy }) =>
-      onDestroy?.({ document: this.document }),
+    this.isDestroyed = true;
+
+    this.extensions.forEach(({ onEditorDestroy }) =>
+      onEditorDestroy?.({ document: this.document }),
     );
 
+    this.cleanups.splice(0).forEach(cleanup => cleanup());
     this.unsubscribeFns.splice(0).forEach(unsubscribe => unsubscribe());
   }
 
@@ -75,17 +85,19 @@ export class ExtensionManager {
 
   public runBeforeCommand(
     command: ExecutableCommand,
+    source: CommandSource,
     { document, abort }: ExtensionHookActions,
   ): ExecutableCommand {
     return this.extensions.reduce<ExecutableCommand>(
-      (currentCommand, { name, beforeCommand }) => {
-        const replacement = beforeCommand?.({
+      (currentCommand, { name, onBeforeCommand }) => {
+        const replacement = onBeforeCommand?.({
           command: currentCommand as ExtensionCommand,
+          source,
           document,
           abort,
         });
 
-        ensureHookIsSynchronous(replacement, name, "beforeCommand");
+        ensureHookIsSynchronous(replacement, name, "onBeforeCommand");
 
         return replacement ?? currentCommand;
       },
@@ -95,45 +107,63 @@ export class ExtensionManager {
 
   public runAfterCommand(
     command: ExecutableCommand,
+    source: CommandSource,
     events: readonly CommandEvent<AnyCustomEvents>[],
-    actions: ExtensionHookActions,
+    { document, createExecute, abort }: ExtensionHookActions,
   ): void {
-    this.extensions.forEach(({ name, afterCommand }) => {
-      const result = afterCommand?.({
+    this.extensions.forEach(({ name, onAfterCommand }) => {
+      const result = onAfterCommand?.({
         command: command as ExtensionCommand,
+        source,
         events,
-        ...actions,
+        document,
+        execute: createExecute({ type: "extension", name }),
+        abort,
       });
 
-      ensureHookIsSynchronous(result, name, "afterCommand");
+      ensureHookIsSynchronous(result, name, "onAfterCommand");
     });
   }
 
   public runBeforeCommit(
-    commands: readonly ExecutableCommand[],
+    commands: readonly ExecutedCommand[],
     events: readonly CommandEvent<AnyCustomEvents>[],
-    actions: ExtensionHookActions,
+    { document, createExecute, abort }: ExtensionHookActions,
   ): void {
-    this.extensions.forEach(({ name, beforeCommit }) => {
-      const result = beforeCommit?.({
-        commands: [...commands] as ExtensionCommand[],
+    this.extensions.forEach(({ name, onBeforeCommit }) => {
+      const result = onBeforeCommit?.({
+        commands: [...commands] as CommittedCommand[],
         events: [...events],
-        ...actions,
+        document,
+        execute: createExecute({ type: "extension", name }),
+        abort,
       });
 
-      ensureHookIsSynchronous(result, name, "beforeCommit");
+      ensureHookIsSynchronous(result, name, "onBeforeCommit");
     });
   }
 
-  private addListeners(listeners: ExtensionListeners): void {
-    getObjectKeys(listeners).forEach(
-      <TType extends keyof EditorEventsMap>(type: TType) => {
-        const listener = listeners[type];
+  private subscribe<TType extends EditorEventType>(
+    event: TType,
+    handler: EditorEventHandler<TType>,
+  ): UnsubscribeFn {
+    if (this.isDestroyed) {
+      return () => {};
+    }
 
-        if (listener) {
-          this.unsubscribeFns.push(this.eventBus.on(type, listener));
-        }
-      },
-    );
+    const unsubscribe = this.eventBus.on(event, handler);
+
+    this.unsubscribeFns.push(unsubscribe);
+
+    return unsubscribe;
+  }
+
+  private addCleanup(cleanup: VoidFunction): void {
+    if (this.isDestroyed) {
+      cleanup();
+      return;
+    }
+
+    this.cleanups.push(cleanup);
   }
 }

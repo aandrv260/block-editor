@@ -16,12 +16,14 @@ const createExtensionManager = (extensions: Extension[] = []) => {
 
   const actions: ExtensionHookActions = {
     document,
-    execute: vi.fn(),
+    createExecute: () => vi.fn(),
     abort: vi.fn<() => never>(),
   };
 
   return { extensionManager, document, eventBus, actions };
 };
+
+const EDITOR_SOURCE = { type: "editor" } as const;
 
 const INSERT_BLOCK1_COMMAND = {
   type: "insertBlock",
@@ -51,14 +53,14 @@ describe("ExtensionManager", () => {
     const { extensionManager, actions } = createExtensionManager([
       {
         name: "FirstExtension",
-        beforeCommand: () => {
+        onBeforeCommand: () => {
           calls.push("first");
           return INSERT_BLOCK2_COMMAND;
         },
       },
       {
         name: "SecondExtension",
-        beforeCommand: ({ command }) => {
+        onBeforeCommand: ({ command }) => {
           if (command.type === "insertBlock") {
             calls.push(`second:${command.payload.newBlock.id}`);
           }
@@ -69,6 +71,7 @@ describe("ExtensionManager", () => {
     // Act
     const command = extensionManager.runBeforeCommand(
       INSERT_BLOCK1_COMMAND,
+      EDITOR_SOURCE,
       actions,
     );
 
@@ -80,12 +83,13 @@ describe("ExtensionManager", () => {
   it("keeps the command when no before command hook replaces it", () => {
     // Arrange
     const { extensionManager, actions } = createExtensionManager([
-      { name: "FirstExtension", beforeCommand: () => {} },
+      { name: "FirstExtension", onBeforeCommand: () => {} },
     ]);
 
     // Act
     const command = extensionManager.runBeforeCommand(
       INSERT_BLOCK1_COMMAND,
+      EDITOR_SOURCE,
       actions,
     );
 
@@ -101,26 +105,36 @@ describe("ExtensionManager", () => {
     const { extensionManager, actions } = createExtensionManager([
       {
         name: "FirstExtension",
-        afterCommand: () => calls.push("first:afterCommand"),
-        beforeCommit: () => calls.push("first:beforeCommit"),
+        onAfterCommand: () => calls.push("first:onAfterCommand"),
+        onBeforeCommit: () => calls.push("first:onBeforeCommit"),
       },
       {
         name: "SecondExtension",
-        afterCommand: () => calls.push("second:afterCommand"),
-        beforeCommit: () => calls.push("second:beforeCommit"),
+        onAfterCommand: () => calls.push("second:onAfterCommand"),
+        onBeforeCommit: () => calls.push("second:onBeforeCommit"),
       },
     ]);
 
     // Act
-    extensionManager.runAfterCommand(INSERT_BLOCK1_COMMAND, events, actions);
-    extensionManager.runBeforeCommit([INSERT_BLOCK1_COMMAND], events, actions);
+    extensionManager.runAfterCommand(
+      INSERT_BLOCK1_COMMAND,
+      EDITOR_SOURCE,
+      events,
+      actions,
+    );
+
+    extensionManager.runBeforeCommit(
+      [{ ...INSERT_BLOCK1_COMMAND, source: EDITOR_SOURCE }],
+      events,
+      actions,
+    );
 
     // Assert
     expect(calls).toStrictEqual([
-      "first:afterCommand",
-      "second:afterCommand",
-      "first:beforeCommit",
-      "second:beforeCommit",
+      "first:onAfterCommand",
+      "second:onAfterCommand",
+      "first:onBeforeCommit",
+      "second:onBeforeCommit",
     ]);
   });
 
@@ -164,46 +178,121 @@ describe("ExtensionManager", () => {
     ).not.toThrow();
   });
 
-  it("adds the extension listeners before it calls the create hooks", () => {
+  it("gives each extension that defines a hook an execute that marks its follow-up commands with the extension", () => {
+    // Arrange
+    const createExecute = vi.fn(() => vi.fn());
+    const events = [createEvent("block:delete", { blockId: SAMPLE_BLOCK1.id })];
+
+    const { extensionManager, actions } = createExtensionManager([
+      { name: "FirstExtension", onAfterCommand: () => {}, onBeforeCommit: () => {} },
+      { name: "SecondExtension", onAfterCommand: () => {} },
+    ]);
+
+    // Act
+    extensionManager.runAfterCommand(INSERT_BLOCK1_COMMAND, EDITOR_SOURCE, events, {
+      ...actions,
+      createExecute,
+    });
+
+    extensionManager.runBeforeCommit([], events, { ...actions, createExecute });
+
+    // Assert
+    expect(createExecute.mock.calls).toStrictEqual([
+      [{ type: "extension", name: "FirstExtension" }],
+      [{ type: "extension", name: "SecondExtension" }],
+      [{ type: "extension", name: "FirstExtension" }],
+    ]);
+  });
+
+  it("calls the init hooks in array order with a listener that receives the events", () => {
     // Arrange
     const calls: string[] = [];
+    const deleteEvent = createEvent("block:delete", { blockId: SAMPLE_BLOCK1.id });
 
     const { extensionManager, eventBus } = createExtensionManager([
       {
         name: "FirstExtension",
-        on: { "block:delete": () => calls.push("first:listener") },
-        onCreate: () => {
-          calls.push("first:onCreate");
-          eventBus.emit(
-            "block:delete",
-            createEvent("block:delete", { blockId: SAMPLE_BLOCK1.id }),
+        onEditorInit: ({ subscribe }) => {
+          calls.push("first:onEditorInit");
+          subscribe("block:delete", event =>
+            calls.push(`listener:${event.blockId}`),
           );
         },
       },
       {
         name: "SecondExtension",
-        onCreate: () => calls.push("second:onCreate"),
+        onEditorInit: () => calls.push("second:onEditorInit"),
       },
+    ]);
+
+    // Act
+    extensionManager.init();
+    eventBus.emit("block:delete", deleteEvent);
+
+    // Assert
+    expect(calls).toStrictEqual([
+      "first:onEditorInit",
+      "second:onEditorInit",
+      `listener:${SAMPLE_BLOCK1.id}`,
+    ]);
+  });
+
+  it("gives the init hooks the editor's document", () => {
+    // Arrange
+    const onEditorInit = vi.fn();
+    const { extensionManager, document } = createExtensionManager([
+      { name: "FirstExtension", onEditorInit },
     ]);
 
     // Act
     extensionManager.init();
 
     // Assert
-    expect(calls).toStrictEqual([
-      "first:onCreate",
-      "first:listener",
-      "second:onCreate",
-    ]);
+    expect(onEditorInit).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ document }),
+    );
   });
 
-  it("calls the destroy hooks and removes the extension listeners when it is destroyed", () => {
+  it("stops calling a listener after its own unsubscribe function runs", () => {
     // Arrange
     const onBlockDelete = vi.fn();
-    const onDestroy = vi.fn();
+    let unsubscribe: VoidFunction = () => {};
+
+    const { extensionManager, eventBus } = createExtensionManager([
+      {
+        name: "FirstExtension",
+        onEditorInit: ({ subscribe }) => {
+          unsubscribe = subscribe("block:delete", onBlockDelete);
+        },
+      },
+    ]);
+
+    extensionManager.init();
+
+    // Act
+    unsubscribe();
+    eventBus.emit(
+      "block:delete",
+      createEvent("block:delete", { blockId: SAMPLE_BLOCK1.id }),
+    );
+
+    // Assert
+    expect(onBlockDelete).not.toHaveBeenCalled();
+  });
+
+  it("calls the destroy hooks and removes the subscribed listeners when it is destroyed", () => {
+    // Arrange
+    const onBlockDelete = vi.fn();
+    const onEditorDestroy = vi.fn();
 
     const { extensionManager, eventBus, document } = createExtensionManager([
-      { name: "FirstExtension", on: { "block:delete": onBlockDelete }, onDestroy },
+      {
+        name: "FirstExtension",
+        onEditorInit: ({ subscribe }) => {
+          subscribe("block:delete", onBlockDelete);
+        },
+        onEditorDestroy,
+      },
     ]);
 
     extensionManager.init();
@@ -217,11 +306,11 @@ describe("ExtensionManager", () => {
     );
 
     // Assert
-    expect(onDestroy).toHaveBeenCalledExactlyOnceWith({ document });
+    expect(onEditorDestroy).toHaveBeenCalledExactlyOnceWith({ document });
     expect(onBlockDelete).not.toHaveBeenCalled();
   });
 
-  it("removes the extension listeners only after every destroy hook ran", () => {
+  it("removes the subscribed listeners only after every destroy hook ran", () => {
     // Arrange
     const onBlockDelete = vi.fn();
     const deleteEvent = createEvent("block:delete", { blockId: SAMPLE_BLOCK1.id });
@@ -229,8 +318,10 @@ describe("ExtensionManager", () => {
     const { extensionManager, eventBus } = createExtensionManager([
       {
         name: "FirstExtension",
-        on: { "block:delete": onBlockDelete },
-        onDestroy: () => eventBus.emit("block:delete", deleteEvent),
+        onEditorInit: ({ subscribe }) => {
+          subscribe("block:delete", onBlockDelete);
+        },
+        onEditorDestroy: () => eventBus.emit("block:delete", deleteEvent),
       },
     ]);
 
@@ -241,5 +332,113 @@ describe("ExtensionManager", () => {
 
     // Assert
     expect(onBlockDelete).toHaveBeenCalledExactlyOnceWith(deleteEvent);
+  });
+
+  it("ignores a subscription made after it is destroyed", () => {
+    // Arrange
+    const onBlockDelete = vi.fn();
+    let lateSubscribe: (() => void) | undefined;
+
+    const { extensionManager, eventBus } = createExtensionManager([
+      {
+        name: "FirstExtension",
+        onEditorInit: ({ subscribe }) => {
+          lateSubscribe = () => subscribe("block:delete", onBlockDelete);
+        },
+      },
+    ]);
+
+    extensionManager.init();
+    extensionManager.destroy();
+
+    // Act
+    lateSubscribe?.();
+    eventBus.emit(
+      "block:delete",
+      createEvent("block:delete", { blockId: SAMPLE_BLOCK1.id }),
+    );
+
+    // Assert
+    expect(onBlockDelete).not.toHaveBeenCalled();
+  });
+
+  it("runs the cleanups in order after the destroy hooks and before removing the listeners", () => {
+    // Arrange
+    const calls: string[] = [];
+    const deleteEvent = createEvent("block:delete", { blockId: SAMPLE_BLOCK1.id });
+
+    const { extensionManager, eventBus } = createExtensionManager([
+      {
+        name: "FirstExtension",
+        onEditorInit: ({ subscribe, onCleanup }) => {
+          subscribe("block:delete", () => calls.push("listener"));
+
+          onCleanup(() => {
+            calls.push("first cleanup");
+            eventBus.emit("block:delete", deleteEvent);
+          });
+
+          onCleanup(() => calls.push("second cleanup"));
+        },
+        onEditorDestroy: () => calls.push("onEditorDestroy"),
+      },
+    ]);
+
+    extensionManager.init();
+
+    // Act
+    extensionManager.destroy();
+
+    // Assert
+    expect(calls).toStrictEqual([
+      "onEditorDestroy",
+      "first cleanup",
+      "listener",
+      "second cleanup",
+    ]);
+  });
+
+  it("runs each cleanup only once", () => {
+    // Arrange
+    const cleanup = vi.fn();
+    const { extensionManager } = createExtensionManager([
+      {
+        name: "FirstExtension",
+        onEditorInit: ({ onCleanup }) => onCleanup(cleanup),
+      },
+    ]);
+
+    extensionManager.init();
+
+    // Act
+    extensionManager.destroy();
+    extensionManager.destroy();
+
+    // Assert
+    expect(cleanup).toHaveBeenCalledOnce();
+  });
+
+  it("runs a cleanup right away when it is registered after it is destroyed", () => {
+    // Arrange
+    const cleanup = vi.fn();
+    let lateOnCleanup: (() => void) | undefined;
+
+    const { extensionManager } = createExtensionManager([
+      {
+        name: "FirstExtension",
+        onEditorInit: ({ onCleanup }) => {
+          lateOnCleanup = () => onCleanup(cleanup);
+        },
+      },
+    ]);
+
+    extensionManager.init();
+    extensionManager.destroy();
+
+    // Act
+    lateOnCleanup?.();
+
+    // Assert
+    expect(cleanup).toHaveBeenCalledOnce();
   });
 });

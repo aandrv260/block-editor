@@ -1,41 +1,181 @@
 import { assertEngineError } from "@/errors/test-utils/error-test.utils";
+import { defineEvents } from "@/events/editor-event-bus/defineEvents";
 import { AsyncExtensionHookError } from "../errors/AsyncExtensionHookError";
+import { DuplicateCommandError } from "../errors/DuplicateCommandError";
 import { DuplicateExtensionError } from "../errors/DuplicateExtensionError";
-import { ExtensionWithoutHooksError } from "../errors/ExtensionWithoutHooksError";
+import { NoopExtensionError } from "../errors/NoopExtensionError";
 import { ExtensionErrorCodes } from "../errors/ExtensionErrorCodes";
+import { defineExtension } from "../defineExtension";
+import type { Extension } from "../models/extension.models";
 import {
-  ensureExtensionsHaveHooks,
   ensureHookIsSynchronous,
+  ensureNoNoopExtensions,
   ensureUniqueExtensionNames,
+  mergeExtensionCommands,
 } from "./ExtensionManager.utils";
 
-describe("ensureExtensionsHaveHooks()", () => {
-  it("throws an extension without hooks error when an extension defines no hooks", () => {
+const deleteBlock = () => ({ type: "block:delete", blockId: "block-1" });
+
+const GreetExtension = defineExtension({
+  name: "GreetExtension",
+  commands: ({ createCommand }) => ({
+    greet: createCommand(({ createEvent }) =>
+      createEvent("block:delete", { blockId: "block-1" }),
+    ),
+  }),
+});
+
+const WaveExtension = defineExtension({
+  name: "WaveExtension",
+  commands: ({ createCommand }) => ({
+    wave: createCommand(({ createEvent }) =>
+      createEvent("block:delete", { blockId: "block-1" }),
+    ),
+  }),
+});
+
+describe("ensureNoNoopExtensions()", () => {
+  it("throws a noop extension error when an extension defines only its name", () => {
     // Act and assert
     assertEngineError(
       () =>
-        ensureExtensionsHaveHooks([
-          { name: "AnalyticsExtension", onCreate: () => {} },
+        ensureNoNoopExtensions([
+          { name: "AnalyticsExtension", onEditorInit: () => {} },
           { name: "AutosaveExtension" },
         ]),
       {
-        ExpectedErrorClass: ExtensionWithoutHooksError,
-        expectedCode: ExtensionErrorCodes.EXTENSION_WITHOUT_HOOKS,
+        ExpectedErrorClass: NoopExtensionError,
+        expectedCode: ExtensionErrorCodes.NOOP_EXTENSION,
         expectedMessage:
-          'The extension "AutosaveExtension" does not define any hooks, so it would never run!',
+          'The extension "AutosaveExtension" defines no hooks and no commands, so it does nothing!',
         expectedContext: { name: "AutosaveExtension" },
       },
     );
   });
 
-  it("does not throw when every extension defines at least one hook", () => {
+  it("throws a noop extension error when an extension defines only events", () => {
+    // Act and assert
+    assertEngineError(
+      () =>
+        ensureNoNoopExtensions([
+          {
+            name: "AutosaveExtension",
+            events: defineEvents<{ "autosave:done": { at: number } }>(),
+          },
+        ]),
+      {
+        ExpectedErrorClass: NoopExtensionError,
+        expectedCode: ExtensionErrorCodes.NOOP_EXTENSION,
+        expectedMessage:
+          'The extension "AutosaveExtension" defines no hooks and no commands, so it does nothing!',
+        expectedContext: { name: "AutosaveExtension" },
+      },
+    );
+  });
+
+  it("throws a noop extension error for an extension factory that was never called", () => {
+    // Arrange
+    const AutosaveExtension = () =>
+      defineExtension({ name: "AutosaveExtension", onEditorInit: () => {} });
+
+    // Act and assert
+    assertEngineError(
+      () => ensureNoNoopExtensions([AutosaveExtension as unknown as Extension]),
+      {
+        ExpectedErrorClass: NoopExtensionError,
+        expectedCode: ExtensionErrorCodes.NOOP_EXTENSION,
+        expectedMessage:
+          'The extension "AutosaveExtension" defines no hooks and no commands, so it does nothing!',
+        expectedContext: { name: "AutosaveExtension" },
+      },
+    );
+  });
+
+  it("does not throw when every extension defines a hook or a command", () => {
     // Act and assert
     expect(() =>
-      ensureExtensionsHaveHooks([
-        { name: "AnalyticsExtension", onCreate: () => {} },
-        { name: "AutosaveExtension", on: { "block:insert": () => {} } },
+      ensureNoNoopExtensions([
+        { name: "AnalyticsExtension", onEditorInit: () => {} },
+        { name: "AutosaveExtension", onEditorDestroy: () => {} },
+        GreetExtension,
       ]),
     ).not.toThrow();
+  });
+});
+
+describe("mergeExtensionCommands()", () => {
+  it("returns the built-in commands and the commands of every extension", () => {
+    // Act
+    const commands = mergeExtensionCommands({ deleteBlock }, [
+      GreetExtension,
+      WaveExtension,
+    ]);
+
+    // Assert
+    expect(Object.keys(commands)).toStrictEqual(["deleteBlock", "greet", "wave"]);
+    expect(commands.deleteBlock).toBe(deleteBlock);
+  });
+
+  it("does not change the built-in commands it receives", () => {
+    // Arrange
+    const builtInCommands = { deleteBlock };
+
+    // Act
+    mergeExtensionCommands(builtInCommands, [GreetExtension]);
+
+    // Assert
+    expect(builtInCommands).toStrictEqual({ deleteBlock });
+  });
+
+  it("throws a duplicate command error when two extensions define the same command", () => {
+    // Arrange
+    const SecondGreetExtension = defineExtension({
+      name: "SecondGreetExtension",
+      commands: ({ createCommand }) => ({
+        greet: createCommand(({ createEvent }) =>
+          createEvent("block:delete", { blockId: "block-1" }),
+        ),
+      }),
+    });
+
+    // Act and assert
+    assertEngineError(
+      () =>
+        mergeExtensionCommands({ deleteBlock }, [
+          GreetExtension,
+          SecondGreetExtension,
+        ]),
+      {
+        ExpectedErrorClass: DuplicateCommandError,
+        expectedCode: ExtensionErrorCodes.DUPLICATE_COMMAND,
+        expectedMessage:
+          'The command "greet" of the extension "SecondGreetExtension" is already registered!',
+        expectedContext: { command: "greet", extension: "SecondGreetExtension" },
+      },
+    );
+  });
+
+  it("throws a duplicate command error when an extension reuses a built-in command name", () => {
+    // Arrange
+    const UntypedDeleteBlockExtension = {
+      name: "UntypedDeleteBlockExtension",
+      commands: () => ({ deleteBlock }),
+    } as unknown as Extension;
+
+    // Act and assert
+    assertEngineError(
+      () => mergeExtensionCommands({ deleteBlock }, [UntypedDeleteBlockExtension]),
+      {
+        ExpectedErrorClass: DuplicateCommandError,
+        expectedCode: ExtensionErrorCodes.DUPLICATE_COMMAND,
+        expectedMessage:
+          'The command "deleteBlock" of the extension "UntypedDeleteBlockExtension" is already registered!',
+        expectedContext: {
+          command: "deleteBlock",
+          extension: "UntypedDeleteBlockExtension",
+        },
+      },
+    );
   });
 });
 
@@ -45,8 +185,8 @@ describe("ensureUniqueExtensionNames()", () => {
     assertEngineError(
       () =>
         ensureUniqueExtensionNames([
-          { name: "AutosaveExtension", onCreate: () => {} },
-          { name: "AutosaveExtension", onDestroy: () => {} },
+          { name: "AutosaveExtension", onEditorInit: () => {} },
+          { name: "AutosaveExtension", onEditorDestroy: () => {} },
         ]),
       {
         ExpectedErrorClass: DuplicateExtensionError,
@@ -62,8 +202,8 @@ describe("ensureUniqueExtensionNames()", () => {
     // Act and assert
     expect(() =>
       ensureUniqueExtensionNames([
-        { name: "AutosaveExtension", onCreate: () => {} },
-        { name: "AnalyticsExtension", onCreate: () => {} },
+        { name: "AutosaveExtension", onEditorInit: () => {} },
+        { name: "AnalyticsExtension", onEditorInit: () => {} },
       ]),
     ).not.toThrow();
   });
@@ -77,14 +217,14 @@ describe("ensureHookIsSynchronous()", () => {
         ensureHookIsSynchronous(
           Promise.resolve(),
           "AutosaveExtension",
-          "afterCommand",
+          "onAfterCommand",
         ),
       {
         ExpectedErrorClass: AsyncExtensionHookError,
         expectedCode: ExtensionErrorCodes.ASYNC_EXTENSION_HOOK,
         expectedMessage:
-          'The "afterCommand" hook of the extension "AutosaveExtension" must be synchronous and cannot return a promise!',
-        expectedContext: { name: "AutosaveExtension", hook: "afterCommand" },
+          'The "onAfterCommand" hook of the extension "AutosaveExtension" must be synchronous and cannot return a promise!',
+        expectedContext: { name: "AutosaveExtension", hook: "onAfterCommand" },
       },
     );
   });
@@ -92,14 +232,14 @@ describe("ensureHookIsSynchronous()", () => {
   it("does not throw when a hook returns nothing or a command", () => {
     // Act and assert
     expect(() =>
-      ensureHookIsSynchronous(undefined, "AutosaveExtension", "beforeCommand"),
+      ensureHookIsSynchronous(undefined, "AutosaveExtension", "onBeforeCommand"),
     ).not.toThrow();
 
     expect(() =>
       ensureHookIsSynchronous(
         { type: "deleteBlock", payload: { blockId: "block-1" } },
         "AutosaveExtension",
-        "beforeCommand",
+        "onBeforeCommand",
       ),
     ).not.toThrow();
   });
